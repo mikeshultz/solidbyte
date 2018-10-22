@@ -4,15 +4,15 @@ Solidity development tools for creating Ethereum smart contracts
 
 ## Commands 
 
-### init [Planning]
+### init [In Progress]
 
 Create a project template or create meta files.
 
-### compile [Planning]
+### compile [In Progress]
 
 Compile the contracts.
 
-### test [Planning]
+### test [In Progress]
 
 Test the contracts using pytest(?)
 
@@ -20,7 +20,7 @@ Test the contracts using pytest(?)
 
 Start a pythonic console for testing contracts.  Provide web3 globally
 
-### deploy [Planning]
+### deploy [In Progress]
 
 Deploy contracts, upgrading where necessary(?)
 
