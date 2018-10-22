@@ -50,7 +50,7 @@ setup(
     },
     entry_points={  # Optional
         'console_scripts': [
-            'sb=solidbyte.cli.handler:main',
+            'sb=solidbyte.cli:main',
         ],
     },
     package_data={
