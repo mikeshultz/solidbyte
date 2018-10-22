@@ -1,0 +1,101 @@
+"""
+Create a global logger
+"""
+import re
+import sys
+import logging
+
+class ConsoleStyle:
+    """ Console coloring and styles """
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    ERROR = '\033[91m'
+    CRITICAL = '\033[31m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m' # Stop all styling
+
+
+class LogFormats:
+    """ Log formats for use for different log levels """
+    DEFAULT = '%(asctime)s [%(levelname)s] %(name)s - %(message)s'
+    ERROR = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.ERROR, ConsoleStyle.END)
+    CRITICAL = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.CRITICAL, ConsoleStyle.END)
+    WARNING = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.WARNING, ConsoleStyle.END)
+    INFO = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.OKGREEN, ConsoleStyle.END)
+    DEBUG = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.OKBLUE, ConsoleStyle.END)
+
+
+class ColoredStyle(object):
+    """ Text styling for the ColoredFormatter.
+
+        Based on: https://github.com/python/cpython/blob/master/Lib/logging/__init__.py#L426
+    """
+    default_format = '%(message)s'
+    asctime_format = '%(asctime)s'
+    asctime_search = '%(asctime)'
+    validation_pattern = re.compile(r'%\(\w+\)[#0+ -]*(\*|\d+)?(\.(\*|\d+))?[diouxefgcrsa%]', re.I)
+
+    def __init__(self):
+        self._fmt = LogFormats.DEFAULT
+
+    def usesTime(self):
+        return self._fmt.find(self.asctime_search) >= 0
+
+    def validate(self):
+        """Validate the input format, ensure it matches the correct style"""
+        if not self.validation_pattern.search(self._fmt):
+            raise ValueError("Invalid format '%s' for '%s' style" % (self._fmt, self.default_format[0]))
+
+    def _format(self, record):
+        if record.levelno == logging.ERROR:
+            return LogFormats.ERROR % record.__dict__
+        elif record.levelno == logging.WARNING:
+            return LogFormats.WARNING % record.__dict__
+        elif record.levelno == logging.INFO:
+            return LogFormats.INFO % record.__dict__
+        elif record.levelno == logging.CRITICAL:
+            return LogFormats.CRITICAL % record.__dict__
+        elif record.levelno == logging.DEBUG:
+            return LogFormats.DEBUG % record.__dict__
+        return self._fmt % record.__dict__
+
+    def format(self, record):
+        try:
+            return self._format(record)
+        except KeyError as e:
+            raise ValueError('Formatting field not found in record: %s' % e)
+
+
+class ColoredFormatter(logging.Formatter):
+    """ Formatter that will use the ColoredStyle class """
+    def __init__(self, fmt=None, datefmt=None, style='%', validate=True):
+        self._style = ColoredStyle()
+        if validate:
+            self._style.validate()
+
+        self._fmt = self._style._fmt
+        self.datefmt = datefmt
+
+
+parent_logger = logging.getLogger()
+
+# Create and add a handler for console output
+console_handler = logging.StreamHandler()
+formatter = ColoredFormatter()
+console_handler.setFormatter(formatter)
+parent_logger.addHandler(console_handler)
+
+if '-d' in sys.argv:
+    console_handler.setLevel(logging.DEBUG)
+    parent_logger.setLevel(logging.DEBUG)
+else:
+    console_handler.setLevel(logging.INFO)
+    parent_logger.setLevel(logging.INFO)
+
+def getLogger(name):
+    return parent_logger.getChild(name)
+
+def loggingShutdown():
+    return logging.shutdown()
