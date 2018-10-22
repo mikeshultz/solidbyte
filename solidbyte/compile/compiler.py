@@ -19,6 +19,33 @@ class Compiler(object):
         """ Compile a single contract with filename """
         log.info("Compiling contract {}".format(filename))
 
+        # Compiler command to run
+        compile_cmd = [
+            SOLC_PATH,
+            '--bin',
+            '--overwrite',
+            '-o',
+            path.join(self.builddir, source_filename_to_name(filename)),
+            path.join(self.dir, filename)
+        ]
+        log.debug("Executing compiler with: {}".format(' '.join(compile_cmd)))
+
+        abi_cmd = [
+            SOLC_PATH,
+            '--abi',
+            '--overwrite',
+            '-o',
+            path.join(self.builddir, source_filename_to_name(filename)),
+            path.join(self.dir, filename)
+        ]
+        log.debug("Executing compiler with: {}".format(' '.join(abi_cmd)))
+
+        # Do the needful
+        compile_retval = check_call(compile_cmd)
+        abi_retval = check_call(abi_cmd)
+        if compile_retval != 0 or abi_retval != 0:
+            raise Exception("Solidity compiler returned non-zero exit code")
+
     def compile_all(self):
         """ Compile a single contract with filename """
 
@@ -30,32 +57,5 @@ class Compiler(object):
         log.debug("contract files: {}".format(contract_files))
 
         for contract in contract_files:
-
-            log.info("Compiling {}".format(contract))
-
-            # Compiler command to run
-            compile_cmd = [
-                SOLC_PATH,
-                '--bin',
-                '--overwrite',
-                '-o',
-                path.join(self.builddir, source_filename_to_name(contract)),
-                path.join(self.dir, contract)
-            ]
-            log.debug("Executing compiler with: {}".format(' '.join(compile_cmd)))
-
-            abi_cmd = [
-                SOLC_PATH,
-                '--abi',
-                '--overwrite',
-                '-o',
-                path.join(self.builddir, source_filename_to_name(contract)),
-                path.join(self.dir, contract)
-            ]
-            log.debug("Executing compiler with: {}".format(' '.join(abi_cmd)))
-
-            # Do the needful
-            compile_retval = check_call(compile_cmd)
-            abi_retval = check_call(abi_cmd)
-            if compile_retval != 0 or abi_retval != 0:
-                raise Exception("Solidity compiler returned non-zero exit code")
+            self.compile(contract)
+            
