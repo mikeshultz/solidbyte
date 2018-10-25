@@ -34,6 +34,8 @@ def main():
         - add_parser_arguments(parser) - A function that takes an argparse 
             parser and adds the arguments it wants for its command 
             implementation.
+        - main(parser_args) - The primary function to run that provides 
+            parser_args as a kwarg
     """
     for mod in MODULES:
         IMPORTED_MODULES[mod] = import_module('solidbyte.cli.{}'.format(mod))
