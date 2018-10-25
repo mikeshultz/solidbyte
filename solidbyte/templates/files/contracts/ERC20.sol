@@ -20,6 +20,14 @@ contract ERC20 is IERC20 {
   uint256 private _totalSupply;
 
   /**
+   * @dev constructor
+   * @param initialSupply The initial supply of tokens
+   */
+  constructor(uint initialSupply) {
+    _mint(msg.sender, initialSupply);
+  }
+
+  /**
   * @dev Total number of tokens in existence
   */
   function totalSupply() public view returns (uint256) {

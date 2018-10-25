@@ -14,6 +14,9 @@ from .metafile import MetaFile
 
 log = getLogger(__name__)
 
+def get_latest_from_deployed(deployed_instances, deployed_hash):
+    return list(filter(lambda x: x['hash'] == deployed_hash, deployed_instances))[0]
+
 class Contracts(object):
 
     def __init__(self, contract_dir=None):
@@ -37,6 +40,11 @@ class Contracts(object):
 
             self.contracts[name] = (abi, bytecode)
 
+        return self.contracts
+
+    def get_deployed_contracts(self):
+        return self.metafile.get_all_contracts()
+
     def deploy(self, name, contract_tuple):
         abi, bytecode = contract_tuple
         bytecode_hash = hash_hexstring(bytecode)
@@ -50,7 +58,6 @@ class Contracts(object):
         meta = self.metafile.get_contract(name)
 
         if meta:
-            print("HAAASSSSHHHESSS", bytecode_hash, meta.get('deployedHash'))
             if bytecode_hash == meta.get('deployedHash'):
                 log.info("Skipping deployment of {}. No changes.".format(name))
                 return None

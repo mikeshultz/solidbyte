@@ -22,22 +22,19 @@ class ERC20Template(Template):
     def initialize(self):
         """ Create a bare project structure """
         self.create_dirs()
-        #self.create_tests()
+        self.create_tests()
         self.create_contracts()
 
     def create_tests(self):
         """ Create the test files """
-        raise NotImplementedError("TODO")
+
+        copy_template_file(self.pwd, 'tests', 'test_erc20.py')
 
     def create_contracts(self):
         """ Create the test files """
 
         log.info("Creating contract templates...")
 
-        # Copy the contract templates
         copy_template_file(self.pwd, 'contracts', 'ERC20.sol')
         copy_template_file(self.pwd, 'contracts', 'IERC20.sol')
         copy_template_file(self.pwd, 'contracts', 'SafeMath.sol')
-
-        # Copy the accompanying tests
-        copy_template_file(self.pwd, 'tests', 'test_erc20.py')

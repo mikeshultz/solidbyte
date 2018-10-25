@@ -36,6 +36,16 @@ class MetaFile(object):
             self._file = openFile.read()
         return True
 
+    def get_all_contracts(self):
+        """ return all meta data for all contracts """
+
+        self._lazy_load()
+
+        if not self._json.get('contracts') or len(self._json['contracts']) < 1:
+            return None
+
+        return self._json['contracts']
+
     def get_contract(self, name):
         """ Get the meta data for a contract """
 
