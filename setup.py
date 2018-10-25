@@ -56,6 +56,7 @@ setup(
     package_data={
         'solidbyte': [
             'bin/solc',
+            'templates/templates/**/files/*'
         ]
     },
     cmdclass={

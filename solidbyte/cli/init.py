@@ -3,7 +3,7 @@
 import sys
 from os import path, mkdir, getcwd
 from ..common.logging import getLogger, parent_logger
-from ..templates import BareTemplate, ERC20Template
+from ..templates import get_templates, init_template
 
 log = getLogger(__name__)
 
@@ -14,8 +14,10 @@ def add_parser_arguments(parser):
                         dest='exclude_migration', help='Exclude migration junk')
     parser.add_argument('--dir-mode', type=str, dest='dir_mode',
                         help='Create directories with mode')
-    parser.add_argument('--erc20', action='store_true', dest='erc20',
-                        help='Create a project template with an ERC20 contract')
+    parser.add_argument('-t', '--template', type=str, dest='template',
+                        help='Create project structure using template')
+    parser.add_argument('-l', '--list-templates', action='store_true', dest='list_templates',
+                        help='Show all available templates')
     return parser
 
 def main(parser_args):
@@ -30,17 +32,16 @@ def main(parser_args):
 
     mode = user_mode or 0o755
 
-    if parser_args.erc20:
+    if parser_args.template:
+        tmpl = init_template(parser_args.template)
         try:
-            tmpl = ERC20Template(dir_mode=mode)
             tmpl.initialize()
         except FileExistsError as e:
             log.critical(str(e))
             sys.exit(1)
-    else:
-        try:
-            tmpl = BareTemplate(dir_mode=mode)
-            tmpl.initialize()
-        except FileExistsError as e:
-            log.critical(str(e))
-            sys.exit(1)
+    elif parser_args.list_templates:
+        templates = get_templates()
+        print("Available templates")
+        print("===================")
+        for tmpl in templates:
+            print(" - {}".format(tmpl))

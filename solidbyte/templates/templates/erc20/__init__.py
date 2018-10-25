@@ -1,17 +1,23 @@
 """ Create a project template with an ERC20 contract and accompanying tests """
 from os import path
+from pathlib import Path
 from shutil import copyfile
-from .template import Template
-from ..common.logging import getLogger, parent_logger
+from ...template import Template
+from ....common.logging import getLogger, parent_logger
 
 log = getLogger(__name__)
-HERE = path.dirname(__file__)
-TEMPLATE_DIR = path.join(HERE, 'files')
+TEMPLATE_DIR = Path(path.dirname(__file__))
 
 def copy_template_file(dest_dir, subdir, filename):
     """ Copy a file from src to dest """
-    source = path.join(TEMPLATE_DIR, subdir, filename)
-    dest = path.join(dest_dir, subdir, filename)
+
+    if type(dest_dir) == str:
+        dest_dir = Path(dest_dir)
+    if type(subdir) == str:
+        subdir = Path(subdir)
+
+    source = TEMPLATE_DIR.joinpath(subdir, filename)
+    dest = dest_dir.joinpath(subdir, filename)
     log.info("Copying {} to {}...".format(filename, dest))
     return copyfile(source, dest)
 
@@ -38,3 +44,6 @@ class ERC20Template(Template):
         copy_template_file(self.pwd, 'contracts', 'ERC20.sol')
         copy_template_file(self.pwd, 'contracts', 'IERC20.sol')
         copy_template_file(self.pwd, 'contracts', 'SafeMath.sol')
+
+def get_template_instance(*args, **kwargs):
+    return ERC20Template(*args, **kwargs)
