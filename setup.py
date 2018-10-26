@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 from subprocess import check_call
+from solidbyte import __version__ as solidbyte_version
 
 pwd = path.abspath(path.dirname(__file__))
 
@@ -26,7 +27,7 @@ class InstallCommand(install):
 
 setup(
     name='solidbyte',
-    version='0.0.1a1',
+    version=solidbyte_version,
     description='Solidity development tools for creating Ethereum smart contracts',
     url='https://github.com/mikeshultz/solidbyte',
     author='Mike Shultz',

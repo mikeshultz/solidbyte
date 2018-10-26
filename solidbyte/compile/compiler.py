@@ -1,6 +1,6 @@
 """ Solidity compiling functionality """
 from os import path, getcwd, listdir
-from subprocess import check_call
+from subprocess import check_call, check_output
 from ..common import builddir, source_filename_to_name
 from ..common.logging import getLogger, parent_logger
 
@@ -14,6 +14,20 @@ class Compiler(object):
     def __init__(self, contract_dir=None):
         self.dir = contract_dir or path.join(getcwd(), 'contracts')
         self.builddir = builddir()
+
+    @property
+    def version(self):
+        """ Get the version of the copmiler """
+        compile_cmd = [
+            SOLC_PATH,
+            '--version',
+        ]
+        version_out = check_output(compile_cmd)
+        try:
+            version_string = version_out.decode('utf8').split('\n')[1]
+            return version_string.replace('Version: ', '')
+        except:
+            return 'err'
 
     def compile(self, filename):
         """ Compile a single contract with filename """

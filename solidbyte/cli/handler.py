@@ -14,7 +14,8 @@ MODULES = [
     'init',
     'test',
     'compile',
-    'deploy'
+    'deploy',
+    'version',
 ]
 
 IMPORTED_MODULES = {}
