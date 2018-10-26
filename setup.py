@@ -1,9 +1,9 @@
+import solidbyte
 from os import path
 from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 from subprocess import check_call
-from solidbyte import __version__ as solidbyte_version
 
 pwd = path.abspath(path.dirname(__file__))
 
@@ -27,11 +27,11 @@ class InstallCommand(install):
 
 setup(
     name='solidbyte',
-    version=solidbyte_version,
+    version=solidbyte.__version__,
     description='Solidity development tools for creating Ethereum smart contracts',
     url='https://github.com/mikeshultz/solidbyte',
-    author='Mike Shultz',
-    author_email='mike@mikeshultz.com',
+    author=solidbyte.__author__,
+    author_email=solidbyte.__email__,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -43,7 +43,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     keywords='solidity ethereum development',
-    packages=find_packages(exclude=['docs', 'tests']),
+    packages=find_packages(exclude=['docs', 'tests', 'scripts', 'build']),
     install_requires=open(path.join(pwd, 'requirements.txt')).read().split(),
     extras_require={
         'dev': open(path.join(pwd, 'requirements.dev.txt')).read().split(),
