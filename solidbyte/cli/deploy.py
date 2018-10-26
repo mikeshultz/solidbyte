@@ -1,19 +1,40 @@
 """ compile project contracts
 """
-from ..deploy import Contracts
+import sys
+from ..compile import compile_all
+from ..deploy import Deployer
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
-    #parser.add_argument('-d', action='store_true', default=False,
-    #                    help='debug level output')
+    #parser.add_argument('-c', '--contract', action='store_true', default=False,
+    #                    help='Deploy only specified contract')
+    #parser.add_argument('-f', '--force', action='store_true', default=False,
+    #                    help='Force deployment(not recommended)')
     return parser
 
 def main(parser_args):
     """ Deploy contracts """
     log.info("Deploying contracts...")
 
-    contracts = Contracts()
-    contracts.deploy_all()
+    deployer = Deployer()
+    compile_all()
+    deployer.refresh() # TODO: Necessary?
+
+    # Make sure we actually need to deploy
+    if not deployer.check_needs_deploy():
+        log.info("No changes, deployment unnecessary")
+        sys.exit()
+
+    deployer.deploy()
+
+    contracts = deployer.contracts
+
+    log.info("Contracts fully deployed!")
+    log.info("--------------------------------------")
+    for name in deployer.contracts.keys():
+        contract = deployer.contracts[name]
+        log.info("{}: {}".format(contract.name, contract.address))
+    log.info("--------------------------------------")

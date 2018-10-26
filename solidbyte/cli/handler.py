@@ -53,7 +53,6 @@ def main():
         log.error('Unknown command: {}'.format(args.command))
         sys.exit(2)
 
-    print("Module {}: {}".format(args.command, IMPORTED_MODULES[args.command]))
     IMPORTED_MODULES[args.command].main(parser_args=args)
 
     loggingShutdown()

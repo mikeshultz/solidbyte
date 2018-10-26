@@ -9,7 +9,6 @@ log = getLogger(__name__)
 
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
-    print("adding new args")
     parser.add_argument('-m', action='store_true', default=False,
                         dest='exclude_migration', help='Exclude migration junk')
     parser.add_argument('--dir-mode', type=str, dest='dir_mode',

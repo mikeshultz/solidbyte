@@ -30,6 +30,7 @@ class ERC20Template(Template):
         self.create_dirs()
         self.create_tests()
         self.create_contracts()
+        self.create_deployment()
 
     def create_tests(self):
         """ Create the test files """
@@ -44,6 +45,14 @@ class ERC20Template(Template):
         copy_template_file(self.pwd, 'contracts', 'ERC20.sol')
         copy_template_file(self.pwd, 'contracts', 'IERC20.sol')
         copy_template_file(self.pwd, 'contracts', 'SafeMath.sol')
+
+    def create_deployment(self):
+        """ Create the deploy file """
+
+        log.info("Creating contract deploy scripts...")
+
+        copy_template_file(self.pwd, 'deploy', '__init__.py')
+        copy_template_file(self.pwd, 'deploy', 'deploy_main.py')
 
 def get_template_instance(*args, **kwargs):
     return ERC20Template(*args, **kwargs)

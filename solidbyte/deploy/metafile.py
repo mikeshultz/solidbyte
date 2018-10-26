@@ -19,7 +19,7 @@ class MetaFile(object):
         self._file = None
         self._json = None
 
-    def _lazy_load(self):
+    def _load(self):
         """ Lazily load the metafile """
         if not self._file:
             if not path.exists(self.file_name):
@@ -39,17 +39,17 @@ class MetaFile(object):
     def get_all_contracts(self):
         """ return all meta data for all contracts """
 
-        self._lazy_load()
+        self._load()
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
-            return None
+            return {}
 
         return self._json['contracts']
 
     def get_contract(self, name):
         """ Get the meta data for a contract """
 
-        self._lazy_load()
+        self._load()
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
             return None
@@ -64,7 +64,7 @@ class MetaFile(object):
 
     def get_contract_index(self, name):
 
-        self._lazy_load()
+        self._load()
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
             return None
@@ -76,7 +76,7 @@ class MetaFile(object):
             i += 1
         return None
 
-    def add(self, name, address, bytecode_hash):
+    def add(self, name, address, abi, bytecode_hash):
         contract_idx = self.get_contract_index(name)
         address = normalize_address(address)
         bytecode_hash = normalize_hexstring(bytecode_hash)
@@ -87,6 +87,7 @@ class MetaFile(object):
                 'hash': bytecode_hash,
                 'date': datetime.now().isoformat(),
                 'address': address,
+                'abi': abi,
                 })
         else:
             if not self._json.get('contracts'):
@@ -99,6 +100,7 @@ class MetaFile(object):
                         'hash': bytecode_hash,
                         'date': datetime.now().isoformat(),
                         'address': address,
+                        'abi': abi,
                     }
                 ],
                 })
