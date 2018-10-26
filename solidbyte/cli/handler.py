@@ -41,13 +41,19 @@ def main():
         IMPORTED_MODULES[mod] = import_module('solidbyte.cli.{}'.format(mod))
         module_subparser = subparsers.add_parser(mod, help=IMPORTED_MODULES[mod].__doc__)
         module_subparser = IMPORTED_MODULES[mod].add_parser_arguments(module_subparser)
-    
+
+    # Help command
+    subparsers.add_parser('help', help='print usage')
 
     args = parser.parse_args()
 
     if not hasattr(args, 'command') or len(args.command) < 1:
         log.warn('noop')
         sys.exit(1)
+
+    if args.command == 'help':
+        parser.print_help()
+        sys.exit(0)
     
     if args.command not in MODULES:
         log.error('Unknown command: {}'.format(args.command))

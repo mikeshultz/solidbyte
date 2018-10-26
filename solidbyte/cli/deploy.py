@@ -1,4 +1,4 @@
-""" compile project contracts
+""" deploy contracts where necessary
 """
 import sys
 from ..compile import compile_all
