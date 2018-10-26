@@ -17,6 +17,7 @@ MODULES = [
     'deploy',
     'version',
     'show',
+    'console',
 ]
 
 IMPORTED_MODULES = {}
