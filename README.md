@@ -70,14 +70,18 @@ Proposed structure:
         "contracts": [
             {
                 "name": "ExampleContract",
-                "deployedHash": "0xdeadbeef...",
-                "deployedInstances": [
-                    {
-                        "hash": "0xdeadbeef...",
-                        "date": "2018-10-21 00:00:00T-7",
-                        "address": "0xdeadbeef...",
+                "networks": {
+                    "1": {
+                        "deployedHash": "0xdeadbeef...",
+                        "deployedInstances": [
+                            {
+                                "hash": "0xdeadbeef...",
+                                "date": "2018-10-21 00:00:00T-7",
+                                "address": "0xdeadbeef...",
+                            }
+                        ]
                     }
-                ]
+                }
             }
         ],
     }

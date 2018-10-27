@@ -18,11 +18,12 @@ class Deployment(object):
         self.abi = abi
 
 class Contract(object):
-    def __init__(self, source_contract=None, metafile_contract=None, metafile=None):
+    def __init__(self, network_id, source_contract=None, metafile_contract=None, metafile=None):
         self.name = None
         self.deployedHash = None
         self.source_bytecode = None
         self.source_abi = None
+        self.network_id = network_id
         self.metafile = metafile
         if metafile_contract:
             self._process_metafile_contract(metafile_contract)
@@ -73,7 +74,7 @@ class Contract(object):
                 bytecode_hash=inst.get('hash'),
                 date=inst.get('date'),
                 address=inst.get('address'),
-                network=inst.get('network'),
+                network=inst.get('network_id'),
                 abi=inst.get('abi'),
                 ))
 
@@ -81,10 +82,10 @@ class Contract(object):
         self.name = metafile_contract.get('name')
         self.deployedHash = metafile_contract.get('deployedHash')
 
-        if metafile_contract.get('deployedInstances') \
-            and len(metafile_contract['deployedInstances']) > 0:
+        if metafile_contract.networks[self.network_id].get('deployedInstances') \
+            and len(metafile_contract.networks[self.network_id]['deployedInstances']) > 0:
 
-            self._process_instances(metafile_contract['deployedInstances'])
+            self._process_instances(metafile_contract.networks[self.network_id]['deployedInstances'])
 
     def _process_source_contract(self, source):
         self.name = source.name
@@ -99,10 +100,10 @@ class Contract(object):
                 bytecode_hash=bytecode_hash,
                 date=datetime.now().isoformat(),
                 address=addr,
-                network=1, # TODO: Support network
+                network=self.network_id,
                 abi=self.source_abi,
                 ))
-        self.metafile.add(self.name, addr, self.source_abi, bytecode_hash)
+        self.metafile.add(self.name, self.network_id, addr, self.source_abi, bytecode_hash)
         return self._get_web3_contract()
 
     def _get_web3_contract(self):

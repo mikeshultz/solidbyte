@@ -17,15 +17,15 @@ def deploy_contract(abi, bytecode, *args, **kwargs):
         log.debug("deploy_contract args:\n{}\n{}".format(abi, bytecode))
         raise e
 
-def normalize_address(addr):
-    if isinstance(addr, bytes):
-        addr = addr.hex()
-    return addr
-
 def normalize_hexstring(hexstr):
     if isinstance(hexstr, bytes):
         hexstr = hexstr.hex()
+    if hexstr[:2] != '0x':
+        hexstr = '0x{}'.format(hexstr)
     return hexstr
+
+def normalize_address(addr):
+    return normalize_hexstring(addr)
 
 def hash_hexstring(hexbytes):
     assert hexbytes is not None, "hexbytes provided to hash_hexstring is None"

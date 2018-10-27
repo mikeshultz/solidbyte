@@ -9,6 +9,8 @@ log = getLogger(__name__)
 
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
+    parser.add_argument('-n', '--network', type=str, required=True,
+                        help='Ethereum network to deploy contracts to')
     #parser.add_argument('-c', '--contract', action='store_true', default=False,
     #                    help='Deploy only specified contract')
     #parser.add_argument('-f', '--force', action='store_true', default=False,

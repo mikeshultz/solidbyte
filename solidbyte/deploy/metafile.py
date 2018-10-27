@@ -1,7 +1,32 @@
-""" Store and retrieve metdata about a contract for this project """
+"""
+Store and retrieve metdata about a contract for this project 
+
+Example JSON structure:
+
+    {
+        "contracts": [
+            {
+                "name": "ExampleContract",
+                "networks": {
+                    "1": {
+                        "deployedHash": "0xdeadbeef...",
+                        "deployedInstances": [
+                            {
+                                "hash": "0xdeadbeef...",
+                                "date": "2018-10-21 00:00:00T-7",
+                                "address": "0xdeadbeef...",
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+    }
+"""
 import json
 from os import path
 from datetime import datetime
+from attrdict import AttrDict
 from ..common import builddir
 from ..common.logging import getLogger
 from ..common.web3 import normalize_address, normalize_hexstring
@@ -76,33 +101,37 @@ class MetaFile(object):
             i += 1
         return None
 
-    def add(self, name, address, abi, bytecode_hash):
+    def add(self, name, network_id, address, abi, bytecode_hash):
         contract_idx = self.get_contract_index(name)
         address = normalize_address(address)
         bytecode_hash = normalize_hexstring(bytecode_hash)
 
         if contract_idx is not None:
-            self._json['contracts'][contract_idx]['deployedHash'] = bytecode_hash
-            self._json['contracts'][contract_idx]['deployedInstances'].append({
+            self._json['contracts'][contract_idx]['networks'][network_id]['deployedHash'] = bytecode_hash
+            self._json['contracts'][contract_idx]['networks'][network_id]['deployedInstances'].append(AttrDict({
                 'hash': bytecode_hash,
                 'date': datetime.now().isoformat(),
                 'address': address,
                 'abi': abi,
-                })
+                }))
         else:
             if not self._json.get('contracts'):
                 self._json['contracts'] = []
-            self._json['contracts'].append({
+            self._json['contracts'].append(AttrDict({
                 'name': name,
-                'deployedHash': bytecode_hash,
-                'deployedInstances': [
-                    {
-                        'hash': bytecode_hash,
-                        'date': datetime.now().isoformat(),
-                        'address': address,
-                        'abi': abi,
+                'networks': {
+                    network_id: {
+                        'deployedHash': bytecode_hash,
+                        'deployedInstances': [
+                            {
+                                'hash': bytecode_hash,
+                                'date': datetime.now().isoformat(),
+                                'address': address,
+                                'abi': abi,
+                            }
+                        ],
                     }
-                ],
-                })
+                }
+                }))
 
         return self._save()

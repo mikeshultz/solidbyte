@@ -15,6 +15,7 @@ def main(parser_args):
     deployer = Deployer()
     source_contracts = deployer.get_source_contracts()
     metafile = MetaFile()
+    network_id = 1
 
     print("Current Deployed Contracts")
     print("==========================")
@@ -24,10 +25,11 @@ def main(parser_args):
         date = 'n/a'
         deployed_c = metafile.get_contract(c.name)
         if deployed_c \
-            and deployed_c.get('deployedInstances') \
-            and len(deployed_c.get('deployedInstances')) > 0:
+            and deployed_c.networks.get(network_id) \
+            and deployed_c.networks[network_id].get('deployedInstances') \
+            and len(deployed_c.networks[network_id]['deployedInstances']) > 0:
 
-            addr = deployed_c['deployedInstances'][-1].get('address')
-            date = deployed_c['deployedInstances'][-1].get('date')
+            addr = deployed_c.networks[network_id]['deployedInstances'][-1].get('address')
+            date = deployed_c.networks[network_id]['deployedInstances'][-1].get('date')
 
         print("{}: {} ({})".format(name, addr, date))
