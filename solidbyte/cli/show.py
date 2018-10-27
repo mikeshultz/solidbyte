@@ -2,7 +2,7 @@
 """
 from ..common.logging import getLogger, parent_logger
 from ..deploy import Deployer
-from ..deploy.metafile import MetaFile
+from ..common.metafile import MetaFile
 
 log = getLogger(__name__)
 

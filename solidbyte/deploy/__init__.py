@@ -15,7 +15,7 @@ from ..common.web3 import (
     normalize_address,
     normalize_hexstring,
 )
-from .metafile import MetaFile
+from ..common.metafile import MetaFile
 from .objects import Contract
 
 log = getLogger(__name__)
