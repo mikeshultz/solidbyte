@@ -1,6 +1,7 @@
 """ Objects and utility functions for account operations """
 import os
 import json
+from getpass import getpass
 from pathlib import Path
 from datetime import datetime
 from attrdict import AttrDict
@@ -67,6 +68,7 @@ class Accounts(object):
                 addr = normalize_hexstring(jason.get('address'))
                 self.accounts.append(AttrDict({
                     'address': addr,
+                    'filename': file,
                     'balance': web3.fromWei(
                         web3.eth.getBalance(web3.toChecksumAddress(addr)),
                         'ether'
@@ -76,16 +78,53 @@ class Accounts(object):
     def refresh():
         self._load_accounts(True)
 
+    def get_account(self, address):
+        """ Return all the known account addresses """
+
+        self._load_accounts()
+
+        for a in self.accounts:
+            if a.address == address:
+                return a
+
+        raise FileNotFoundError("Unable to find requested account")
+
     def get_accounts(self):
         """ Return all the known account addresses """
+
         self._load_accounts()
+
         return self.accounts
 
     def create_account(self, password):
         """ Create a new account and encrypt it with password """
+
         new_account = self.eth_account.create(os.urandom(len(password) * 2))
         encrypted_account = Account.encrypt(new_account.privateKey, password)
 
         self._write_json_file(encrypted_account)
 
         return new_account.address
+
+    def unlock(self, account_address, password=None):
+        """ Unlock an account keystore file and return the private key """
+
+        log.debug("Unlocking account {}".format(account_address))
+
+        if not password:
+            password = getpass("Enter password to decrypt account ({}):".format(account_address))
+
+        account = self.get_account(account_address)
+        jason = self._read_json_file(account.filename)
+        return self.eth_account.decrypt(jason, password)
+
+    def sign_tx(self, account_address, tx, password=None):
+        """ Sign a transaction using the provided account """
+
+        log.debug("Signing tx with account {}".format(account_address))
+
+        if not password:
+            password = getpass("Enter password to decrypt account ({}):".format(account_address))
+
+        privkey = self.unlock(account_address, password)
+        return web3.eth.account.signTransaction(tx, privkey)

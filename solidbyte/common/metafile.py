@@ -35,6 +35,24 @@ log = getLogger(__name__)
 
 METAFILE_FILENAME = 'metafile.json'
 
+def autoload(f):
+    """ Automatically load the metafile before method execution """
+    def wrapper(*args, **kwargs):
+        # A bit defensive, but make sure this is a decorator of a MetaFile method
+        if len(args) > 0 and isinstance(args[0], MetaFile):
+            args[0]._load()
+        return f(*args, **kwargs)
+    return wrapper
+
+def autosave(f):
+    """ Automatically save the metafile after method execution """
+    def wrapper(*args, **kwargs):
+        retval = f(*args, **kwargs)
+        # A bit defensive, but make sure this is a decorator of a MetaFile method
+        if len(args) > 0 and isinstance(args[0], MetaFile):
+            args[0]._save()
+    return wrapper
+
 class MetaFile(object):
     """ Class representing the project metafile """
 
@@ -61,20 +79,18 @@ class MetaFile(object):
             self._file = openFile.read()
         return True
 
+    @autoload
     def get_all_contracts(self):
         """ return all meta data for all contracts """
-
-        self._load()
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
             return {}
 
         return self._json['contracts']
 
+    @autoload
     def get_contract(self, name):
         """ Get the meta data for a contract """
-
-        self._load()
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
             return None
@@ -87,9 +103,8 @@ class MetaFile(object):
 
         return entries[0]
 
+    @autoload
     def get_contract_index(self, name):
-
-        self._load()
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
             return None
@@ -101,6 +116,8 @@ class MetaFile(object):
             i += 1
         return None
 
+    @autoload
+    @autosave
     def add(self, name, network_id, address, abi, bytecode_hash):
         contract_idx = self.get_contract_index(name)
         address = normalize_address(address)
@@ -134,4 +151,49 @@ class MetaFile(object):
                 }
                 }))
 
-        return self._save()
+    @autoload
+    def account_known(self, address):
+        """ Check if an account is known """
+        if type(self._json['seenAccounts']) != list:
+            return False
+
+        account_idx = -1
+        try:
+            account_idx = self._json['seenAccounts'].index(address)
+        except ValueError: pass
+
+        if account_idx > -1:
+            return True
+
+        return False
+
+    @autoload
+    @autosave
+    def add_account(self, address):
+        """ Add an account to seenAccounts """
+        address = normalize_address(address)
+
+        if not self._json.get('seenAccounts'):
+            self._json['seenAccounts'] = []
+
+        if self.account_known(address):
+            return
+
+        self._json['seenAccounts'].append(address)
+
+    @autoload
+    @autosave
+    def set_default_account(self, address):
+        """ Set the default account """
+
+        address = normalize_address(address)
+
+        # Make sure we know about it
+        self.add_account(address)
+
+        self._json['defaultAccount'] = address
+
+    @autoload
+    def get_default_account(self):
+        """ Get the default account """
+        return self._json.get('defaultAccount')

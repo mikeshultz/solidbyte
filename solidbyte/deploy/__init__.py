@@ -7,11 +7,12 @@ from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from attrdict import AttrDict
 from ..common import builddir, source_filename_to_name
+from ..common.exceptions import SolidbyteException, DeploymentError
 from ..common.logging import getLogger
 from ..common.web3 import (
     web3,
     hash_hexstring,
-    deploy_contract,
+    create_deploy_tx,
     normalize_address,
     normalize_hexstring,
 )
@@ -25,7 +26,8 @@ def get_latest_from_deployed(deployed_instances, deployed_hash):
 
 class Deployer(object):
 
-    def __init__(self, contract_dir=None, deploy_dir=None):
+    def __init__(self, network_id, account=None, contract_dir=None, deploy_dir=None):
+        self.network_id = network_id
         self.contracts_dir = contract_dir or path.join(getcwd(), 'contracts')
         self.deploy_dir = deploy_dir or path.join(getcwd(), 'deploy')
         self.builddir = builddir()
@@ -33,6 +35,10 @@ class Deployer(object):
         self._source_contracts = AttrDict()
         self._deploy_scripts = []
         self.metafile = MetaFile()
+        if account:
+            self.account = web3.toChecksumAddress(account)
+        else:
+            self.account = self.metafile.get_default_account()
 
         if not path.isdir(self.contracts_dir):
             raise FileNotFoundError("contracts directory does not exist")
@@ -78,6 +84,8 @@ class Deployer(object):
         self._contracts = AttrDict()
         for key in self.source_contracts.keys():
             contract = Contract(
+                network_id=self.network_id,
+                from_account=self.account,
                 metafile_contract=self.deployed_contracts.get(key),
                 source_contract=self.source_contracts[key],
                 metafile=self.metafile,
@@ -92,7 +100,7 @@ class Deployer(object):
         script_dir = Path(self.deploy_dir)
         
         if not script_dir.is_dir():
-            raise Exception("deploy directory does not appear to be a directory")
+            raise DeploymentError("deploy directory does not appear to be a directory")
 
         for node in script_dir.iterdir():
             if node.is_file() \
@@ -104,7 +112,7 @@ class Deployer(object):
                     self._deploy_scripts.append(mod)
                 except ModuleNotFoundError as e:
                     if str(e) == "No module named 'deploy'":
-                        raise Exception("Unable to find deploy module.  Missing deploy/__init__.py?")
+                        raise DeploymentError("Unable to find deploy module.  Missing deploy/__init__.py?")
                     else:
                         raise e
 
@@ -149,6 +157,13 @@ class Deployer(object):
     def deploy(self):
         """ Deploy the contracts in some fashion lol """
 
+        if not self.account:
+            raise DeploymentError("Account needs to be set for deployment")
+        if self.account and web3.eth.getBalance(self.account) == 0:
+            raise DeploymentError("Account has zero balance ({})".format(self.account))
+        if self.network_id != (web3.net.chainId or web3.net.version):
+            raise DeploymentError("Connected node is does not match the provided chain ID")
+
         self._load_user_scripts()
 
         available_kwargs = self._get_script_kwargs()
@@ -164,6 +179,6 @@ class Deployer(object):
             script_kwargs = { k: available_kwargs.get(k) for k in spec.args }
             retval = script.main(**script_kwargs)
             if retval != True:
-                raise Exception("Deploy script did not complete properly!")
+                raise DeploymentError("Deploy script did not complete properly!")
 
         return True

@@ -1,9 +1,11 @@
 """ Contract deployer """
 from datetime import datetime
+from ..accounts import Accounts
 from ..common.web3 import (
     web3,
     hash_hexstring,
-    deploy_contract,
+    create_deploy_tx,
+    next_nonce,
 )
 from ..common.logging import getLogger
 
@@ -18,13 +20,15 @@ class Deployment(object):
         self.abi = abi
 
 class Contract(object):
-    def __init__(self, network_id, source_contract=None, metafile_contract=None, metafile=None):
+    def __init__(self, network_id, from_account, source_contract=None, metafile_contract=None, metafile=None):
         self.name = None
         self.deployedHash = None
         self.source_bytecode = None
         self.source_abi = None
+        self.from_account = from_account
         self.network_id = network_id
         self.metafile = metafile
+        self.accounts = Accounts()
         if metafile_contract:
             self._process_metafile_contract(metafile_contract)
         if source_contract:
@@ -69,7 +73,14 @@ class Contract(object):
             metafile.
         """
         self.deployments = []
+        last_date = None
+        latest_address = None
         for inst in metafile_instances:
+            # We want the latest deployed address for the active network
+            if inst.get('date') > last_date:
+                latest_address = inst.get('address')
+                last_date = inst.get('date')
+
             self.deployments.append(Deployment(
                 bytecode_hash=inst.get('hash'),
                 date=inst.get('date'),
@@ -78,14 +89,18 @@ class Contract(object):
                 abi=inst.get('abi'),
                 ))
 
+        self.address = latest_address
+
     def _process_metafile_contract(self, metafile_contract):
         self.name = metafile_contract.get('name')
-        self.deployedHash = metafile_contract.get('deployedHash')
 
-        if metafile_contract.networks[self.network_id].get('deployedInstances') \
-            and len(metafile_contract.networks[self.network_id]['deployedInstances']) > 0:
+        if metafile_contract.networks.get(self.network_id):
+            self.deployedHash = metafile_contract.networks[self.network_id].get('deployedHash')
+            
+            if metafile_contract.networks[self.network_id].get('deployedInstances') \
+                and len(metafile_contract.networks[self.network_id]['deployedInstances']) > 0:
 
-            self._process_instances(metafile_contract.networks[self.network_id]['deployedInstances'])
+                self._process_instances(metafile_contract.networks[self.network_id]['deployedInstances'])
 
     def _process_source_contract(self, source):
         self.name = source.name
@@ -94,16 +109,36 @@ class Contract(object):
 
     def _deploy(self, *args, **kwargs):
         """ Deploy the contract """
-        addr = deploy_contract(self.source_abi, self.source_bytecode, *args, **kwargs)
+
+        print('address', self.from_account)
+        nonce = next_nonce(self.from_account)
+        # Create the tx object
+        deploy_tx = create_deploy_tx(self.source_abi, self.source_bytecode, {
+             'chainId': int(self.network_id),
+             'gas': int(3e6), # TODO: We need to be able to adjust these
+             'gasPrice': web3.toWei('3', 'gwei'),
+             'nonce': nonce,
+             'from': self.from_account,
+            }, *args, **kwargs)
+
+        # Sign it
+        signed_tx = self.accounts.sign_tx(self.from_account, deploy_tx)
+
+        # Send it
+        deploy_txhash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
+        # Wait for it to be mined
+        deploy_receipt = web3.eth.waitForTransactionReceipt(deploy_txhash)
+        
         bytecode_hash = hash_hexstring(self.source_bytecode)
         self.deployments.append(Deployment(
                 bytecode_hash=bytecode_hash,
                 date=datetime.now().isoformat(),
-                address=addr,
+                address=deploy_receipt.contractAddress,
                 network=self.network_id,
                 abi=self.source_abi,
                 ))
-        self.metafile.add(self.name, self.network_id, addr, self.source_abi, bytecode_hash)
+        self.metafile.add(self.name, self.network_id, deploy_receipt.contractAddress, self.source_abi, bytecode_hash)
         return self._get_web3_contract()
 
     def _get_web3_contract(self):
@@ -120,6 +155,6 @@ class Contract(object):
 
         try:
             return self._deploy(*args, **kwargs)
-        except:
-            log.exception("Error deploying contract")
-            return None
+        except Exception as e:
+            log.exception("Unknown error deploying contract")
+            raise e

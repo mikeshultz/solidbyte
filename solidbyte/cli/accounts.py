@@ -2,6 +2,7 @@
 """
 from getpass import getpass
 from ..accounts import Accounts
+from ..common.metafile import MetaFile
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -23,10 +24,13 @@ def add_parser_arguments(parser):
     list_parser = subparsers.add_parser('list', help="List all accounts")
     
     # Create account
-    list_parser = subparsers.add_parser('create', help="Create a new account")
+    create_parser = subparsers.add_parser('create', help="Create a new account")
     
     # Set default account
-    list_parser = subparsers.add_parser('default', help="Set the default account")
+    default_parser = subparsers.add_parser('default', help="Set the default account")
+    default_parser.add_argument('-a', '--address', type=str,
+                        dest="default_address", required=True,
+                        help='The address of the account to set default')
 
     return parser
 
@@ -41,8 +45,20 @@ def main(parser_args):
         password = getpass('Encryption password:')
         addr = accts.create_account(password)
         print("Created new account: {}".format(addr))
+    elif parser_args.account_command == 'default':
+        print("Setting default account to: {}".format(parser_args.default_address))
+        
+        metafile = MetaFile()
+        metafile.set_default_account(parser_args.default_address)
     else:
+        metafile = MetaFile()
+        default_account = metafile.get_default_account()
+        default_string = lambda a: "*" if a.address == default_account else ""
         print("Accounts")
         print("========")
         for a in accts.get_accounts():
-            print('{} [bal: {}]'.format(a.address, a.balance))
+            print('{}{} [bal: {}]'.format(
+                default_string(a),
+                a.address,
+                a.balance
+                ))

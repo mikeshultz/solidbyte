@@ -5,17 +5,17 @@ from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
-def deploy_contract(abi, bytecode, *args, **kwargs):
+def create_deploy_tx(abi, bytecode, tx, *args, **kwargs):
     try:
-        web3.eth.defaultAccount = web3.eth.accounts[0]
         inst = web3.eth.contract(abi=abi, bytecode=bytecode)
-        deploy_txhash = inst.constructor(*args, **kwargs).transact()
-        deploy_receipt = web3.eth.waitForTransactionReceipt(deploy_txhash)
-        return deploy_receipt.contractAddress
+        return inst.constructor(*args, **kwargs).buildTransaction(tx)
     except Exception as e:
-        log.exception("Error deploying contract")
-        log.debug("deploy_contract args:\n{}\n{}".format(abi, bytecode))
+        log.exception("Error creating deploy transaction")
+        log.debug("create_deploy_tx args:\n{}\n{}".format(abi, bytecode))
         raise e
+
+def next_nonce(address):
+    return web3.eth.getTransactionCount(address)
 
 def normalize_hexstring(hexstr):
     if isinstance(hexstr, bytes):
@@ -25,7 +25,7 @@ def normalize_hexstring(hexstr):
     return hexstr
 
 def normalize_address(addr):
-    return normalize_hexstring(addr)
+    return web3.toChecksumAddress(normalize_hexstring(addr))
 
 def hash_hexstring(hexbytes):
     assert hexbytes is not None, "hexbytes provided to hash_hexstring is None"

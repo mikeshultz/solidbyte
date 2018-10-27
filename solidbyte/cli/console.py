@@ -6,6 +6,8 @@ from ..console import SolidbyteConsole
 log = getLogger(__name__)
 
 def add_parser_arguments(parser):
+    parser.add_argument('-n', '--network', type=str, required=True,
+                        help='Ethereum network to connect the console to')
     return parser
 
 def main(parser_args):
@@ -13,6 +15,6 @@ def main(parser_args):
 
     log.info("Starting interactive console...")
 
-    shell = SolidbyteConsole()
+    shell = SolidbyteConsole(network_id=parser_args.network)
     shell.interact()
     shell.save_history(shell.histfile)
