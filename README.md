@@ -2,86 +2,40 @@
 
 Solidity development tools for creating Ethereum smart contracts
 
-## Commands 
+## Contents
 
-### init
+ - [Documentation](docs/index.md)
+ - [Command Reference](docs/commands.md)
+ - [metafile.json](docs/metafile.md)
+ - [networks.yml](docs/networks.md)
 
-Create a project using a template or bare.  For instance, creating an ERC20 
-project from the template: 
+## Quickstart
 
-    sb init -t erc20
+### 1) Install Solidbyte
 
-### compile [In Progress]
+First, install solidbyte.  The easiest way to do that is from [PyPi](https://pypi.org)
+with `pip`.
 
-Compile the contracts.
+    pip install solidbyte
 
-    sb compile
+### 2) Setup your project
 
-### test [In Progress]
+To get your project going, create a directory for your project and change to it.
+Most `sb` commands need to be run from the root of your project directory.
 
-Test the contracts using pytest(?)
+    mkdir myproject && cd myproject
+    sb init
 
-    sb test
+Now, all you should have a bare project structure created.  You could also
+`init` with [an available template](templates.md), but for the purposes of this
+doc, we're just going to create a bare structure.
 
-### console 
+Your contracts should be in the `contracts` directory.  Your Solidity or Vyper
+contracts can be in any directory under it.
 
-Start a pythonic console for testing contracts.  Provides web3 and contracts as local variables.
+The `deploy` directory will hold your [deployment scripts](deployment.md).
 
-    $ sb console
-    2018-10-26 12:23:32,922 [INFO] solidbyte.cli.console - Starting interactive console...
-    Solidbyte Console (0.0.1b1)
-    ------------------------------
-    Available deployed contracts: ERC20
-    Available locals: web3
-    >>> web3.fromWei(ERC20.functions.balanceOf(web3.eth.accounts[0]).call(), 'ether')
-    Decimal('1000')
+And `tests` will contain your [contract unit tests](testing.md).
 
-### deploy [In Progress]
-
-Deploy contracts, upgrading where necessary(?)
-
-### script [Planning]
-
-Execute a python script within the context of soidbyte
-
-### help
-
-Show usage
-
-### install [Planning]
-
-Ethereum package registry? https://www.ethpm.com/
-
-### show
-
-Show details about the deployed contracts
-
-### version
-
-Show versions of solidbyte, the compiler, and associated tools
-
-## metafile.json
-
-This file holds all the metadata for contract deployments.  TBD
-
-Proposed structure: 
-
-    {
-        "contracts": [
-            {
-                "name": "ExampleContract",
-                "networks": {
-                    "1": {
-                        "deployedHash": "0xdeadbeef...",
-                        "deployedInstances": [
-                            {
-                                "hash": "0xdeadbeef...",
-                                "date": "2018-10-21 00:00:00T-7",
-                                "address": "0xdeadbeef...",
-                            }
-                        ]
-                    }
-                }
-            }
-        ],
-    }
+The `build` directory probably doesn't exist yet.  This will be created by
+solidbyte when necessary.
