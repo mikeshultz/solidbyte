@@ -1,2 +1,2 @@
-eth-accoun=0.3.0
+eth-account==0.3.0
 web3==4.7.2
