@@ -1,0 +1,4 @@
+# networks.yml
+---
+dev:
+  type: auto

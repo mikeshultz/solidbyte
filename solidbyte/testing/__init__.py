@@ -1,7 +1,7 @@
 import pytest
 from attrdict import AttrDict
 from ..deploy import Deployer, get_latest_from_deployed
-from ..common.web3 import web3
+from ..common.web3 import web3c
 
 class SolidbyteTestPlugin(object):
     def pytest_sessionfinish(self):
@@ -9,6 +9,7 @@ class SolidbyteTestPlugin(object):
 
     @pytest.fixture
     def contracts(self):
+        web3 = web3c.get_web3()
         d = Deployer()
         contracts_meta = d.deployed_contracts
         contracts_compiled = d.source_contracts
@@ -21,6 +22,7 @@ class SolidbyteTestPlugin(object):
 
     @pytest.fixture
     def web3(self):
+        web3 = web3c.get_web3()
         return web3
 
 def run_tests():

@@ -4,7 +4,7 @@ import os
 import readline
 import rlcompleter
 import solidbyte
-from ..common.web3 import web3
+from ..common.web3 import web3c
 from ..common.logging import getLogger, parent_logger
 from ..deploy import Deployer, get_latest_from_deployed
 
@@ -25,12 +25,16 @@ def get_default_banner(network_id, contracts=[], variables={}):
 
 
 class SolidbyteConsole(code.InteractiveConsole):
-    def __init__(self, _locals=None, filename="<console>", network_id=None,
+    def __init__(self, _locals=None, filename="<console>", network_name=None,
                  histfile=os.path.expanduser("~/.solidbyte-history")):
 
-        if not _locals:
+        log.debug("Connecting to network {}...".format(network_name))
+        self.web3 = web3c.get_web3(network_name)
 
-            d = Deployer(network_id=network_id)
+        if not _locals:
+            network_id = self.web3.net.chainId or self.web3.net.version
+
+            d = Deployer(network_name=network_name)
             contracts_meta = d.deployed_contracts
             contracts_compiled = d.source_contracts
             self.contracts = {}
@@ -41,10 +45,10 @@ class SolidbyteConsole(code.InteractiveConsole):
                         meta['networks'][network_id]['deployedHash']
                     )
                     abi = contracts_compiled[meta['name']].abi
-                    self.contracts[meta['name']] = web3.eth.contract(abi=abi, address=latest['address'])
+                    self.contracts[meta['name']] = self.web3.eth.contract(abi=abi, address=latest['address'])
 
             variables = {
-                'web3': web3,
+                'web3': self.web3,
             }
             variables.update(self.contracts)
 

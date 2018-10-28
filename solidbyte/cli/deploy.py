@@ -3,7 +3,6 @@
 import sys
 from ..compile import compile_all
 from ..deploy import Deployer
-from ..common.web3 import web3
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -24,7 +23,7 @@ def main(parser_args):
     """ Deploy contracts """
     log.info("Deploying contracts...")
 
-    deployer = Deployer(network_id=parser_args.network, account=parser_args.address)
+    deployer = Deployer(network_name=parser_args.network, account=parser_args.address)
     compile_all()
     deployer.refresh() # TODO: Necessary?
 

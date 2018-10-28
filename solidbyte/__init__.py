@@ -1,6 +1,6 @@
 from .compile import Compiler
 from .common.metafile import MetaFile
-from .common.web3 import web3
+from .common.web3 import web3c
 
 __version__='0.0.1b1'
 __author__ = 'Mike Shultz'

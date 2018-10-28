@@ -1,5 +1,7 @@
 """ Abstract template class """
+import sys
 from os import path, mkdir, getcwd
+from shutil import copyfile
 from pathlib import Path
 from ..common.logging import getLogger, parent_logger
 
@@ -11,9 +13,24 @@ class Template(object):
 
         self.dir_mode = kwargs.get('dir_mode', 0o755)
         self.pwd = Path(getcwd())
+        self.template_dir = Path(path.dirname(sys.modules[self.__module__].__file__))
+        print(self.template_dir)
 
     def initialize(self):
         raise NotImplemented("initialize() must be implemented for template")
+
+    def copy_template_file(self, dest_dir, subdir, filename):
+        """ Copy a file from src to dest """
+
+        if type(dest_dir) == str:
+            dest_dir = Path(dest_dir)
+        if type(subdir) == str:
+            subdir = Path(subdir)
+
+        source = self.template_dir.joinpath(subdir, filename)
+        dest = dest_dir.joinpath(subdir, filename)
+        log.info("Copying {} to {}...".format(filename, dest))
+        return copyfile(source, dest)
 
     def create_dirs(self):
 

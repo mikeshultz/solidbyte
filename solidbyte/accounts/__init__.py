@@ -6,16 +6,17 @@ from pathlib import Path
 from datetime import datetime
 from attrdict import AttrDict
 from eth_account import Account
-from ..common.web3 import web3, normalize_hexstring
+from ..common.web3 import web3c, normalize_hexstring
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
 class Accounts(object):
-    def __init__(self, keystore_dir='~/.ethereum/keystore'):
+    def __init__(self, network_name=None, keystore_dir='~/.ethereum/keystore'):
         self.eth_account = Account()
         self.accounts = []
         self.keystore_dir=Path(keystore_dir).expanduser().resolve()
+        self.web3 = web3c.get_web3(network_name)
 
         if not self.keystore_dir.is_dir():
             log.error("Provided keystore directory is not a directory")
@@ -69,8 +70,8 @@ class Accounts(object):
                 self.accounts.append(AttrDict({
                     'address': addr,
                     'filename': file,
-                    'balance': web3.fromWei(
-                        web3.eth.getBalance(web3.toChecksumAddress(addr)),
+                    'balance': self.web3.fromWei(
+                        self.web3.eth.getBalance(self.web3.toChecksumAddress(addr)),
                         'ether'
                         )
                 }))
@@ -127,4 +128,4 @@ class Accounts(object):
             password = getpass("Enter password to decrypt account ({}):".format(account_address))
 
         privkey = self.unlock(account_address, password)
-        return web3.eth.account.signTransaction(tx, privkey)
+        return self.web3.eth.account.signTransaction(tx, privkey)

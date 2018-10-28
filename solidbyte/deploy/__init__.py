@@ -10,7 +10,7 @@ from ..common import builddir, source_filename_to_name
 from ..common.exceptions import SolidbyteException, DeploymentError
 from ..common.logging import getLogger
 from ..common.web3 import (
-    web3,
+    web3c,
     hash_hexstring,
     create_deploy_tx,
     normalize_address,
@@ -26,8 +26,8 @@ def get_latest_from_deployed(deployed_instances, deployed_hash):
 
 class Deployer(object):
 
-    def __init__(self, network_id, account=None, contract_dir=None, deploy_dir=None):
-        self.network_id = network_id
+    def __init__(self, network_name, account=None, contract_dir=None, deploy_dir=None):
+        self.network_name = network_name
         self.contracts_dir = contract_dir or path.join(getcwd(), 'contracts')
         self.deploy_dir = deploy_dir or path.join(getcwd(), 'deploy')
         self.builddir = builddir()
@@ -35,8 +35,10 @@ class Deployer(object):
         self._source_contracts = AttrDict()
         self._deploy_scripts = []
         self.metafile = MetaFile()
+        self.web3 = web3c.get_web3(network_name)
+        self.network_id = self.web3.net.chainId or self.web3.net.version
         if account:
-            self.account = web3.toChecksumAddress(account)
+            self.account = self.web3.toChecksumAddress(account)
         else:
             self.account = self.metafile.get_default_account()
 
@@ -159,9 +161,9 @@ class Deployer(object):
 
         if not self.account:
             raise DeploymentError("Account needs to be set for deployment")
-        if self.account and web3.eth.getBalance(self.account) == 0:
+        if self.account and self.web3.eth.getBalance(self.account) == 0:
             raise DeploymentError("Account has zero balance ({})".format(self.account))
-        if self.network_id != (web3.net.chainId or web3.net.version):
+        if self.network_id != (self.web3.net.chainId or self.web3.net.version):
             raise DeploymentError("Connected node is does not match the provided chain ID")
 
         self._load_user_scripts()

@@ -2,10 +2,9 @@
 from datetime import datetime
 from ..accounts import Accounts
 from ..common.web3 import (
-    web3,
+    web3c,
     hash_hexstring,
     create_deploy_tx,
-    next_nonce,
 )
 from ..common.logging import getLogger
 
@@ -20,14 +19,15 @@ class Deployment(object):
         self.abi = abi
 
 class Contract(object):
-    def __init__(self, network_id, from_account, source_contract=None, metafile_contract=None, metafile=None):
+    def __init__(self, network_name, from_account, source_contract=None, metafile_contract=None, metafile=None):
         self.name = None
         self.deployedHash = None
         self.source_bytecode = None
         self.source_abi = None
         self.from_account = from_account
-        self.network_id = network_id
         self.metafile = metafile
+        self.web3 = web3c.get_web3(network_name)
+        self.network_id = self.web3.network.chainId or self.web3.network.version
         self.accounts = Accounts()
         if metafile_contract:
             self._process_metafile_contract(metafile_contract)
@@ -110,13 +110,12 @@ class Contract(object):
     def _deploy(self, *args, **kwargs):
         """ Deploy the contract """
 
-        print('address', self.from_account)
-        nonce = next_nonce(self.from_account)
+        nonce = self.web3.eth.getTransactionCount(self.from_account)
         # Create the tx object
         deploy_tx = create_deploy_tx(self.source_abi, self.source_bytecode, {
              'chainId': int(self.network_id),
              'gas': int(3e6), # TODO: We need to be able to adjust these
-             'gasPrice': web3.toWei('3', 'gwei'),
+             'gasPrice': self.web3.toWei('3', 'gwei'),
              'nonce': nonce,
              'from': self.from_account,
             }, *args, **kwargs)
@@ -125,10 +124,10 @@ class Contract(object):
         signed_tx = self.accounts.sign_tx(self.from_account, deploy_tx)
 
         # Send it
-        deploy_txhash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        deploy_txhash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
         # Wait for it to be mined
-        deploy_receipt = web3.eth.waitForTransactionReceipt(deploy_txhash)
+        deploy_receipt = self.web3.eth.waitForTransactionReceipt(deploy_txhash)
         
         bytecode_hash = hash_hexstring(self.source_bytecode)
         self.deployments.append(Deployment(
@@ -145,7 +144,7 @@ class Contract(object):
         """ Return the web3.py contract instance """
         assert self.abi is not None, "ABI appears to be missing for contract {}".format(self.name)
         assert self.address is not None, "Address appears to be missing for contract {}".format(self.name)
-        return web3.eth.contract(abi=self.abi, address=self.address)
+        return self.web3.eth.contract(abi=self.abi, address=self.address)
 
     def deployed(self, *args, **kwargs):
         """ If necessary, deploy the new script """

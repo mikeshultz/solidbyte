@@ -15,6 +15,6 @@ def main(parser_args):
 
     log.info("Starting interactive console...")
 
-    shell = SolidbyteConsole(network_id=parser_args.network)
+    shell = SolidbyteConsole(network_name=parser_args.network)
     shell.interact()
     shell.save_history(shell.histfile)

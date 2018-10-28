@@ -14,6 +14,8 @@ def add_parser_arguments(parser):
     parser.add_argument('-k', '--keystore', type=str,
                         default='~/.ethereum/keystore',
                         help='The Ethereum keystore directory to load accounts from')
+    parser.add_argument('-n', '--network', type=str, required=False,
+                        help='Ethereum network to connect the console to')
 
     # Subcommands
     subparsers = parser.add_subparsers(title='Account Commands',
@@ -38,7 +40,8 @@ def main(parser_args):
     """ Execute test """
     log.info("Account operations")
 
-    accts = Accounts(keystore_dir=parser_args.keystore)
+    accts = Accounts(network_name=parser_args.network,
+                        keystore_dir=parser_args.keystore)
 
     if parser_args.account_command == 'create':
         print("creating account...")
