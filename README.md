@@ -27,15 +27,15 @@ Most `sb` commands need to be run from the root of your project directory.
     sb init
 
 Now, all you should have a bare project structure created.  You could also
-`init` with [an available template](templates.md), but for the purposes of this
+`init` with [an available template](docs/templates.md), but for the purposes of this
 doc, we're just going to create a bare structure.
 
 Your contracts should be in the `contracts` directory.  Your Solidity or Vyper
 contracts can be in any directory under it.
 
-The `deploy` directory will hold your [deployment scripts](deployment.md).
+The `deploy` directory will hold your [deployment scripts](docs/deployment.md).
 
-And `tests` will contain your [contract unit tests](testing.md).
+And `tests` will contain your [contract unit tests](docs/testing.md).
 
 The `build` directory probably doesn't exist yet.  This will be created by
 solidbyte when necessary.
