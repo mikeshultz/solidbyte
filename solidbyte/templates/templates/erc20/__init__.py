@@ -16,11 +16,12 @@ class ERC20Template(Template):
         self.create_tests()
         self.create_contracts()
         self.create_deployment()
+        self.create_networks()
 
     def create_tests(self):
         """ Create the test files """
 
-        copy_template_file(self.pwd, 'tests', 'test_erc20.py')
+        self.copy_template_file(self.pwd, 'tests', 'test_erc20.py')
 
     def create_contracts(self):
         """ Create the test files """
@@ -38,6 +39,13 @@ class ERC20Template(Template):
 
         self.copy_template_file(self.pwd, 'deploy', '__init__.py')
         self.copy_template_file(self.pwd, 'deploy', 'deploy_main.py')
+
+    def create_networks(self):
+        """ Create the networks.yml file """
+
+        log.info("Creating networks.yml...")
+
+        self.copy_template_file(self.pwd, '', 'networks.yml')
 
 def get_template_instance(*args, **kwargs):
     return ERC20Template(*args, **kwargs)
