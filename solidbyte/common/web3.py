@@ -42,7 +42,10 @@ class Web3ConfiguredConnection(object):
         self.networks = None
         self.web3 = None
 
-        self._load_configuration()
+        try:
+            self._load_configuration()
+        except FileNotFoundError:
+            log.warn("networks.yml not found")
 
     def _load_configuration(self, config_file=None):
         """ Load configuration from the configuration file """
