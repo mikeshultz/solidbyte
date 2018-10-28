@@ -86,7 +86,7 @@ class Deployer(object):
         self._contracts = AttrDict()
         for key in self.source_contracts.keys():
             contract = Contract(
-                network_id=self.network_id,
+                network_name=self.network_name,
                 from_account=self.account,
                 metafile_contract=self.deployed_contracts.get(key),
                 source_contract=self.source_contracts[key],

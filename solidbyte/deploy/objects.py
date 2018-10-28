@@ -27,7 +27,7 @@ class Contract(object):
         self.from_account = from_account
         self.metafile = metafile
         self.web3 = web3c.get_web3(network_name)
-        self.network_id = self.web3.network.chainId or self.web3.network.version
+        self.network_id = self.web3.net.chainId or self.web3.net.version
         self.accounts = Accounts()
         if metafile_contract:
             self._process_metafile_contract(metafile_contract)
