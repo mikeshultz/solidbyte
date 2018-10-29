@@ -121,7 +121,10 @@ class Deployer(object):
     def _get_script_kwargs(self):
         """ Return the available kwargs to give to user scripts """
         return {
-            'contracts': self.contracts
+            'contracts': self.contracts,
+            'web3': self.web3,
+            'deployer_account': self.account,
+            'network': self.network_name,
         }
 
     def refresh(self, force=True):
@@ -162,7 +165,7 @@ class Deployer(object):
         if not self.account:
             raise DeploymentError("Account needs to be set for deployment")
         if self.account and self.web3.eth.getBalance(self.account) == 0:
-            raise DeploymentError("Account has zero balance ({})".format(self.account))
+            log.warn("Account has zero balance ({})".format(self.account))
         if self.network_id != (self.web3.net.chainId or self.web3.net.version):
             raise DeploymentError("Connected node is does not match the provided chain ID")
 

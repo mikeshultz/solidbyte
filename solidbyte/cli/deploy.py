@@ -11,7 +11,7 @@ def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
     parser.add_argument('-n', '--network', type=str, required=True,
                         help='Ethereum network to deploy contracts to')
-    parser.add_argument('-a', '--address', type=str,
+    parser.add_argument('-a', '--address', type=str, required=True,
                         help='Address of the Ethereum account to use for deployment')
     #parser.add_argument('-c', '--contract', action='store_true', default=False,
     #                    help='Deploy only specified contract')

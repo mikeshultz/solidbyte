@@ -7,6 +7,7 @@ import solidbyte
 from ..common.web3 import web3c
 from ..common.logging import getLogger, parent_logger
 from ..deploy import Deployer, get_latest_from_deployed
+from ..accounts import Accounts
 
 log = getLogger(__name__)
 
@@ -47,8 +48,13 @@ class SolidbyteConsole(code.InteractiveConsole):
                     abi = contracts_compiled[meta['name']].abi
                     self.contracts[meta['name']] = self.web3.eth.contract(abi=abi, address=latest['address'])
 
+            accounts = Accounts()
+
             variables = {
                 'web3': self.web3,
+                'accounts': accounts.get_accounts(),
+                'network': network_name,
+                'network_id': network_id,
             }
             variables.update(self.contracts)
 
