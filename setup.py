@@ -29,6 +29,8 @@ setup(
     name='solidbyte',
     version=solidbyte.__version__,
     description='Solidity development tools for creating Ethereum smart contracts',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/mikeshultz/solidbyte',
     author=solidbyte.__author__,
     author_email=solidbyte.__email__,
@@ -57,9 +59,9 @@ setup(
     package_data={
         'solidbyte': [
             'bin/solc',
-            'templates/templates/**/contracts/*'
-            'templates/templates/**/tests/*'
-            'templates/templates/**/deploy/*'
+            'templates/templates/*/contracts/*',
+            'templates/templates/*/tests/*',
+            'templates/templates/*/deploy/*',
         ]
     },
     cmdclass={

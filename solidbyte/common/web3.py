@@ -55,8 +55,8 @@ class Web3ConfiguredConnection(object):
         elif type(config_file) == str:
             config_file = Path(config_file).expanduser().resolve()
 
-        if not config_file:
-            raise SolidbyteException("Missing config_file")
+        if not config_file or not config_file.exists():
+            log.warn("Missing config_file")
 
         try:
             with open(config_file, 'r') as cfile:

@@ -1,1 +1,4 @@
 pytest==3.9.1
+twine~=1.12.1
+setuptools~=40.5.0
+wheel~=0.32.2
