@@ -12,7 +12,10 @@ from .middleware import SolidbyteSignerMiddleware
 log = getLogger(__name__)
 
 class Web3ConfiguredConnection(object):
-    """ A handler for dealing with network configuration, et cetera """
+    """ A handler for dealing with network configuration, and Web3 instantiation.
+        It loads config from the project's networks.yml and tries to use that.
+        Fallback is an automatic Web3 connection.
+    """
 
     def __init__(self, connection_name=None):
         self.name = connection_name
@@ -99,9 +102,6 @@ class Web3ConfiguredConnection(object):
         web3.eth.setGasPriceStrategy(medium_gas_price_strategy)
 
         # Add our middleware for signing
-        print("web3.middleware_stack", web3.middleware_stack._queue)
         web3.middleware_stack.add(SolidbyteSignerMiddleware, name='SolidbyteSigner')
-        #web3.middleware_stack.inject(SolidbyteSignerMiddleware, name='SolidbyteSigner', layer=0)
-        print("web3.middleware_stack", web3.middleware_stack._queue)
-            
+
         return web3
