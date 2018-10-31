@@ -128,11 +128,13 @@ class Accounts(object):
 
         log.debug("Signing tx with account {}".format(account_address))
 
-        # Do some tx verification and substitution if necessary
+        """ Do some tx verification and substitution if necessary
+        """
         if tx.get('gasPrice') is None:
             gasPrice = self.web3.eth.generateGasPrice()
             log.warn("Missing gasPrice for transaction. Using automatic price of {}".format(gasPrice))
             tx['gasPrice'] = gasPrice
+
         if tx.get('nonce') is None:
             nonce = self.web3.eth.getTransactionCount(tx['from'])
             tx['nonce'] = nonce
@@ -141,5 +143,4 @@ class Accounts(object):
             password = getpass("Enter password to decrypt account ({}):".format(account_address))
 
         privkey = self.unlock(account_address, password)
-        # Need to instantiate to get the web3.eth calls...
         return self.web3.eth.account.signTransaction(tx, privkey)
