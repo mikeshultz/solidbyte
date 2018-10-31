@@ -59,6 +59,7 @@ setup(
     package_data={
         'solidbyte': [
             'bin/solc',
+            'templates/templates/*/networks.yml',
             'templates/templates/*/contracts/*',
             'templates/templates/*/tests/*',
             'templates/templates/*/deploy/*',
