@@ -4,37 +4,18 @@ from os import getcwd
 from pathlib import Path
 from attrdict import AttrDict
 from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
-from ..common.exceptions import SolidbyteException
-from ..common.logging import getLogger
+from web3.gas_strategies.time_based import medium_gas_price_strategy
+from ...common.exceptions import SolidbyteException
+from ...common.logging import getLogger
+from .middleware import SolidbyteSignerMiddleware
 
 log = getLogger(__name__)
 
-def create_deploy_tx(abi, bytecode, tx, *args, **kwargs):
-    try:
-        web3 = Web3()
-        inst = web3.eth.contract(abi=abi, bytecode=bytecode)
-        return inst.constructor(*args, **kwargs).buildTransaction(tx)
-    except Exception as e:
-        log.exception("Error creating deploy transaction")
-        log.debug("create_deploy_tx args:\n{}\n{}".format(abi, bytecode))
-        raise e
-
-def normalize_hexstring(hexstr):
-    if isinstance(hexstr, bytes):
-        hexstr = hexstr.hex()
-    if hexstr[:2] != '0x':
-        hexstr = '0x{}'.format(hexstr)
-    return hexstr
-
-def normalize_address(addr):
-    return Web3.toChecksumAddress(normalize_hexstring(addr))
-
-def hash_hexstring(hexbytes):
-    assert hexbytes is not None, "hexbytes provided to hash_hexstring is None"
-    return normalize_hexstring(Web3.sha3(hexstr=normalize_hexstring(hexbytes)))
-
 class Web3ConfiguredConnection(object):
-    """ A handler for dealing with network configuration, et cetera """
+    """ A handler for dealing with network configuration, and Web3 instantiation.
+        It loads config from the project's networks.yml and tries to use that.
+        Fallback is an automatic Web3 connection.
+    """
 
     def __init__(self, connection_name=None):
         self.name = connection_name
@@ -92,6 +73,7 @@ class Web3ConfiguredConnection(object):
 
     def get_web3(self, name=None):
         """ return a configured web3 instance """
+        web3 = None
 
         if name and not self._network_config_exists(name):
             raise SolidbyteException("Provided network '{}' does not exist in networks.yml".format(name))
@@ -115,7 +97,11 @@ class Web3ConfiguredConnection(object):
         else:
             log.warn("No network provided.  Attempting automatic connection.")
             from web3.auto import w3 as web3
-            
-        return web3
 
-web3c = Web3ConfiguredConnection()
+        # Setup gasPrice strategy
+        web3.eth.setGasPriceStrategy(medium_gas_price_strategy)
+
+        # Add our middleware for signing
+        web3.middleware_stack.add(SolidbyteSignerMiddleware, name='SolidbyteSigner')
+
+        return web3

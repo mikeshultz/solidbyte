@@ -24,7 +24,7 @@ MODULES = [
 IMPORTED_MODULES = {}
 
 def main():
-    parser = argparse.ArgumentParser(description='SolidByte Solidity tools')
+    parser = argparse.ArgumentParser(description='SolidByte Ethereum development tools')
     parser.add_argument('-d', action='store_true',
                         help='Print debug level messages')
     #parser.add_argument('command', metavar='COMMAND', type=str, nargs=1,
