@@ -29,7 +29,7 @@ from datetime import datetime
 from attrdict import AttrDict
 from ..common import builddir
 from ..common.logging import getLogger
-from ..common.web3 import normalize_address, normalize_hexstring
+from .web3 import normalize_address, normalize_hexstring
 
 log = getLogger(__name__)
 

@@ -48,7 +48,7 @@ class SolidbyteConsole(code.InteractiveConsole):
                     abi = contracts_compiled[meta['name']].abi
                     self.contracts[meta['name']] = self.web3.eth.contract(abi=abi, address=latest['address'])
 
-            accounts = Accounts()
+            accounts = Accounts(network_name=network_name, web3=self.web3)
 
             variables = {
                 'web3': self.web3,

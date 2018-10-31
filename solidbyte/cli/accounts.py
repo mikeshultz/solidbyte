@@ -2,6 +2,7 @@
 """
 from getpass import getpass
 from ..accounts import Accounts
+from ..common.web3 import web3c
 from ..common.metafile import MetaFile
 from ..common.logging import getLogger
 
@@ -40,8 +41,9 @@ def main(parser_args):
     """ Execute test """
     log.info("Account operations")
 
+    web3 = web3c.get_web3(parser_args.network)
     accts = Accounts(network_name=parser_args.network,
-                        keystore_dir=parser_args.keystore)
+                        keystore_dir=parser_args.keystore, web3=web3)
 
     if parser_args.account_command == 'create':
         print("creating account...")

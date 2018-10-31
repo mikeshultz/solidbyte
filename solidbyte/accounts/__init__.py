@@ -6,17 +6,21 @@ from pathlib import Path
 from datetime import datetime
 from attrdict import AttrDict
 from eth_account import Account
-from ..common.web3 import web3c, normalize_hexstring
+from web3 import Web3
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
 class Accounts(object):
-    def __init__(self, network_name=None, keystore_dir='~/.ethereum/keystore'):
+    def __init__(self, network_name=None, keystore_dir='~/.ethereum/keystore', 
+                    web3=None):
         self.eth_account = Account()
         self.accounts = []
         self.keystore_dir=Path(keystore_dir).expanduser().resolve()
-        self.web3 = web3c.get_web3(network_name)
+        if web3:
+            self.web3 = web3
+        else:
+            self.web3 = Web3()
 
         if not self.keystore_dir.is_dir():
             log.error("Provided keystore directory is not a directory")
@@ -66,7 +70,7 @@ class Accounts(object):
             if not jason:
                 log.warning("Unable to read JSON from {}".format(file))
             else:
-                addr = normalize_hexstring(jason.get('address'))
+                addr = self.web3.toChecksumAddress(jason.get('address'))
                 self.accounts.append(AttrDict({
                     'address': addr,
                     'filename': file,
@@ -124,8 +128,18 @@ class Accounts(object):
 
         log.debug("Signing tx with account {}".format(account_address))
 
+        # Do some tx verification and substitution if necessary
+        if tx.get('gasPrice') is None:
+            gasPrice = self.web3.eth.generateGasPrice()
+            log.warn("Missing gasPrice for transaction. Using automatic price of {}".format(gasPrice))
+            tx['gasPrice'] = gasPrice
+        if tx.get('nonce') is None:
+            nonce = self.web3.eth.getTransactionCount(tx['from'])
+            tx['nonce'] = nonce
+
         if not password:
             password = getpass("Enter password to decrypt account ({}):".format(account_address))
 
         privkey = self.unlock(account_address, password)
+        # Need to instantiate to get the web3.eth calls...
         return self.web3.eth.account.signTransaction(tx, privkey)
