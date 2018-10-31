@@ -57,6 +57,7 @@ class Web3ConfiguredConnection(object):
 
         if not config_file or not config_file.exists():
             log.warn("Missing config_file")
+            return
 
         try:
             with open(config_file, 'r') as cfile:

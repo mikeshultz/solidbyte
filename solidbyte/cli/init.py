@@ -31,16 +31,16 @@ def main(parser_args):
 
     mode = user_mode or 0o755
 
-    if parser_args.template:
-        tmpl = init_template(parser_args.template)
-        try:
-            tmpl.initialize()
-        except FileExistsError as e:
-            log.critical(str(e))
-            sys.exit(1)
-    elif parser_args.list_templates:
+    if parser_args.list_templates:
         templates = get_templates()
         print("Available templates")
         print("===================")
         for tmpl in templates:
             print(" - {}".format(tmpl))
+    else:
+        tmpl = init_template(parser_args.template or 'bare')
+        try:
+            tmpl.initialize()
+        except FileExistsError as e:
+            log.critical(str(e))
+            sys.exit(1)
