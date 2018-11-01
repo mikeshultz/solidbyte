@@ -27,8 +27,6 @@ def main():
     parser = argparse.ArgumentParser(description='SolidByte Ethereum development tools')
     parser.add_argument('-d', action='store_true',
                         help='Print debug level messages')
-    #parser.add_argument('command', metavar='COMMAND', type=str, nargs=1,
-    #                    help='The command to execute')
 
     subparsers = parser.add_subparsers(title='Submcommands', dest='command',
                                         help='do the needful')

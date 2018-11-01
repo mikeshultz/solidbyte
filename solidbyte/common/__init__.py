@@ -18,3 +18,11 @@ def source_filename_to_name(filename):
     if filename[-4:] != '.sol':
         raise ValueError("Invalid source filename")
     return filename[:-4]
+
+def collapse_oel(lst):
+    """ Collapse a one-element list to a single var """
+    if type(lst) != list:
+        raise ValueError("Not a list")
+    if len(lst) != 1:
+        raise ValueError("List has multiple elements")
+    return lst[0]

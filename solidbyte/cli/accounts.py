@@ -2,6 +2,7 @@
 """
 from getpass import getpass
 from ..accounts import Accounts
+from ..common import collapse_oel
 from ..common.web3 import web3c
 from ..common.metafile import MetaFile
 from ..common.logging import getLogger
@@ -15,7 +16,7 @@ def add_parser_arguments(parser):
     parser.add_argument('-k', '--keystore', type=str,
                         default='~/.ethereum/keystore',
                         help='The Ethereum keystore directory to load accounts from')
-    parser.add_argument('-n', '--network', type=str, required=False,
+    parser.add_argument('network', metavar="NETWORK", type=str, nargs="?",
                         help='Ethereum network to connect the console to')
 
     # Subcommands
@@ -41,8 +42,9 @@ def main(parser_args):
     """ Execute test """
     log.info("Account operations")
 
-    web3 = web3c.get_web3(parser_args.network)
-    accts = Accounts(network_name=parser_args.network,
+    network_name = collapse_oel(parser_args.network)
+    web3 = web3c.get_web3(network_name)
+    accts = Accounts(network_name=network_name,
                         keystore_dir=parser_args.keystore, web3=web3)
 
     if parser_args.account_command == 'create':

@@ -3,14 +3,15 @@
 import sys
 from ..compile import compile_all
 from ..deploy import Deployer
+from ..common import collapse_oel
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
-    parser.add_argument('-n', '--network', type=str, required=True,
-                        help='Ethereum network to deploy contracts to')
+    parser.add_argument('network', metavar="NETWORK", type=str, nargs=1,
+                        help='Ethereum network to connect the console to')
     parser.add_argument('-a', '--address', type=str, required=True,
                         help='Address of the Ethereum account to use for deployment')
     #parser.add_argument('-c', '--contract', action='store_true', default=False,
@@ -23,7 +24,8 @@ def main(parser_args):
     """ Deploy contracts """
     log.info("Deploying contracts...")
 
-    deployer = Deployer(network_name=parser_args.network, account=parser_args.address)
+    network_name = collapse_oel(parser_args.network)
+    deployer = Deployer(network_name=network_name, account=parser_args.address)
     compile_all()
     deployer.refresh() # TODO: Necessary?
 

@@ -23,7 +23,7 @@ Test the contracts using pytest(?)
 
 Start a pythonic console for testing contracts.  Provides web3 and contracts as local variables.
 
-    $ sb console -n dev
+    $ sb console dev
     2018-10-28 17:42:38,022 [INFO] solidbyte.cli.console - Starting interactive console...
     Solidbyte Console (0.0.1b1)
     ------------------------------

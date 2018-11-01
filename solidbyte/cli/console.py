@@ -1,12 +1,13 @@
 """ show version information
 """
+from ..common import collapse_oel
 from ..common.logging import getLogger, parent_logger
 from ..console import SolidbyteConsole
 
 log = getLogger(__name__)
 
 def add_parser_arguments(parser):
-    parser.add_argument('-n', '--network', type=str, required=True,
+    parser.add_argument('network', metavar="NETWORK", type=str, nargs=1,
                         help='Ethereum network to connect the console to')
     return parser
 
@@ -15,6 +16,7 @@ def main(parser_args):
 
     log.info("Starting interactive console...")
 
-    shell = SolidbyteConsole(network_name=parser_args.network)
+    network_name = collapse_oel(parser_args.network)
+    shell = SolidbyteConsole(network_name=network_name)
     shell.interact()
     shell.save_history(shell.histfile)

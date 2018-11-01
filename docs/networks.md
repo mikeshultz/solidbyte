@@ -21,7 +21,7 @@ provide some pre-configured connections.
 
 Each root-level node is the network name you will use to reference the
 configuration.  For instance using the above file, if you want to connect to
-your local go-ethereum instance: `sb console -n geth`
+your local go-ethereum instance: `sb console geth`
 
 ## Connection Types
 

@@ -2,22 +2,24 @@
 """
 from ..common.logging import getLogger, parent_logger
 from ..deploy import Deployer
+from ..common import collapse_oel
 from ..common.metafile import MetaFile
 from ..common.web3 import web3c
 
 log = getLogger(__name__)
 
 def add_parser_arguments(parser):
-    parser.add_argument('-n', '--network', type=str, required=True,
+    parser.add_argument('network', metavar="NETWORK", type=str, nargs=1,
                         help='Ethereum network to connect the console to')
     return parser
 
 def main(parser_args):
     """ Show details about deployments """
 
-    deployer = Deployer(network_name=parser_args.network)
+    network_name = collapse_oel(parser_args.network)
+    deployer = Deployer(network_name=network_name)
     # TODO: Show all networks?
-    web3 = web3c.get_web3(parser_args.network)
+    web3 = web3c.get_web3(network_name)
     network_id = web3.net.chainId or web3.net.version
     source_contracts = deployer.get_source_contracts()
     metafile = MetaFile()
