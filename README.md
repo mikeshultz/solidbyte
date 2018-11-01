@@ -8,6 +8,7 @@ Solidity development tools for creating Ethereum smart contracts
  - [Command Reference](https://github.com/mikeshultz/solidbyte/blob/master/docs/commands.md)
  - [metafile.json](https://github.com/mikeshultz/solidbyte/blob/master/docs/metafile.md)
  - [networks.yml](https://github.com/mikeshultz/solidbyte/blob/master/docs/networks.md)
+ - [SolidByte Development](https://github.com/mikeshultz/solidbyte/blob/master/docs/development.md)
 
 ## Quickstart
 
