@@ -4,9 +4,12 @@
 things like your default account, or the addresses for your contract
 deployments.
 
-If you're working in a team, it may be a good idea to check this in.  It's also
-a great idea to back it up.  **If you lose this file, SolidByte will have no
-idea if your contracts are already deployed or not**.  So, don't lose it.
+If you're working in a team, it may be a good idea to check this in.  
+
+**WARNING**: If you lose this file, SolidByte will have no idea if your
+contracts are already deployed or not.  This could cause duplicate or broken 
+deployments of your contracts. It's also a great idea to at least back it up if
+you aren't commiting it to a VCS.
 
 **WARNING**: Editing this file manually, while an option, may cause SolidByte to
 behave unexpectedly.  Edit it at your own risk.
