@@ -20,7 +20,8 @@ def main(contracts, deployer_account, web3, network):
             tx = web3.eth.sendTransaction({
                 'from': web3.eth.accounts[0], # The pre-funded account in ganace-cli
                 'to': deployer_account,
-                'value': int(1e18)
+                'value': int(1e18),
+                'gasPrice': int(3e9),
                 })
             recept = web3.eth.waitForTransactionReceipt(tx)
     else:
