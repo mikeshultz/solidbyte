@@ -26,8 +26,8 @@ The important bit is this:
 
 The `.deployed()` method on the [`Contract`](https://github.com/mikeshultz/solidbyte/blob/master/solidbyte/deploy/objects.py#L21)
 instance is where the magic happens.  This will trigger SolidByte to deploy the
-contract again if necessary.  The arguments to this function are the same 
-arguments you would provide to your contract's construtor.  It will return a
+contract if necessary.  The arguments to this function are the same arguments
+you would provide to your contract's construtor.  It will return a
 [web3.py Contract instance](https://web3py.readthedocs.io/en/stable/contracts.html#web3.contract.Contract).
 
 **NOTE**: Using `Contract.deployed()` is not required.  It's there to help.
