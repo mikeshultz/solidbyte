@@ -24,7 +24,7 @@ Example JSON structure:
     }
 """
 import json
-from os import path
+from os import path, getcwd
 from datetime import datetime
 from attrdict import AttrDict
 from ..common import builddir
@@ -57,8 +57,8 @@ class MetaFile(object):
     """ Class representing the project metafile """
 
     def __init__(self):
-        self.builddir = builddir()
-        self.file_name = path.join(self.builddir, METAFILE_FILENAME)
+        self.project_dir = getcwd()
+        self.file_name = path.join(self.project_dir, METAFILE_FILENAME)
         self._file = None
         self._json = None
 
