@@ -16,3 +16,4 @@ def test_erc20(web3, contracts):
 
     # Deployed version should have no tokens to start
     assert contracts.ERC20.functions.balanceOf(admin).call() == 0
+    assert contracts.ERC20.functions.totalSupply().call() > 0
