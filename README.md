@@ -1,6 +1,6 @@
 # solidbyte
 
-Solidity development tools for creating Ethereum smart contracts
+Development tools for creating Ethereum smart contracts
 
 ## Contents
 
