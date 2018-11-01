@@ -5,7 +5,7 @@ def test_erc20(web3, contracts):
     """ We're just going to test to make sure the contracts fixture is being 
         populated with deployed contract instances
     """
-    assert contracts.ERC20 is not None
+    assert 'ERC20' in contracts, "Contract not deployed"
     assert hasattr(contracts.ERC20, 'address')
     assert type(contracts.ERC20.address) == str
     assert len(contracts.ERC20.address) == 42

@@ -14,7 +14,7 @@ def main(contracts, deployer_account, web3, network):
 
     deployer_balance = web3.eth.getBalance(deployer_account)
 
-    if network == 'dev':
+    if network in ('dev', 'test'):
         # If this is the test network, make sure our deployment account is funded
         if deployer_balance == 0:
             tx = web3.eth.sendTransaction({

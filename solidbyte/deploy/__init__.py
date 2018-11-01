@@ -22,6 +22,8 @@ from .objects import Contract
 log = getLogger(__name__)
 
 def get_latest_from_deployed(deployed_instances, deployed_hash):
+    if deployed_instances is None or deployed_hash is None:
+        return None
     return list(filter(lambda x: x['hash'] == deployed_hash, deployed_instances))[0]
 
 class Deployer(object):
@@ -58,19 +60,23 @@ class Deployer(object):
 
             log.debug("Loading contract: {}".format(name))
 
-            abi_filename = path.join(self.builddir, name, '{}.abi'.format(name))
-            with open(abi_filename, 'r') as abi_file:
-                abi = json.loads(abi_file.read())
+            try:
+                abi_filename = path.join(self.builddir, name, '{}.abi'.format(name))
+                with open(abi_filename, 'r') as abi_file:
+                    abi = json.loads(abi_file.read())
 
-            bytecode_filename = path.join(self.builddir, name, '{}.bin'.format(name))
-            with open(bytecode_filename, 'r') as bytecode_file:
-                bytecode = bytecode_file.read()
+                bytecode_filename = path.join(self.builddir, name, '{}.bin'.format(name))
+                with open(bytecode_filename, 'r') as bytecode_file:
+                    bytecode = bytecode_file.read()
 
-            self._source_contracts[name] = AttrDict({
-                'name': name,
-                'abi': abi,
-                'bytecode': bytecode,
-            })
+                self._source_contracts[name] = AttrDict({
+                    'name': name,
+                    'abi': abi,
+                    'bytecode': bytecode,
+                })
+            except FileNotFoundError:
+                log.warning("Missing contract {}.  Need to compile?".format(name))
+                continue
 
         return self._source_contracts
     source_contracts = property(get_source_contracts)
