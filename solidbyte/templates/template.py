@@ -45,7 +45,7 @@ class Template(object):
 
         log.info("Executing project initialization...")
 
-        log.warn("Creating project directory structure with mode {0:o}".format(self.dir_mode))
+        log.warning("Creating project directory structure with mode {0:o}".format(self.dir_mode))
 
         log.debug("Creating tests directory...")
         tests_dir.mkdir(mode=self.dir_mode)

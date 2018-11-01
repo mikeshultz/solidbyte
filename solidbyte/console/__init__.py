@@ -81,7 +81,7 @@ class SolidbyteConsole(code.InteractiveConsole):
         try:
             readline.read_history_file(histfile)
         except FileNotFoundError:
-            log.warn("History file not found")
+            log.warning("History file not found")
         atexit.register(self.save_history, histfile)
 
     def save_history(self, histfile=None):

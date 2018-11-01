@@ -52,7 +52,7 @@ def main():
     args = parser.parse_args()
 
     if not hasattr(args, 'command') or len(args.command) < 1:
-        log.warn('noop')
+        log.warning('noop')
         sys.exit(1)
 
     if args.command == 'help':

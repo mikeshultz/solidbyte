@@ -132,7 +132,7 @@ class Accounts(object):
         """
         if tx.get('gasPrice') is None:
             gasPrice = self.web3.eth.generateGasPrice()
-            log.warn("Missing gasPrice for transaction. Using automatic price of {}".format(gasPrice))
+            log.warning("Missing gasPrice for transaction. Using automatic price of {}".format(gasPrice))
             tx['gasPrice'] = gasPrice
 
         if tx.get('nonce') is None:

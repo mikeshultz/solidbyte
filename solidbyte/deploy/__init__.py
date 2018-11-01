@@ -152,7 +152,7 @@ class Deployer(object):
             log.debug("Checking if contract {} needs deployment.".format(key))
             newest_bytecode = self.source_contracts[key].get('bytecode')
             if not newest_bytecode:
-                log.warn("Bytecode is zero")
+                log.warning("Bytecode is zero")
             elif newest_bytecode \
                 and self.contracts[key].check_needs_deployment(newest_bytecode):
                 return True
@@ -165,7 +165,7 @@ class Deployer(object):
         if not self.account:
             raise DeploymentError("Account needs to be set for deployment")
         if self.account and self.web3.eth.getBalance(self.account) == 0:
-            log.warn("Account has zero balance ({})".format(self.account))
+            log.warning("Account has zero balance ({})".format(self.account))
         if self.network_id != (self.web3.net.chainId or self.web3.net.version):
             raise DeploymentError("Connected node is does not match the provided chain ID")
 

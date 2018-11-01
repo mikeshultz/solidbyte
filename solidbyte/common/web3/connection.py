@@ -26,7 +26,7 @@ class Web3ConfiguredConnection(object):
         try:
             self._load_configuration()
         except FileNotFoundError:
-            log.warn("networks.yml not found")
+            log.warning("networks.yml not found")
 
     def _load_configuration(self, config_file=None):
         """ Load configuration from the configuration file """
@@ -37,7 +37,7 @@ class Web3ConfiguredConnection(object):
             config_file = Path(config_file).expanduser().resolve()
 
         if not config_file or not config_file.exists():
-            log.warn("Missing config_file")
+            log.warning("Missing config_file")
             return
 
         try:
@@ -95,7 +95,7 @@ class Web3ConfiguredConnection(object):
                 raise SolidbyteException("Unable to connect to node")
 
         else:
-            log.warn("No network provided.  Attempting automatic connection.")
+            log.warning("No network provided.  Attempting automatic connection.")
             from web3.auto import w3 as web3
 
         # Setup gasPrice strategy
