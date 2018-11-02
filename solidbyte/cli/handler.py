@@ -19,6 +19,7 @@ MODULES = [
     'show',
     'console',
     'accounts',
+    'install',
 ]
 
 IMPORTED_MODULES = {}
