@@ -19,6 +19,9 @@ provide some pre-configured connections.
       type: ipc
       file: ~/.ethereum/geth.ipc
 
+    test:
+      type: eth_tester
+
 Each root-level node is the network name you will use to reference the
 configuration.  For instance using the above file, if you want to connect to
 your local go-ethereum instance: `sb console geth`
@@ -31,3 +34,4 @@ The available connection types are:
  - `websocket` - Connect to a Web socket JSON-RPC provider
  - `http` - Connect to a plain HTTP(or HTTPS) JSON-RPC provider
  - `ipc` - Use the local IPC socket to connect to a local node
+ - `eth_tester` - A virtual ephemeral chain to test against.  Very useful for running unit tests.

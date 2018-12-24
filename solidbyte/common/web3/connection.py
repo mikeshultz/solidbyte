@@ -3,13 +3,22 @@ import yaml
 from os import getcwd
 from pathlib import Path
 from attrdict import AttrDict
-from web3 import Web3, HTTPProvider, IPCProvider, WebsocketProvider
+from eth_tester import PyEVMBackend, EthereumTester
+from web3 import (
+    Web3,
+    HTTPProvider,
+    IPCProvider,
+    WebsocketProvider,
+    EthereumTesterProvider,
+)
 from web3.gas_strategies.time_based import medium_gas_price_strategy
 from ...common.exceptions import SolidbyteException
 from ...common.logging import getLogger
 from .middleware import SolidbyteSignerMiddleware
 
 log = getLogger(__name__)
+
+TEST_BLOCK_GAS_LIMIT = int(6e6)
 
 class Web3ConfiguredConnection(object):
     """ A handler for dealing with network configuration, and Web3 instantiation.
@@ -68,6 +77,14 @@ class Web3ConfiguredConnection(object):
             return WebsocketProvider(config.get('url'))
         elif config['type'] == 'http':
             return HTTPProvider(config.get('url'))
+        elif config['type'] in ('eth_tester', 'eth-tester', 'ethereum-tester'):
+            params = PyEVMBackend._generate_genesis_params(overrides={
+                'gas_limit': TEST_BLOCK_GAS_LIMIT
+            })
+            tester = EthereumTester(backend=PyEVMBackend(
+                genesis_parameters=params
+            ))
+            return EthereumTesterProvider(ethereum_tester=tester)
         else:
             raise SolidbyteException("Invalid configuration.  Unknown type")
 
