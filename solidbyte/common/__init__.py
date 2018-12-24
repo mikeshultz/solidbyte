@@ -1,6 +1,7 @@
 from os import path, getcwd, mkdir
 
 BUILDDIR_NAME = 'build'
+SUPPORTED_EXTENSIONS = ('sol',)
 
 def builddir(loc=None):
     """ Get (and create if necessary) the temporary build dir """
@@ -13,11 +14,27 @@ def builddir(loc=None):
         raise FileExistsError("{} exists and is blocking the build directory creation!".format(full_path))
     return full_path
 
+def get_filename_and_ext(filename):
+    """ Return the filename extension """
+    cmps = filename.split('.')
+    if len(cmps) < 2:
+        return (filename, '')
+    ext = cmps.pop()
+    return ('.'.join(cmps), ext)
+
+def supported_extension(filename):
+    """ Check if the provided filename has a supported extension """
+    _, ext = get_filename_and_ext(filename)
+    if ext in SUPPORTED_EXTENSIONS:
+        return True
+    return False
+
 def source_filename_to_name(filename):
     """ Change a source filename to a plain name """
-    if filename[-4:] != '.sol':
+    if not supported_extension(filename):
         raise ValueError("Invalid source filename")
-    return filename[:-4]
+    name, _ = get_filename_and_ext(filename)
+    return name
 
 def collapse_oel(lst):
     """ Collapse a one-element list to a single var """
