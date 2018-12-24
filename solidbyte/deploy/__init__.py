@@ -6,7 +6,7 @@ from importlib import import_module
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from attrdict import AttrDict
-from ..common import builddir, source_filename_to_name
+from ..common import builddir, source_filename_to_name, supported_extension
 from ..common.exceptions import SolidbyteException, DeploymentError
 from ..common.logging import getLogger
 from ..common.web3 import (
@@ -54,7 +54,7 @@ class Deployer(object):
             return self._source_contracts
 
         self._source_contracts = AttrDict()
-        contract_files = [f for f in listdir(self.contracts_dir) if path.isfile(path.join(self.contracts_dir, f))]
+        contract_files = [f for f in listdir(self.contracts_dir) if path.isfile(path.join(self.contracts_dir, f)) and supported_extension(f)]
         for contract in contract_files:
             name = source_filename_to_name(contract)
 
@@ -94,7 +94,7 @@ class Deployer(object):
             contract = Contract(
                 network_name=self.network_name,
                 from_account=self.account,
-                metafile_contract=self.deployed_contracts.get(key),
+                metafile_contract=self.metafile.get_contract(key),
                 source_contract=self.source_contracts[key],
                 metafile=self.metafile,
             )

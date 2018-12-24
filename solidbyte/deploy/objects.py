@@ -1,8 +1,11 @@
 """ Contract deployer """
 from datetime import datetime
+from attrdict import AttrDict
+from eth_utils.exceptions import ValidationError
 from ..accounts import Accounts
 from ..common.web3 import (
     web3c,
+    normalize_hexstring,
     hash_hexstring,
     create_deploy_tx,
 )
@@ -28,8 +31,10 @@ class Contract(object):
         self.metafile = metafile
         self.web3 = web3c.get_web3(network_name)
         self.network_id = self.web3.net.chainId or self.web3.net.version
-        self.accounts = Accounts()
+        self.accounts = Accounts(web3=self.web3)
         if metafile_contract:
+            if type(metafile_contract) == dict:
+                metafile_contract = AttrDict(metafile_contract)
             self._process_metafile_contract(metafile_contract)
         if source_contract:
             self._process_source_contract(source_contract)
@@ -77,19 +82,19 @@ class Contract(object):
         latest_address = None
         for inst in metafile_instances:
             # We want the latest deployed address for the active network
-            if inst.get('date') > last_date:
-                latest_address = inst.get('address')
-                last_date = inst.get('date')
+            if inst.get('date'):
+                this_date = datetime.fromisoformat(inst['date'])
+                if last_date is None or this_date > last_date:
+                    latest_address = inst.get('address')
+                    last_date = this_date
 
             self.deployments.append(Deployment(
                 bytecode_hash=inst.get('hash'),
-                date=inst.get('date'),
+                date=this_date,
                 address=inst.get('address'),
                 network=inst.get('network_id'),
                 abi=inst.get('abi'),
                 ))
-
-        self.address = latest_address
 
     def _process_metafile_contract(self, metafile_contract):
         self.name = metafile_contract.get('name')
@@ -105,7 +110,7 @@ class Contract(object):
     def _process_source_contract(self, source):
         self.name = source.name
         self.source_abi = source.abi
-        self.source_bytecode = source.bytecode
+        self.source_bytecode = normalize_hexstring(source.bytecode)
 
     def _deploy(self, *args, **kwargs):
         """ Deploy the contract """
@@ -114,7 +119,7 @@ class Contract(object):
         # Create the tx object
         deploy_tx = create_deploy_tx(self.source_abi, self.source_bytecode, {
              'chainId': int(self.network_id),
-             'gas': int(3e6), # TODO: We need to be able to adjust these
+             'gas': int(6e6), # TODO: We need to be able to adjust these
              'gasPrice': self.web3.toWei('3', 'gwei'),
              'nonce': nonce,
              'from': self.from_account,
@@ -124,7 +129,18 @@ class Contract(object):
         signed_tx = self.accounts.sign_tx(self.from_account, deploy_tx)
 
         # Send it
-        deploy_txhash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        try:
+            deploy_txhash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        except (
+            ValidationError,
+            ValueError,
+        ) as err:
+            if 'out of gas' in str(err) or 'exceeds gas' in str(err):
+                log.error('TX ran out of gas when deploying {}'.format(self.name))
+            log.debug(deploy_tx)
+            log.debug({k: v for k, v in signed_tx.items()})
+            raise err
+
 
         # Wait for it to be mined
         deploy_receipt = self.web3.eth.waitForTransactionReceipt(deploy_txhash)
