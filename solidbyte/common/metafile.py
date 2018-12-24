@@ -124,6 +124,8 @@ class MetaFile(object):
         bytecode_hash = normalize_hexstring(bytecode_hash)
 
         if contract_idx is not None:
+            if not self._json['contracts'][contract_idx]['networks'].get(network_id):
+                self._json['contracts'][contract_idx]['networks'][network_id] = AttrDict()
             self._json['contracts'][contract_idx]['networks'][network_id]['deployedHash'] = bytecode_hash
             self._json['contracts'][contract_idx]['networks'][network_id]['deployedInstances'].append(AttrDict({
                 'hash': bytecode_hash,
@@ -157,15 +159,11 @@ class MetaFile(object):
         if type(self._json['seenAccounts']) != list:
             return False
 
-        account_idx = -1
         try:
-            account_idx = self._json['seenAccounts'].index(address)
-        except ValueError: pass
-
-        if account_idx > -1:
+            self._json['seenAccounts'].index(address)
             return True
-
-        return False
+        except ValueError: 
+            return False
 
     @autoload
     @autosave
