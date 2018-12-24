@@ -19,11 +19,17 @@ class DevelopCommand(develop):
         develop.run(self)
 
 
+# TODO: Revisit, should this install/update solc?
 class InstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
-        install.run(self)
+        install.do_egg_install(self)
 
+
+def requirements_to_list(filename):
+    return [dep for dep in open(path.join(pwd, filename)).read().split('\n') if dep and not dep.startswith('#')]
+
+print("Requirements: {}".format(requirements_to_list('requirements.txt')))
 
 setup(
     name='solidbyte',
@@ -46,12 +52,12 @@ setup(
     ],
     keywords='solidity ethereum development',
     packages=find_packages(exclude=['docs', 'tests', 'scripts', 'build']),
-    install_requires=open(path.join(pwd, 'requirements.txt')).read().split(),
+    install_requires=requirements_to_list('requirements.txt'),
     extras_require={
-        'dev': open(path.join(pwd, 'requirements.dev.txt')).read().split(),
-        'test': open(path.join(pwd, 'requirements.test.txt')).read().split(),
+        'dev': requirements_to_list('requirements.dev.txt'),
+        'test': requirements_to_list('requirements.test.txt'),
     },
-    entry_points={  # Optional
+    entry_points={
         'console_scripts': [
             'sb=solidbyte.cli:main',
         ],
