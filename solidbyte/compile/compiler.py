@@ -1,7 +1,7 @@
 """ Solidity compiling functionality """
 from os import path, getcwd, listdir
 from subprocess import check_call, check_output
-from ..common import builddir, source_filename_to_name
+from ..common import builddir, source_filename_to_name, supported_extension
 from ..common.logging import getLogger, parent_logger
 
 log = getLogger(__name__)
@@ -37,6 +37,7 @@ class Compiler(object):
         compile_cmd = [
             SOLC_PATH,
             '--bin',
+            '--optimize',
             '--overwrite',
             '-o',
             path.join(self.builddir, source_filename_to_name(filename)),
@@ -67,7 +68,7 @@ class Compiler(object):
         log.debug("Contracts directory: {}".format(self.dir))
         log.debug("Build directory: {}".format(self.builddir))
 
-        contract_files = [f for f in listdir(self.dir) if path.isfile(path.join(self.dir, f))]
+        contract_files = [f for f in listdir(self.dir) if path.isfile(path.join(self.dir, f)) and supported_extension(f)]
         log.debug("contract files: {}".format(contract_files))
 
         for contract in contract_files:
