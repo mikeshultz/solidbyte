@@ -125,7 +125,10 @@ class MetaFile(object):
 
         if contract_idx is not None:
             if not self._json['contracts'][contract_idx]['networks'].get(network_id):
-                self._json['contracts'][contract_idx]['networks'][network_id] = AttrDict()
+                self._json['contracts'][contract_idx]['networks'][network_id] = AttrDict({
+                    'deployedHash': '',
+                    'deployedInstances': []
+                    })
             self._json['contracts'][contract_idx]['networks'][network_id]['deployedHash'] = bytecode_hash
             self._json['contracts'][contract_idx]['networks'][network_id]['deployedInstances'].append(AttrDict({
                 'hash': bytecode_hash,
