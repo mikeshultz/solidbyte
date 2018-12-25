@@ -13,16 +13,19 @@ from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
+
 class Deployment(object):
     def __init__(self, network, address, bytecode_hash, date, abi):
         self.network = network
         self.address = address
-        self.bytecode_hash = bytecode_hash,
+        self.bytecode_hash = bytecode_hash
         self.date = date
         self.abi = abi
 
+
 class Contract(object):
-    def __init__(self, network_name, from_account, source_contract=None, metafile_contract=None, metafile=None):
+    def __init__(self, network_name, from_account, source_contract=None, metafile_contract=None,
+                 metafile=None):
         self.name = None
         self.deployedHash = None
         self.source_bytecode = None
@@ -32,15 +35,15 @@ class Contract(object):
         self.web3 = web3c.get_web3(network_name)
         self.network_id = self.web3.net.chainId or self.web3.net.version
         self.accounts = Accounts(web3=self.web3)
+        self.deployments = []
         if metafile_contract:
             if type(metafile_contract) == dict:
                 metafile_contract = AttrDict(metafile_contract)
             self._process_metafile_contract(metafile_contract)
         if source_contract:
             self._process_source_contract(source_contract)
-        self.deployments = []
 
-    def is_deployed(self): 
+    def is_deployed(self):
         return len(self.deployments) > 0
 
     @property
@@ -56,10 +59,10 @@ class Contract(object):
         return self.deployments[-1].abi
 
     @property
-    def bytecode(self):
+    def bytecode_hash(self):
         if len(self.deployments) < 1:
             return None
-        return self.deployments[-1].bytecode
+        return self.deployments[-1].bytecode_hash
 
     def check_needs_deployment(self, bytecode):
         log.debug("{}.check_needs_deployment({})".format(
@@ -69,8 +72,8 @@ class Contract(object):
         if not bytecode:
             raise Exception("bytecode is required")
         return (
-            not self.bytecode \
-            or hash_hexstring(bytecode) != hash_hexstring(self.bytecode)
+            not self.bytecode_hash
+            or hash_hexstring(bytecode) != self.bytecode_hash
         )
 
     def _process_instances(self, metafile_instances):
@@ -79,13 +82,11 @@ class Contract(object):
         """
         self.deployments = []
         last_date = None
-        latest_address = None
         for inst in metafile_instances:
             # We want the latest deployed address for the active network
             if inst.get('date'):
                 this_date = datetime.fromisoformat(inst['date'])
                 if last_date is None or this_date > last_date:
-                    latest_address = inst.get('address')
                     last_date = this_date
 
             self.deployments.append(Deployment(
@@ -101,9 +102,9 @@ class Contract(object):
 
         if metafile_contract.networks.get(self.network_id):
             self.deployedHash = metafile_contract.networks[self.network_id].get('deployedHash')
-            
+
             if metafile_contract.networks[self.network_id].get('deployedInstances') \
-                and len(metafile_contract.networks[self.network_id]['deployedInstances']) > 0:
+                    and len(metafile_contract.networks[self.network_id]['deployedInstances']) > 0:
 
                 self._process_instances(metafile_contract.networks[self.network_id]['deployedInstances'])
 
@@ -119,7 +120,7 @@ class Contract(object):
         # Create the tx object
         deploy_tx = create_deploy_tx(self.source_abi, self.source_bytecode, {
              'chainId': int(self.network_id),
-             'gas': int(6e6), # TODO: We need to be able to adjust these
+             'gas': int(6e6),  # TODO: We need to be able to adjust these
              'gasPrice': self.web3.toWei('3', 'gwei'),
              'nonce': nonce,
              'from': self.from_account,
@@ -136,16 +137,16 @@ class Contract(object):
             ValueError,
         ) as err:
             if 'out of gas' in str(err) or 'exceeds gas' in str(err):
-                log.error('TX ran out of gas when deploying {}'.format(self.name))
+                log.error('TX ran out of gas when deploying {}.'.format(self.name))
             log.debug(deploy_tx)
             log.debug({k: v for k, v in signed_tx.items()})
             raise err
 
-
         # Wait for it to be mined
         deploy_receipt = self.web3.eth.waitForTransactionReceipt(deploy_txhash)
-        
+
         bytecode_hash = hash_hexstring(self.source_bytecode)
+
         self.deployments.append(Deployment(
                 bytecode_hash=bytecode_hash,
                 date=datetime.now().isoformat(),
@@ -153,7 +154,11 @@ class Contract(object):
                 network=self.network_id,
                 abi=self.source_abi,
                 ))
-        self.metafile.add(self.name, self.network_id, deploy_receipt.contractAddress, self.source_abi, bytecode_hash)
+
+        self.metafile.add(self.name, self.network_id,
+                          deploy_receipt.contractAddress, self.source_abi,
+                          bytecode_hash)
+
         return self._get_web3_contract()
 
     def _get_web3_contract(self):
