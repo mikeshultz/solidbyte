@@ -34,4 +34,4 @@ The available connection types are:
  - `websocket` - Connect to a Web socket JSON-RPC provider
  - `http` - Connect to a plain HTTP(or HTTPS) JSON-RPC provider
  - `ipc` - Use the local IPC socket to connect to a local node
- - `eth_tester` - A virtual ephemeral chain to test against.  Very useful for running unit tests.
+ - `eth_tester` - A virtual ephemeral chain to test against.  Very useful for running unit tests. **NOTE**: eth_tester is in alpha and has been known to show bugs.
