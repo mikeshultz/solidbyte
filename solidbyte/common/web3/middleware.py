@@ -3,8 +3,9 @@ from ...common.logging import getLogger
 
 log = getLogger(__name__)
 
+
 class SolidbyteSignerMiddleware(object):
-    """ Middleware that takes eth_sendTransaction calls, signs the tx with 
+    """ Middleware that takes eth_sendTransaction calls, signs the tx with
         Accounts and converts the RPC call to eth_sendRawTransaction.
 
         Ref
@@ -55,9 +56,12 @@ class SolidbyteSignerMiddleware(object):
                     else:
                         # If the account isn't on the node, either, this is a problem
                         if not self._account_available(pset['from']):
-                            # For now, error, but this might-should just fallback to eth_sendTransaction
-                            log.error("Transaction being sent from unknown account {}. This will probably fail.".format(pset['from']))
-        
+                            # For now, error, but this might-should just fallback to
+                            # eth_sendTransaction
+                            log.error("Transaction being sent from unknown account {}. This will probably fail.".format(
+                                    pset['from']
+                                ))
+
         log.debug("method/params: {}/{}".format(method, params))
 
         # perform the RPC request, getting the response

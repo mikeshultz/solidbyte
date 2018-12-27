@@ -29,10 +29,9 @@ def hash_hexstring(hexbytes):
     assert hexbytes is not None, "hexbytes provided to hash_hexstring is None"
     return normalize_hexstring(Web3.sha3(hexstr=normalize_hexstring(hexbytes)))
 
-def create_deploy_tx(abi, bytecode, tx, *args, **kwargs):
+def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
     try:
-        web3 = Web3()
-        inst = web3.eth.contract(abi=abi, bytecode=bytecode)
+        inst = w3inst.eth.contract(abi=abi, bytecode=bytecode)
         return inst.constructor(*args, **kwargs).buildTransaction(tx)
     except Exception as e:
         log.exception("Error creating deploy transaction")

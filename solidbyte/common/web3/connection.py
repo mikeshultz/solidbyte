@@ -2,6 +2,7 @@ import sys
 import yaml
 from os import getcwd
 from pathlib import Path
+from datetime import datetime
 from attrdict import AttrDict
 from eth_tester import PyEVMBackend, EthereumTester
 from web3 import (
@@ -18,7 +19,7 @@ from .middleware import SolidbyteSignerMiddleware
 
 log = getLogger(__name__)
 
-TEST_BLOCK_GAS_LIMIT = int(6e6)
+TEST_BLOCK_GAS_LIMIT = int(6.5e6)
 
 class Web3ConfiguredConnection(object):
     """ A handler for dealing with network configuration, and Web3 instantiation.
@@ -79,18 +80,23 @@ class Web3ConfiguredConnection(object):
             return HTTPProvider(config.get('url'))
         elif config['type'] in ('eth_tester', 'eth-tester', 'ethereum-tester'):
             params = PyEVMBackend._generate_genesis_params(overrides={
-                'gas_limit': TEST_BLOCK_GAS_LIMIT
+                'gas_limit': TEST_BLOCK_GAS_LIMIT,
             })
             tester = EthereumTester(backend=PyEVMBackend(
-                genesis_parameters=params
-            ))
+                    genesis_parameters=params
+                ),
+                auto_mine_transactions=True
+            )
             return EthereumTesterProvider(ethereum_tester=tester)
         else:
             raise SolidbyteException("Invalid configuration.  Unknown type")
 
     def get_web3(self, name=None):
         """ return a configured web3 instance """
-        web3 = None
+        if name == self.name and self.web3:
+            return self.web3
+
+        self.web3 = None
 
         if name and not self._network_config_exists(name):
             raise SolidbyteException("Provided network '{}' does not exist in networks.yml".format(name))
@@ -98,14 +104,13 @@ class Web3ConfiguredConnection(object):
             conn_conf = self.config[name]
 
             success = False
-            web3 = None
             if conn_conf.get('type') == 'auto':
-                web3 = Web3()
-                success = web3.isConnected()
+                self.web3 = Web3()
+                success = self.web3.isConnected()
             else:
                 provider = self._init_provider_from_type(conn_conf)
                 success = provider.isConnected()
-                web3 = Web3(provider)
+                self.web3 = Web3(provider)
 
             if not success:
                 log.error("Connection to {} provider failed".format(conn_conf.get('type')))
@@ -114,11 +119,14 @@ class Web3ConfiguredConnection(object):
         else:
             log.warning("No network provided.  Attempting automatic connection.")
             from web3.auto import w3 as web3
+            self.web3 = web3
+
+        self.name = name
 
         # Setup gasPrice strategy
-        web3.eth.setGasPriceStrategy(medium_gas_price_strategy)
+        self.web3.eth.setGasPriceStrategy(medium_gas_price_strategy)
 
         # Add our middleware for signing
-        web3.middleware_stack.add(SolidbyteSignerMiddleware, name='SolidbyteSigner')
+        self.web3.middleware_stack.add(SolidbyteSignerMiddleware, name='SolidbyteSigner')
 
-        return web3
+        return self.web3
