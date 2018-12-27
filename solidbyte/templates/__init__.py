@@ -1,7 +1,6 @@
 import sys
 from importlib import import_module
 from os import path, listdir
-from .template import Template
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -10,7 +9,7 @@ log = getLogger(__name__)
 Templates
 =========
 
-Every template should at a minimum implement this function that returns an 
+Every template should at a minimum implement this function that returns an
 instance of solidbyte.templates.Template or a derivative of:
 
     get_template_instance(*args, **kwargs)
@@ -21,6 +20,7 @@ TODO: Better docs
 
 TEMPLATE_DIR = path.join(path.dirname(__file__), 'templates')
 TEMPLATES = {}
+
 
 def lazy_load_templates(force_load=False):
     """ Import all templates and stuff them into TEMPLATES """
@@ -45,16 +45,18 @@ def lazy_load_templates(force_load=False):
 
     return TEMPLATES
 
+
 def get_templates():
     """ Return all available templates """
     log.debug("Loading templates from {}".format(TEMPLATE_DIR))
     return lazy_load_templates()
 
+
 def init_template(name, dir_mode=None):
     """ Initialize and return a Template instance with name """
 
     lazy_load_templates()
-    
+
     if name not in TEMPLATES:
         raise FileNotFoundError("Unknown template")
 

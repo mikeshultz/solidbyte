@@ -1,10 +1,9 @@
 """ Create a project template with an ERC20 contract and accompanying tests """
-from os import path
-from pathlib import Path
 from ...template import Template
 from ....common.logging import getLogger
 
 log = getLogger(__name__)
+
 
 class ERC20Template(Template):
     def __init__(self, *args, **kwargs):
@@ -46,6 +45,7 @@ class ERC20Template(Template):
         log.info("Creating networks.yml...")
 
         self.copy_template_file(self.pwd, '', 'networks.yml')
+
 
 def get_template_instance(*args, **kwargs):
     return ERC20Template(*args, **kwargs)

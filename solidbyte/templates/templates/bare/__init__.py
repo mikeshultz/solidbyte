@@ -4,6 +4,7 @@ from ....common.logging import getLogger
 
 log = getLogger(__name__)
 
+
 class BareTemplate(Template):
     def __init__(self, *args, **kwargs):
         super(BareTemplate, self).__init__(*args, **kwargs)
@@ -28,6 +29,7 @@ class BareTemplate(Template):
         log.info("Creating networks.yml...")
 
         self.copy_template_file(self.pwd, '', 'networks.yml')
+
 
 def get_template_instance(*args, **kwargs):
     return BareTemplate(*args, **kwargs)

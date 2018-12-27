@@ -1,11 +1,12 @@
 """ Abstract template class """
 import sys
-from os import path, mkdir, getcwd
+from os import path, getcwd
 from shutil import copyfile
 from pathlib import Path
-from ..common.logging import getLogger, parent_logger
+from ..common.logging import getLogger
 
 log = getLogger(__name__)
+
 
 class Template(object):
     """ Template abstract """
@@ -17,7 +18,7 @@ class Template(object):
         print(self.template_dir)
 
     def initialize(self):
-        raise NotImplemented("initialize() must be implemented for template")
+        raise NotImplementedError("initialize() must be implemented for template")
 
     def copy_template_file(self, dest_dir, subdir, filename):
         """ Copy a file from src to dest """
@@ -39,8 +40,8 @@ class Template(object):
         deploy_dir = self.pwd.joinpath('deploy')
 
         if tests_dir.exists() \
-            or contracts_dir.exists() \
-            or deploy_dir.exists():
+                or contracts_dir.exists() \
+                or deploy_dir.exists():
             raise FileExistsError("Project structure appears to already exist! Aborting...")
 
         log.info("Executing project initialization...")

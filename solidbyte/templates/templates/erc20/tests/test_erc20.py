@@ -2,7 +2,7 @@
 def test_erc20(web3, contracts):
     print("contracts: ", contracts)
 
-    """ We're just going to test to make sure the contracts fixture is being 
+    """ We're just going to test to make sure the contracts fixture is being
         populated with deployed contract instances
     """
     assert 'ERC20' in contracts, "Contract not deployed"
