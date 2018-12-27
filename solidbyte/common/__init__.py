@@ -50,3 +50,28 @@ def collapse_oel(lst):
     if len(lst) != 1:
         raise ValueError("List has multiple elements")
     return lst[0]
+
+
+def pop_key_from_dict(d, key):
+    """ Remove and return an element from a dict and the modded dict
+
+    Args:
+        d {dict}: the original dict
+        key {str}: they key to pop
+
+    Returns:
+        {tuple}: A tuple of a dict and the wanted value
+    """
+    val = d.get(key)
+    if val is None:
+        return (d, None)
+    del d[key]
+    return (d, val)
+
+
+def all_are_in(items: list, di: dict):
+    """ Check if all items are in di """
+    for i in items:
+        if i not in di:
+            return False
+    return True
