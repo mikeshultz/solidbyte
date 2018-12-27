@@ -1,6 +1,7 @@
 """ Objects and utility functions for account operations """
 import os
 import json
+from typing import TypeVar, List
 from getpass import getpass
 from pathlib import Path
 from datetime import datetime
@@ -11,12 +12,16 @@ from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
+T = TypeVar('T')
+
+
 class Accounts(object):
-    def __init__(self, network_name=None, keystore_dir='~/.ethereum/keystore', 
-                    web3=None):
+    def __init__(self, network_name: str = None,
+                 keystore_dir: str = '~/.ethereum/keystore',
+                 web3: object = None) -> None:
         self.eth_account = Account()
         self.accounts = []
-        self.keystore_dir=Path(keystore_dir).expanduser().resolve()
+        self.keystore_dir = Path(keystore_dir).expanduser().resolve()
         if web3:
             self.web3 = web3
         else:
@@ -26,7 +31,7 @@ class Accounts(object):
             log.error("Provided keystore directory is not a directory")
             raise Exception("Invalid keystore directory")
 
-    def _read_json_file(self, filename):
+    def _read_json_file(self, filename: str) -> object:
         """ Read a JSON file and output a python dict """
         jason = None
         with open(filename, 'r') as json_file:
@@ -37,7 +42,7 @@ class Accounts(object):
                 log.error("Error reading JSON file {}: {}".format(filename, str(e)))
         return jason
 
-    def _write_json_file(self, json_object, filename=None):
+    def _write_json_file(self, json_object: object, filename: str = None) -> None:
         """ Write a JSON file from a python dict """
 
         if type(filename) == str:
@@ -56,11 +61,11 @@ class Accounts(object):
             except Exception as e:
                 log.error("Error writing JSON file {}: {}".format(filename, str(e)))
 
-    def _get_keystore_files(self):
+    def _get_keystore_files(self) -> list:
         """ Return all filenames of keystore files """
         return self.keystore_dir.iterdir()
 
-    def _load_accounts(self, force=False):
+    def _load_accounts(self, force: bool = False) -> None:
         if len(self.accounts) > 1 and not force:
             return
 
@@ -77,13 +82,23 @@ class Accounts(object):
                     'balance': self.web3.fromWei(
                         self.web3.eth.getBalance(self.web3.toChecksumAddress(addr)),
                         'ether'
-                        )
+                        ),
+                    'privkey': None
                 }))
 
-    def refresh():
+    def refresh(self) -> None:
         self._load_accounts(True)
 
-    def get_account(self, address):
+    def _get_account_index(self, address: str) -> int:
+        """ Return the list index for the account """
+        idx = 0
+        for a in self.accounts:
+            if a.address == address:
+                return idx
+            idx += 1
+        raise IndexError("account does not exist")
+
+    def get_account(self, address: str) -> AttrDict:
         """ Return all the known account addresses """
 
         self._load_accounts()
@@ -94,14 +109,23 @@ class Accounts(object):
 
         raise FileNotFoundError("Unable to find requested account")
 
-    def get_accounts(self):
+    def get_accounts(self) -> List[AttrDict]:
         """ Return all the known account addresses """
 
         self._load_accounts()
 
         return self.accounts
 
-    def create_account(self, password):
+    def set_account_attribute(self, address: str, key: str, val: T) -> None:
+        """ Set an attribute of an account """
+        idx = 0
+        for a in self.accounts:
+            if a.address == address:
+                setattr(self.accounts[idx], key, val)
+                return
+            idx += 1
+
+    def create_account(self, password: str) -> str:
         """ Create a new account and encrypt it with password """
 
         new_account = self.eth_account.create(os.urandom(len(password) * 2))
@@ -111,19 +135,25 @@ class Accounts(object):
 
         return new_account.address
 
-    def unlock(self, account_address, password=None):
+    def unlock(self, account_address: str, password: str = None) -> bytes:
         """ Unlock an account keystore file and return the private key """
 
         log.debug("Unlocking account {}".format(account_address))
 
+        account = self.get_account(account_address)
+
+        if account.privkey is not None:
+            return account.privkey
+
         if not password:
             password = getpass("Enter password to decrypt account ({}):".format(account_address))
 
-        account = self.get_account(account_address)
         jason = self._read_json_file(account.filename)
-        return self.eth_account.decrypt(jason, password)
+        privkey = self.eth_account.decrypt(jason, password)
+        self.set_account_attribute(account_address, 'privkey', privkey)
+        return privkey
 
-    def sign_tx(self, account_address, tx, password=None):
+    def sign_tx(self, account_address: str, tx: dict, password: str = None) -> str:
         """ Sign a transaction using the provided account """
 
         log.debug("Signing tx with account {}".format(account_address))
@@ -132,15 +162,14 @@ class Accounts(object):
         """
         if tx.get('gasPrice') is None:
             gasPrice = self.web3.eth.generateGasPrice()
-            log.warning("Missing gasPrice for transaction. Using automatic price of {}".format(gasPrice))
+            log.warning("Missing gasPrice for transaction. Using automatic price of {}".format(
+                    gasPrice
+                ))
             tx['gasPrice'] = gasPrice
 
         if tx.get('nonce') is None:
             nonce = self.web3.eth.getTransactionCount(tx['from'])
             tx['nonce'] = nonce
 
-        if not password:
-            password = getpass("Enter password to decrypt account ({}):".format(account_address))
-
-        privkey = self.unlock(account_address, password)
+        privkey = self.unlock(account_address)
         return self.web3.eth.account.signTransaction(tx, privkey)
