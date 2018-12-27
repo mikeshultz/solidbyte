@@ -7,6 +7,7 @@ from ..templates import get_templates, init_template
 
 log = getLogger(__name__)
 
+
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
     parser.add_argument('-m', action='store_true', default=False,
@@ -19,15 +20,14 @@ def add_parser_arguments(parser):
                         help='Show all available templates')
     return parser
 
+
 def main(parser_args):
     """ Execute init """
-    pwd = getcwd()
-
     user_mode = None
     try:
         if parser_args.dir_mode:
             user_mode = int(parser_args.dir_mode, 8)
-    except ValueError: pass
+    except ValueError: pass  # noqa: E701
 
     mode = user_mode or 0o755
 
@@ -38,7 +38,7 @@ def main(parser_args):
         for tmpl in templates:
             print(" - {}".format(tmpl))
     else:
-        tmpl = init_template(parser_args.template or 'bare')
+        tmpl = init_template(parser_args.template or 'bare', mode)
         try:
             tmpl.initialize()
         except FileExistsError as e:

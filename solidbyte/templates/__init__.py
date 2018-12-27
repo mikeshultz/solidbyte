@@ -50,7 +50,7 @@ def get_templates():
     log.debug("Loading templates from {}".format(TEMPLATE_DIR))
     return lazy_load_templates()
 
-def init_template(name):
+def init_template(name, dir_mode=None):
     """ Initialize and return a Template instance with name """
 
     lazy_load_templates()
@@ -58,4 +58,4 @@ def init_template(name):
     if name not in TEMPLATES:
         raise FileNotFoundError("Unknown template")
 
-    return TEMPLATES[name].get_template_instance()
+    return TEMPLATES[name].get_template_instance(dir_mode=dir_mode)
