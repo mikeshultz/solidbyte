@@ -7,8 +7,10 @@ from ..common.logging import getLogger, parent_logger
 
 log = getLogger(__name__)
 
+
 def add_parser_arguments(parser):
     return parser
+
 
 def main(parser_args):
     """ Execute test """

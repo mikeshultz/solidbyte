@@ -1,1 +1,1 @@
-from .handler import main
+from .handler import main  # noqa: F401

@@ -12,7 +12,6 @@ log = getLogger(__name__)
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
 
-
     parser.add_argument('-k', '--keystore', type=str,
                         default='~/.ethereum/keystore',
                         help='The Ethereum keystore directory to load accounts from')
@@ -21,22 +20,23 @@ def add_parser_arguments(parser):
 
     # Subcommands
     subparsers = parser.add_subparsers(title='Account Commands',
-                                        dest='account_command',
-                                        help='Perform various Ethereum account operations')
+                                       dest='account_command',
+                                       help='Perform various Ethereum account operations')
 
     # List accounts
-    list_parser = subparsers.add_parser('list', help="List all accounts")
-    
+    list_parser = subparsers.add_parser('list', help="List all accounts")  # noqa: F841
+
     # Create account
-    create_parser = subparsers.add_parser('create', help="Create a new account")
-    
+    create_parser = subparsers.add_parser('create', help="Create a new account")  # noqa: F841
+
     # Set default account
     default_parser = subparsers.add_parser('default', help="Set the default account")
     default_parser.add_argument('-a', '--address', type=str,
-                        dest="default_address", required=True,
-                        help='The address of the account to set default')
+                                dest="default_address", required=True,
+                                help='The address of the account to set default')
 
     return parser
+
 
 def main(parser_args):
     """ Execute test """
@@ -48,7 +48,7 @@ def main(parser_args):
         network_name = None
     web3 = web3c.get_web3(network_name)
     accts = Accounts(network_name=network_name,
-                        keystore_dir=parser_args.keystore, web3=web3)
+                     keystore_dir=parser_args.keystore, web3=web3)
 
     if parser_args.account_command == 'create':
         print("creating account...")
@@ -57,18 +57,18 @@ def main(parser_args):
         print("Created new account: {}".format(addr))
     elif parser_args.account_command == 'default':
         print("Setting default account to: {}".format(parser_args.default_address))
-        
+
         metafile = MetaFile()
         metafile.set_default_account(parser_args.default_address)
     else:
         metafile = MetaFile()
         default_account = metafile.get_default_account()
-        default_string = lambda a: "*" if a.address == default_account else ""
+        default_string = lambda a: "*" if a.address == default_account else ""  # noqa: E731
         print("Accounts")
         print("========")
         for a in accts.get_accounts():
             print('{}{} [bal: {}]'.format(
-                default_string(a),
-                a.address,
-                a.balance
+                    default_string(a),
+                    a.address,
+                    a.balance
                 ))
