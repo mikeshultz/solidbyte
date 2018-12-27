@@ -5,11 +5,12 @@ import readline
 import rlcompleter
 import solidbyte
 from ..common.web3 import web3c
-from ..common.logging import getLogger, parent_logger
+from ..common.logging import getLogger
 from ..deploy import Deployer, get_latest_from_deployed
 from ..accounts import Accounts
 
 log = getLogger(__name__)
+
 
 def get_default_banner(network_id, contracts=[], variables={}):
     return \
@@ -18,11 +19,11 @@ def get_default_banner(network_id, contracts=[], variables={}):
         "Network Chain ID: {}\n" \
         "Available deployed contracts: {}\n" \
         "Available locals: {}".format(
-            solidbyte.__version__,
-            network_id,
-            ", ".join(contracts),
-            ", ".join(['{}'.format(key) for key, value in variables.items() if key not in contracts])
-            )
+           solidbyte.__version__,
+           network_id,
+           ", ".join(contracts),
+           ", ".join(['{}'.format(key) for key, value in variables.items() if key not in contracts])
+        )
 
 
 class SolidbyteConsole(code.InteractiveConsole):
@@ -46,7 +47,8 @@ class SolidbyteConsole(code.InteractiveConsole):
                         meta['networks'][network_id]['deployedHash']
                     )
                     abi = contracts_compiled[meta['name']].abi
-                    self.contracts[meta['name']] = self.web3.eth.contract(abi=abi, address=latest['address'])
+                    self.contracts[meta['name']] = self.web3.eth.contract(abi=abi,
+                                                                          address=latest['address'])
 
             accounts = Accounts(network_name=network_name, web3=self.web3)
 
@@ -67,13 +69,12 @@ class SolidbyteConsole(code.InteractiveConsole):
         self.init_history(histfile)
 
     def interact(self, banner=None, exitmsg="bye!"):
-        super(SolidbyteConsole, self).interact(banner \
-                                                or get_default_banner(
+        super(SolidbyteConsole, self).interact((banner or get_default_banner(
                                                     self.network_id,
                                                     self.contracts,
                                                     self.locals
-                                                ),
-                                                exitmsg)
+                                               )),
+                                               exitmsg)
 
     def init_history(self, histfile):
         readline.parse_and_bind("tab: complete")
