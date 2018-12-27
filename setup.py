@@ -1,9 +1,10 @@
+import sys
 import solidbyte
 from os import path
 from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
-from subprocess import check_call
+from subprocess import check_call, CalledProcessError
 
 pwd = path.abspath(path.dirname(__file__))
 
@@ -24,6 +25,16 @@ class InstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
         install.do_egg_install(self)
+
+
+class LintCommand(develop):
+    """ Run linting"""
+    def run(self):
+        try:
+            check_call("flake8 --config .flake8".split())
+        except CalledProcessError as err:
+            if 'non-zero' in str(err):
+                print("linting failed with warnings", file=sys.stderr)
 
 
 def requirements_to_list(filename):
@@ -74,5 +85,6 @@ setup(
     cmdclass={
         'develop': DevelopCommand,
         'install': InstallCommand,
+        'lint': LintCommand,
     }
 )
