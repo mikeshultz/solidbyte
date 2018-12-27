@@ -2,29 +2,24 @@
 import inspect
 import json
 from os import path, getcwd, listdir
-from importlib import import_module
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from attrdict import AttrDict
 from ..common import builddir, source_filename_to_name, supported_extension
-from ..common.exceptions import SolidbyteException, DeploymentError
+from ..common.exceptions import DeploymentError
 from ..common.logging import getLogger
-from ..common.web3 import (
-    web3c,
-    hash_hexstring,
-    create_deploy_tx,
-    normalize_address,
-    normalize_hexstring,
-)
+from ..common.web3 import web3c
 from ..common.metafile import MetaFile
 from .objects import Contract
 
 log = getLogger(__name__)
 
+
 def get_latest_from_deployed(deployed_instances, deployed_hash):
     if deployed_instances is None or deployed_hash is None:
         return None
     return list(filter(lambda x: x['hash'] == deployed_hash, deployed_instances))[0]
+
 
 class Deployer(object):
 
@@ -54,7 +49,9 @@ class Deployer(object):
             return self._source_contracts
 
         self._source_contracts = AttrDict()
-        contract_files = [f for f in listdir(self.contracts_dir) if path.isfile(path.join(self.contracts_dir, f)) and supported_extension(f)]
+        contract_files = [f for f in listdir(self.contracts_dir) if (
+            path.isfile(path.join(self.contracts_dir, f)) and supported_extension(f)
+        )]
 
         for contract in contract_files:
             name = source_filename_to_name(contract)
@@ -120,7 +117,9 @@ class Deployer(object):
                     self._deploy_scripts.append(mod)
                 except ModuleNotFoundError as e:
                     if str(e) == "No module named 'deploy'":
-                        raise DeploymentError("Unable to find deploy module.  Missing deploy/__init__.py?")
+                        raise DeploymentError(
+                                "Unable to find deploy module.  Missing deploy/__init__.py?"
+                            )
                     else:
                         raise e
 
@@ -145,7 +144,7 @@ class Deployer(object):
 
         if name is not None and not self.source_contracts.get(name):
             raise FileNotFoundError("Unknown contract: {}".format(name))
-        
+
         # If we don't know about the contract from the metafile, it needs deploy
         if name is not None and not self.contracts.get(name):
             return True
@@ -160,7 +159,7 @@ class Deployer(object):
             if not newest_bytecode:
                 log.warning("Bytecode is zero")
             elif newest_bytecode \
-                and self.contracts[key].check_needs_deployment(newest_bytecode):
+                    and self.contracts[key].check_needs_deployment(newest_bytecode):
                 return True
 
         return False
@@ -183,13 +182,13 @@ class Deployer(object):
             """
             It should be be flexible for users to write their deploy scripts.
             They can pick and choose what kwargs they want to reeive.  To handle
-            that, we need to inspect the function to see what they want, then 
+            that, we need to inspect the function to see what they want, then
             provide what we can.
             """
             spec = inspect.getargspec(script.main)
-            script_kwargs = { k: available_kwargs.get(k) for k in spec.args }
+            script_kwargs = {k: available_kwargs.get(k) for k in spec.args}
             retval = script.main(**script_kwargs)
-            if retval != True:
+            if retval is not True:
                 raise DeploymentError("Deploy script did not complete properly!")
 
         return True
