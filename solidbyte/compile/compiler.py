@@ -2,11 +2,12 @@
 from os import path, getcwd, listdir
 from subprocess import check_call, check_output
 from ..common import builddir, source_filename_to_name, supported_extension
-from ..common.logging import getLogger, parent_logger
+from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
 SOLC_PATH = path.normpath(path.join(path.dirname(__file__), '..', 'bin', 'solc'))
+
 
 class Compiler(object):
     """ Handle compiling of contracts """
@@ -26,7 +27,7 @@ class Compiler(object):
         try:
             version_string = version_out.decode('utf8').split('\n')[1]
             return version_string.replace('Version: ', '')
-        except:
+        except Exception:
             return 'err'
 
     def compile(self, filename):
@@ -68,9 +69,9 @@ class Compiler(object):
         log.debug("Contracts directory: {}".format(self.dir))
         log.debug("Build directory: {}".format(self.builddir))
 
-        contract_files = [f for f in listdir(self.dir) if path.isfile(path.join(self.dir, f)) and supported_extension(f)]
+        contract_files = [f for f in listdir(self.dir) if (path.isfile(path.join(self.dir, f))
+                                                           and supported_extension(f))]
         log.debug("contract files: {}".format(contract_files))
 
         for contract in contract_files:
             self.compile(contract)
-            
