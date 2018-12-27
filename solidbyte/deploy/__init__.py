@@ -55,6 +55,7 @@ class Deployer(object):
 
         self._source_contracts = AttrDict()
         contract_files = [f for f in listdir(self.contracts_dir) if path.isfile(path.join(self.contracts_dir, f)) and supported_extension(f)]
+
         for contract in contract_files:
             name = source_filename_to_name(contract)
 
@@ -91,14 +92,13 @@ class Deployer(object):
 
         self._contracts = AttrDict()
         for key in self.source_contracts.keys():
-            contract = Contract(
+            self._contracts[key] = Contract(
                 network_name=self.network_name,
                 from_account=self.account,
                 metafile_contract=self.metafile.get_contract(key),
                 source_contract=self.source_contracts[key],
                 metafile=self.metafile,
             )
-            self._contracts[key] = contract
 
         return self._contracts
     contracts = property(get_contracts)
@@ -106,16 +106,16 @@ class Deployer(object):
     def _load_user_scripts(self):
         """ Load the user deploy scripts from deploy folder """
         script_dir = Path(self.deploy_dir)
-        
+
         if not script_dir.is_dir():
             raise DeploymentError("deploy directory does not appear to be a directory")
 
         for node in script_dir.iterdir():
             if node.is_file() \
-                and node.name.startswith('deploy') \
-                and node.name.endswith('.py'):
+                    and node.name.startswith('deploy') \
+                    and node.name.endswith('.py'):
+
                 try:
-                    #mod = import_module('{}'.format(node.name[:-3]), package="deploy")
                     mod = SourceFileLoader(node.name[:-3], str(node)).load_module()
                     self._deploy_scripts.append(mod)
                 except ModuleNotFoundError as e:

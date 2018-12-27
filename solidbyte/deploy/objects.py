@@ -9,6 +9,7 @@ from ..common.web3 import (
     hash_hexstring,
     create_deploy_tx,
 )
+from ..common.exceptions import DeploymentValidationError
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -106,7 +107,9 @@ class Contract(object):
             if metafile_contract.networks[self.network_id].get('deployedInstances') \
                     and len(metafile_contract.networks[self.network_id]['deployedInstances']) > 0:
 
-                self._process_instances(metafile_contract.networks[self.network_id]['deployedInstances'])
+                self._process_instances(
+                        metafile_contract.networks[self.network_id]['deployedInstances']
+                    )
 
     def _process_source_contract(self, source):
         self.name = source.name
@@ -116,12 +119,34 @@ class Contract(object):
     def _deploy(self, *args, **kwargs):
         """ Deploy the contract """
 
+        # TODO: The user needs to be able to adjust these
+        gas = int(6e6)
+        gas_price = self.web3.toWei('3', 'gwei')
+        max_fee_wei = gas * gas_price
+        deployer_balance = self.web3.eth.getBalance(self.from_account)
+
+        log.debug("Max network fee: {} ({} Ether)".format(
+                max_fee_wei,
+                self.web3.fromWei(max_fee_wei, 'ether')
+            ))
+        log.debug("Deployer balance: {}".format(deployer_balance))
+
+        if deployer_balance < max_fee_wei:
+            raise DeploymentValidationError(
+                    "Deployer account {} under-funded! Has: {} Needed: {}".format(
+                        self.from_account,
+                        deployer_balance,
+                        max_fee_wei,
+                    )
+                )
+
         nonce = self.web3.eth.getTransactionCount(self.from_account)
+
         # Create the tx object
-        deploy_tx = create_deploy_tx(self.source_abi, self.source_bytecode, {
+        deploy_tx = create_deploy_tx(self.web3, self.source_abi, self.source_bytecode, {
              'chainId': int(self.network_id),
-             'gas': int(6e6),  # TODO: We need to be able to adjust these
-             'gasPrice': self.web3.toWei('3', 'gwei'),
+             'gas': gas,
+             'gasPrice': gas_price,
              'nonce': nonce,
              'from': self.from_account,
             }, *args, **kwargs)
@@ -136,8 +161,11 @@ class Contract(object):
             ValidationError,
             ValueError,
         ) as err:
-            if 'out of gas' in str(err) or 'exceeds gas' in str(err):
+            str_err = str(err)
+            if 'out of gas' in str_err or 'exceeds gas' in str_err:
                 log.error('TX ran out of gas when deploying {}.'.format(self.name))
+            elif 'cannot afford txn gas' in str_err:
+                log.error('Deployer account unable to afford network fees')
             log.debug(deploy_tx)
             log.debug({k: v for k, v in signed_tx.items()})
             raise err
@@ -153,7 +181,7 @@ class Contract(object):
                 address=deploy_receipt.contractAddress,
                 network=self.network_id,
                 abi=self.source_abi,
-                ))
+            ))
 
         self.metafile.add(self.name, self.network_id,
                           deploy_receipt.contractAddress, self.source_abi,
@@ -164,7 +192,9 @@ class Contract(object):
     def _get_web3_contract(self):
         """ Return the web3.py contract instance """
         assert self.abi is not None, "ABI appears to be missing for contract {}".format(self.name)
-        assert self.address is not None, "Address appears to be missing for contract {}".format(self.name)
+        assert self.address is not None, "Address appears to be missing for contract {}".format(
+                self.name
+            )
         return self.web3.eth.contract(abi=self.abi, address=self.address)
 
     def deployed(self, *args, **kwargs):
