@@ -27,13 +27,13 @@ import json
 from os import path, getcwd
 from datetime import datetime
 from attrdict import AttrDict
-from ..common import builddir
 from ..common.logging import getLogger
 from .web3 import normalize_address, normalize_hexstring
 
 log = getLogger(__name__)
 
 METAFILE_FILENAME = 'metafile.json'
+
 
 def autoload(f):
     """ Automatically load the metafile before method execution """
@@ -44,6 +44,7 @@ def autoload(f):
         return f(*args, **kwargs)
     return wrapper
 
+
 def autosave(f):
     """ Automatically save the metafile after method execution """
     def wrapper(*args, **kwargs):
@@ -52,6 +53,7 @@ def autosave(f):
         if len(args) > 0 and isinstance(args[0], MetaFile):
             args[0]._save()
     return wrapper
+
 
 class MetaFile(object):
     """ Class representing the project metafile """
@@ -118,7 +120,7 @@ class MetaFile(object):
 
     @autoload
     @autosave
-    def add(self, name, network_id, address, abi, bytecode_hash):
+    def add(self, name, network_id, address, abi, bytecode_hash):  # noqa: E211
         contract_idx = self.get_contract_index(name)
         address = normalize_address(address)
         bytecode_hash = normalize_hexstring(bytecode_hash)
@@ -129,13 +131,24 @@ class MetaFile(object):
                     'deployedHash': '',
                     'deployedInstances': []
                     })
-            self._json['contracts'][contract_idx]['networks'][network_id]['deployedHash'] = bytecode_hash
-            self._json['contracts'][contract_idx]['networks'][network_id]['deployedInstances'].append(AttrDict({
-                'hash': bytecode_hash,
-                'date': datetime.now().isoformat(),
-                'address': address,
-                'abi': abi,
-                }))
+
+            (self._json['contracts']
+                       [contract_idx]
+                       ['networks']
+                       [network_id]
+                       ['deployedHash']) = bytecode_hash
+
+            (self._json['contracts']
+                       [contract_idx]
+                       ['networks']
+                       [network_id]
+                       ['deployedInstances']).append(
+                           AttrDict({
+                            'hash': bytecode_hash,
+                            'date': datetime.now().isoformat(),
+                            'address': address,
+                            'abi': abi,
+                           }))
         else:
             if not self._json.get('contracts'):
                 self._json['contracts'] = []
@@ -165,7 +178,7 @@ class MetaFile(object):
         try:
             self._json['seenAccounts'].index(address)
             return True
-        except ValueError: 
+        except ValueError:
             return False
 
     @autoload

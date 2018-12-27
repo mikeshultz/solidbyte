@@ -99,7 +99,9 @@ class Web3ConfiguredConnection(object):
         self.web3 = None
 
         if name and not self._network_config_exists(name):
-            raise SolidbyteException("Provided network '{}' does not exist in networks.yml".format(name))
+            raise SolidbyteException("Provided network '{}' does not exist in networks.yml".format(
+                    name
+                ))
         elif name and self._network_config_exists(name):
             conn_conf = self.config[name]
 

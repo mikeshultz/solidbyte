@@ -5,6 +5,7 @@ import re
 import sys
 import logging
 
+
 class ConsoleStyle:
     """ Console coloring and styles """
     OKBLUE = '\033[94m'
@@ -14,17 +15,24 @@ class ConsoleStyle:
     CRITICAL = '\033[31m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-    END = '\033[0m' # Stop all styling
+    END = '\033[0m'  # Stop all styling
 
 
 class LogFormats:
     """ Log formats for use for different log levels """
     DEFAULT = '%(asctime)s [%(levelname)s] %(name)s - %(message)s'
-    ERROR = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.ERROR, ConsoleStyle.END)
-    CRITICAL = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.CRITICAL, ConsoleStyle.END)
-    WARNING = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.WARNING, ConsoleStyle.END)
-    INFO = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.OKGREEN, ConsoleStyle.END)
-    DEBUG = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.OKBLUE, ConsoleStyle.END)
+    ERROR = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.ERROR,
+                                                                            ConsoleStyle.END)
+    CRITICAL = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(
+            ConsoleStyle.CRITICAL,
+            ConsoleStyle.END
+        )
+    WARNING = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.WARNING,
+                                                                              ConsoleStyle.END)
+    INFO = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.OKGREEN,
+                                                                           ConsoleStyle.END)
+    DEBUG = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.OKBLUE,
+                                                                            ConsoleStyle.END)
 
 
 class ColoredStyle(object):
@@ -46,7 +54,8 @@ class ColoredStyle(object):
     def validate(self):
         """Validate the input format, ensure it matches the correct style"""
         if not self.validation_pattern.search(self._fmt):
-            raise ValueError("Invalid format '%s' for '%s' style" % (self._fmt, self.default_format[0]))
+            raise ValueError("Invalid format '{}' for '{}' style".format(self._fmt,
+                                                                         self.default_format[0]))
 
     def _format(self, record):
         if record.levelno == logging.ERROR:
@@ -94,8 +103,10 @@ else:
     console_handler.setLevel(logging.INFO)
     parent_logger.setLevel(logging.INFO)
 
+
 def getLogger(name):
     return parent_logger.getChild(name)
+
 
 def loggingShutdown():
     return logging.shutdown()

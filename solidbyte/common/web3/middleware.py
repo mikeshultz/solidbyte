@@ -58,9 +58,8 @@ class SolidbyteSignerMiddleware(object):
                         if not self._account_available(pset['from']):
                             # For now, error, but this might-should just fallback to
                             # eth_sendTransaction
-                            log.error("Transaction being sent from unknown account {}. This will probably fail.".format(
-                                    pset['from']
-                                ))
+                            log.error(("Transaction being sent from unknown account {}. This will "
+                                       "probably fail.").format(pset['from']))
 
         log.debug("method/params: {}/{}".format(method, params))
 
