@@ -9,6 +9,7 @@ from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
+
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
 

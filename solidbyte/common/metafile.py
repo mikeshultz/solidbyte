@@ -1,5 +1,5 @@
 """
-Store and retrieve metdata about a contract for this project 
+Store and retrieve metdata about a contract for this project
 
 Example JSON structure:
 
@@ -52,6 +52,7 @@ def autosave(f):
         # A bit defensive, but make sure this is a decorator of a MetaFile method
         if len(args) > 0 and isinstance(args[0], MetaFile):
             args[0]._save()
+        return retval
     return wrapper
 
 

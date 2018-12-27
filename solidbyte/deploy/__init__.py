@@ -134,8 +134,8 @@ class Deployer(object):
 
     def refresh(self, force=True):
         return (
-            self.get_source_contracts(force=force) \
-            or self.get_contracts(force=force) \
+            self.get_source_contracts(force=force)
+            or self.get_contracts(force=force)
             or self.deployed_contracts
         )
 

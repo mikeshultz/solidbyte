@@ -3,7 +3,7 @@
 import solidbyte
 import web3
 from ..compile import Compiler
-from ..common.logging import getLogger, parent_logger
+from ..common.logging import getLogger
 
 log = getLogger(__name__)
 

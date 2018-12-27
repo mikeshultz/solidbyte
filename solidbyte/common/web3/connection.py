@@ -1,9 +1,6 @@
-import sys
 import yaml
 from os import getcwd
 from pathlib import Path
-from datetime import datetime
-from attrdict import AttrDict
 from eth_tester import PyEVMBackend, EthereumTester
 from web3 import (
     Web3,
@@ -20,6 +17,7 @@ from .middleware import SolidbyteSignerMiddleware
 log = getLogger(__name__)
 
 TEST_BLOCK_GAS_LIMIT = int(6.5e6)
+
 
 class Web3ConfiguredConnection(object):
     """ A handler for dealing with network configuration, and Web3 instantiation.

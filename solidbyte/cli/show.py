@@ -1,6 +1,6 @@
 """ show version information
 """
-from ..common.logging import getLogger, parent_logger
+from ..common.logging import getLogger
 from ..deploy import Deployer
 from ..common import collapse_oel
 from ..common.metafile import MetaFile

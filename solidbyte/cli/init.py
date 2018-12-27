@@ -1,8 +1,7 @@
 """ initialize a basic project structure and meta files
 """
 import sys
-from os import path, mkdir, getcwd
-from ..common.logging import getLogger, parent_logger
+from ..common.logging import getLogger
 from ..templates import get_templates, init_template
 
 log = getLogger(__name__)
