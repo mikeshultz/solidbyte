@@ -69,9 +69,18 @@ def pop_key_from_dict(d, key):
     return (d, val)
 
 
-def all_are_in(items: list, di: dict):
-    """ Check if all items are in di """
+def all_defs_in(items: list, di: dict):
+    """ Check if all defs(tuple of name/placeholder) are in di """
     for i in items:
-        if i not in di:
+        if i[0] not in di:
             return False
     return True
+
+
+def defs_not_in(items: list, di: dict):
+    """ Find items tha taren't keys in a dict """
+    missing_items = []
+    for i in items:
+        if i[0] not in di:
+            missing_items.append(i[0])
+    return missing_items

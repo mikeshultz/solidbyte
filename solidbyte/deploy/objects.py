@@ -1,12 +1,15 @@
 """ Contract deployer """
+import binascii
 from datetime import datetime
 from attrdict import AttrDict
 from eth_utils.exceptions import ValidationError
 from ..accounts import Accounts
+from ..compile import link_library, clean_bytecode
+from ..common import pop_key_from_dict
 from ..common.web3 import (
     web3c,
     normalize_hexstring,
-    hash_hexstring,
+    hash_string,
     create_deploy_tx,
 )
 from ..common.exceptions import DeploymentValidationError
@@ -74,7 +77,7 @@ class Contract(object):
             raise Exception("bytecode is required")
         return (
             not self.bytecode_hash
-            or hash_hexstring(bytecode) != self.bytecode_hash
+            or hash_string(clean_bytecode(bytecode)) != self.bytecode_hash
         )
 
     def _process_instances(self, metafile_instances):
@@ -119,6 +122,11 @@ class Contract(object):
     def _deploy(self, *args, **kwargs):
         """ Deploy the contract """
 
+        bytecode = self.source_bytecode
+        kwargs, links = pop_key_from_dict(kwargs, 'links')
+        if links is not None:
+            bytecode = link_library(self.source_bytecode, links)
+
         # TODO: The user needs to be able to adjust these
         gas = int(6e6)
         gas_price = self.web3.toWei('3', 'gwei')
@@ -143,7 +151,7 @@ class Contract(object):
         nonce = self.web3.eth.getTransactionCount(self.from_account)
 
         # Create the tx object
-        deploy_tx = create_deploy_tx(self.web3, self.source_abi, self.source_bytecode, {
+        deploy_tx = create_deploy_tx(self.web3, self.source_abi, bytecode, {
              'chainId': int(self.network_id),
              'gas': gas,
              'gasPrice': gas_price,
@@ -173,7 +181,15 @@ class Contract(object):
         # Wait for it to be mined
         deploy_receipt = self.web3.eth.waitForTransactionReceipt(deploy_txhash)
 
-        bytecode_hash = hash_hexstring(self.source_bytecode)
+        # TODO: Should this take into account a library address changing? (using linked bytecode?)
+        bytecode_hash = None
+        try:
+            bytecode_hash = hash_string(clean_bytecode(self.source_bytecode))
+        except binascii.Error as err:
+            log.exception("Invalid characters in hex string: {}".format(
+                clean_bytecode(self.source_bytecode))
+            )
+            raise err
 
         self.deployments.append(Deployment(
                 bytecode_hash=bytecode_hash,

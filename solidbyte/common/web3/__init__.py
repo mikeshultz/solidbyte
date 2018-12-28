@@ -36,7 +36,15 @@ def hash_hexstring(hexbytes):
     return normalize_hexstring(Web3.sha3(hexstr=normalize_hexstring(hexbytes)))
 
 
+def hash_string(strong):
+    assert strong is not None, "strong provided to hash_string is None"
+    return normalize_hexstring(Web3.sha3(text=strong))
+
+
 def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
+    assert w3inst is not None
+    assert abi is not None
+    assert bytecode is not None
     try:
         inst = w3inst.eth.contract(abi=abi, bytecode=bytecode)
         return inst.constructor(*args, **kwargs).buildTransaction(tx)
