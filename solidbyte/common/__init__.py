@@ -19,7 +19,7 @@ def builddir(loc=None):
 
 
 def get_filename_and_ext(filename):
-    """ Return the filename extension """
+    """ Return the filename and extension as a tuple """
     cmps = filename.split('.')
     if len(cmps) < 2:
         return (filename, '')
