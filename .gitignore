@@ -107,4 +107,4 @@ venv.bak/
 *.sublime-*
 
 # Ignore the local solc executable
-solidbyte/bin/solc
+#solidbyte/bin/solc
