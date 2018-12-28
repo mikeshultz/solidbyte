@@ -5,6 +5,16 @@ from datetime import datetime
 from web3 import Web3
 
 TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
+ADDRESS_1 = '0x2c21ce1cee5b9b1c8aa71ab09a47a5361a36bead'
+ADDRESS_2 = '0x2c21ce1cee5b9b1c8aa71ab09a47a5361a36beae'
+NETWORK_ID = 999
+ABI_OBJ_1 = [{
+  "inputs": [],
+  "payable": False,
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+}]
+BYTECODE_HASH_1 = '0x6385b18cc3f884baad806ee4508837d3a27c734268f9555f76cd12ec3ff38339'
 
 
 def write_temp_file(txt, fname=None, directory=None, overwrite=False):
