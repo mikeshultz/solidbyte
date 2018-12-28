@@ -35,6 +35,25 @@ Feel free not to use it.
 
 SolidByte expects all deploy functions to return True upon success.
 
+### Linking Libraries
+
+Linking libraries can be done simply, like so:
+
+    w3Instance = myContract.deployed(links={
+            'MyLibrary': '0x48292eafdc...',
+        })
+
+The Solidbyte linker will automatically splice these addresss into your solc compiled bytecode. A
+more real-world example would be deploying both at the same time:
+
+    myLibrary = contracts.get('MyLibrary')
+    myContract = contracts.get('MyContract')
+
+    library = myLibrary.deployed()
+    inst = myContract.deployed(links={
+            'MyLibrary': library.address
+        })
+
 ### Arguments
 
 SolidByte offers your deploy script's `main()` functions a few optional kwargs.
