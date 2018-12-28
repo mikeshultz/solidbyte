@@ -1,4 +1,5 @@
 # solidbyte
+[![Build Status](https://travis-ci.org/mikeshultz/solidbyte.svg?branch=master)](https://travis-ci.org/mikeshultz/solidbyte) [![Coverage Status](https://coveralls.io/repos/github/mikeshultz/solidbyte/badge.svg?branch=master)](https://coveralls.io/github/mikeshultz/solidbyte?branch=master)
 
 Development tools for creating Ethereum smart contracts
 
