@@ -1,4 +1,14 @@
-pytest~=3.9.3
-eth-account==0.3.0
-web3==4.7.2
+pytest>=3.9.3
+pytest-ethereum==0.1.3a5
+#pytest-ethereum==0.1.3a6
+attrdict>=2.0.0
+# web3 and eth-account versions dictated by py-ethpm
+eth-account>=0.2.3,<0.3.0
+web3<5,>=4.7
 pyyaml==3.13
+# EthPM stuff.  Needs to be pinned until release fixed and deps don't contradict
+#ethpm==0.1.4a8
+eth-abi==1.2.2
+# Until web3[tester] can be removed from py-ethpm, we need these
+py-geth<3.0.0,>=2.0.1
+eth-tester[py-evm]==0.1.0-beta.33
