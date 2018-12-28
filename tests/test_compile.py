@@ -47,7 +47,9 @@ def test_compile():
     contract_file = write_temp_file(CONTRACT_SOURCE_FILE_1, 'Test.sol', test_dir)
     compiler = Compiler(contract_file.parent, test_dir)
 
-    assert compiler.version == '0.5.2+commit.1df8f40c.Linux.g++'  # TODO: why?
+    # TODO: why?
+    assert compiler.version == '0.5.2+commit.1df8f40c.Linux.g++', ("Unexpected compiler version: "
+                                                                   "{}".format(compiler.version))
 
     compiler.compile(contract_file.name)
 
