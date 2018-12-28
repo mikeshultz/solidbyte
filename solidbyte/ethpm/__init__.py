@@ -8,6 +8,12 @@ from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
+# Useful for resolving BIP122 URIs
+GENESIS_HASHES = {
+    '1': 'd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3',
+    '3': '41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d',
+}
+
 PACKAGE_INDEX_INTERFACE = {
     '3': {
         'address': "0x8011dF4830b4F696Cd81393997E5371b93338878",
