@@ -6,6 +6,9 @@ python:
   - "3.7-dev"
 install:
   - pip install -r requirements.dev.txt
+  - pip install -r requirements.test.txt
   - pip install .
 script:
-  - pytest
+  - pytest -v --cov solidbyte --cov-report term-missing
+after_success:
+  - coveralls

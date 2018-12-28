@@ -1,1 +1,3 @@
-# This file probably shouldn't exist
+coverage==4.0.3
+pytest-cov~=2.5.1
+python-coveralls~=2.9.1
