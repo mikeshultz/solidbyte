@@ -2,7 +2,7 @@ language: python
 python:
   - "3.6"  # Minimum version supported by ethereum python tools
   - "3.6-dev"
-  - "3.7"
+  #- "3.7"  # Not yet supported by travis-ci
   - "3.7-dev"
 install:
   - pip install -r requirements.dev.txt
