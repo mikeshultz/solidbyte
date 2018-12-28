@@ -59,9 +59,9 @@ def autosave(f):
 class MetaFile(object):
     """ Class representing the project metafile """
 
-    def __init__(self):
+    def __init__(self, filename_override=None):
         self.project_dir = getcwd()
-        self.file_name = path.join(self.project_dir, METAFILE_FILENAME)
+        self.file_name = filename_override or path.join(self.project_dir, METAFILE_FILENAME)
         self._file = None
         self._json = None
 
@@ -173,11 +173,11 @@ class MetaFile(object):
     @autoload
     def account_known(self, address):
         """ Check if an account is known """
-        if type(self._json['seenAccounts']) != list:
+        if self._json.get('seenAccounts') is None or type(self._json['seenAccounts']) != list:
             return False
 
         try:
-            self._json['seenAccounts'].index(address)
+            self._json['seenAccounts'].index(normalize_address(address))
             return True
         except ValueError:
             return False
