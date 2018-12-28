@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.5"
+  - "3.5"  # Minimum version supported by ethereum python tools
   - "3.5-dev"
   - "3.6"
   - "3.6-dev"
