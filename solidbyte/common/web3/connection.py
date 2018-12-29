@@ -28,7 +28,7 @@ class Web3ConfiguredConnection(object):
     def __init__(self, connection_name=None):
         self.name = connection_name
         self.config = None
-        self.networks = None
+        self.networks = []
         self.web3 = None
 
         try:
