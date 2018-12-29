@@ -2,6 +2,7 @@ import re
 import pytest
 from pathlib import Path
 from web3 import Web3
+from hexbytes import HexBytes
 from .const import (
     TMP_DIR,
     CONTRACT_DIR,
@@ -52,10 +53,12 @@ def get_file_extension(fil):
 
 def is_hex(s):
     """ Check if a string is hex """
-    if type(s) == 'bytes':
+    if type(s) == bytes:
         s = s.decode('utf-8')
+    elif isinstance(s, HexBytes):
+        s = s.hex()
     assert type(s) == str
-    return re.match(r'^[A-Fa-f0-9]+$', s) is not None
+    return re.match(r'^(0x)*[A-Fa-f0-9]+$', s) is not None
 
 
 def create_mock_project(project_dir):

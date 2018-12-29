@@ -9,8 +9,9 @@ DEPLOY_DIR = PROJECT_DIR.joinpath('deploy')
 
 # Ethereum stuff
 NETWORK_NAME = 'test'
-ADDRESS_1 = '0x2c21ce1cee5b9b1c8aa71ab09a47a5361a36bead'
-ADDRESS_2 = '0x2c21ce1cee5b9b1c8aa71ab09a47a5361a36beae'
+PASSWORD_1 = 'asdf1234'
+ADDRESS_1 = '0x2c21CE1CEe5B9B1C8aa71ab09A47a5361A36BEaD'
+ADDRESS_2 = '0x2c21CE1cEe5B9b1C8aA71aB09a47a5361a36beAE'
 NETWORK_ID = 999
 ABI_OBJ_1 = [{
   "inputs": [],
