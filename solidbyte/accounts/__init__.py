@@ -28,8 +28,11 @@ class Accounts(object):
             self.web3 = Web3()
 
         if not self.keystore_dir.is_dir():
-            log.error("Provided keystore directory is not a directory")
-            raise Exception("Invalid keystore directory")
+            if self.keystore_dir.exists():
+                log.error("Provided keystore directory is not a directory")
+                raise Exception("Invalid keystore directory")
+            else:
+                self.keystore_dir.mkdir(mode=0o600, parents=True)
 
     def _read_json_file(self, filename: str) -> object:
         """ Read a JSON file and output a python dict """
