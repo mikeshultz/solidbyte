@@ -32,7 +32,7 @@ class Accounts(object):
                 log.error("Provided keystore directory is not a directory")
                 raise Exception("Invalid keystore directory")
             else:
-                self.keystore_dir.mkdir(mode=0o600, parents=True)
+                self.keystore_dir.mkdir(mode=0o700, parents=True)
 
     def _read_json_file(self, filename: str) -> object:
         """ Read a JSON file and output a python dict """
@@ -174,5 +174,5 @@ class Accounts(object):
             nonce = self.web3.eth.getTransactionCount(tx['from'])
             tx['nonce'] = nonce
 
-        privkey = self.unlock(account_address)
+        privkey = self.unlock(account_address, password)
         return self.web3.eth.account.signTransaction(tx, privkey)
