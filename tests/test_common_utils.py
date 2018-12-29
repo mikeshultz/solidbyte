@@ -1,5 +1,4 @@
 """ Test common utility functions """
-from os import getcwd
 from pathlib import Path
 from solidbyte.common import (
     builddir,
@@ -11,7 +10,7 @@ from solidbyte.common import (
     all_defs_in,
     defs_not_in,
 )
-from .utils import TMP_DIR
+from .const import TMP_DIR
 
 
 def test_builddir():

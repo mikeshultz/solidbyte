@@ -1,20 +1,15 @@
 import re
 import pytest
 from pathlib import Path
-from datetime import datetime
 from web3 import Web3
-
-TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
-ADDRESS_1 = '0x2c21ce1cee5b9b1c8aa71ab09a47a5361a36bead'
-ADDRESS_2 = '0x2c21ce1cee5b9b1c8aa71ab09a47a5361a36beae'
-NETWORK_ID = 999
-ABI_OBJ_1 = [{
-  "inputs": [],
-  "payable": False,
-  "stateMutability": "nonpayable",
-  "type": "constructor"
-}]
-BYTECODE_HASH_1 = '0x6385b18cc3f884baad806ee4508837d3a27c734268f9555f76cd12ec3ff38339'
+from .const import (
+    TMP_DIR,
+    CONTRACT_DIR,
+    DEPLOY_DIR,
+    NETWORKS_YML_1,
+    CONTRACT_SOURCE_FILE_1,
+    CONTRACT_DEPLOY_SCRIPT_1,
+)
 
 
 def write_temp_file(txt, fname=None, directory=None, overwrite=False):
@@ -61,3 +56,15 @@ def is_hex(s):
         s = s.decode('utf-8')
     assert type(s) == str
     return re.match(r'^[A-Fa-f0-9]+$', s) is not None
+
+
+def create_mock_project(project_dir):
+    """ Create a mock project with a contract, and deploy script """
+    assert isinstance(project_dir, Path), "project_dir needs to be a Path object"
+
+    project_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
+    CONTRACT_DIR.mkdir(parents=True, mode=0o755, exist_ok=True)
+    DEPLOY_DIR.mkdir(parents=True, mode=0o755, exist_ok=True)
+    write_temp_file(NETWORKS_YML_1, 'networks.yml', project_dir)
+    write_temp_file(CONTRACT_SOURCE_FILE_1, 'Test.sol', CONTRACT_DIR)
+    write_temp_file(CONTRACT_DEPLOY_SCRIPT_1, 'deploy_main.py', DEPLOY_DIR)

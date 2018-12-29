@@ -1,7 +1,6 @@
-import json
 from solidbyte.common.metafile import MetaFile
 from solidbyte.common.web3 import normalize_address
-from .utils import TMP_DIR, ADDRESS_1, ADDRESS_2, NETWORK_ID, ABI_OBJ_1, BYTECODE_HASH_1
+from .const import TMP_DIR, ADDRESS_1, ADDRESS_2, NETWORK_ID, ABI_OBJ_1, BYTECODE_HASH_1
 
 
 def test_metafile():
@@ -17,7 +16,7 @@ def test_metafile():
     mfile.add('FakeName', NETWORK_ID, ADDRESS_1, ABI_OBJ_1, BYTECODE_HASH_1)
     fakeName = mfile.get_contract('FakeName')
     assert fakeName is not None
-    print(fakeName)
+
     instances = None
     try:
         instances = fakeName['networks'][str(NETWORK_ID)]['deployedInstances']
