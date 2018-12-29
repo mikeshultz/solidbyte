@@ -12,9 +12,9 @@ SOLC_PATH = path.normpath(path.join(path.dirname(__file__), '..', 'bin', 'solc')
 class Compiler(object):
     """ Handle compiling of contracts """
 
-    def __init__(self, contract_dir=None, build_dir=None):
+    def __init__(self, contract_dir=None, project_dir=None):
         self.dir = contract_dir or path.join(getcwd(), 'contracts')
-        self.builddir = builddir(build_dir)
+        self.builddir = builddir(project_dir)
 
     @property
     def version(self):
