@@ -46,13 +46,14 @@ def lazy_load_templates(force_load=False):
     return TEMPLATES
 
 
+# TODO: Depreciate
 def get_templates():
     """ Return all available templates """
     log.debug("Loading templates from {}".format(TEMPLATE_DIR))
     return lazy_load_templates()
 
 
-def init_template(name, dir_mode=None):
+def init_template(name, dir_mode=0o755):
     """ Initialize and return a Template instance with name """
 
     lazy_load_templates()
