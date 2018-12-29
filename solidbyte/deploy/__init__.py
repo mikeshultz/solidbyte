@@ -23,11 +23,14 @@ def get_latest_from_deployed(deployed_instances, deployed_hash):
 
 class Deployer(object):
 
-    def __init__(self, network_name, account=None, contract_dir=None, deploy_dir=None):
+    # TODO: Simplify this constructor (if project_dir is known the others should probably be built
+    #       off it)
+    def __init__(self, network_name, account=None, project_dir=None, contract_dir=None,
+                 deploy_dir=None):
         self.network_name = network_name
         self.contracts_dir = contract_dir or path.join(getcwd(), 'contracts')
         self.deploy_dir = deploy_dir or path.join(getcwd(), 'deploy')
-        self.builddir = builddir()
+        self.builddir = builddir(project_dir)
         self._contracts = AttrDict()
         self._source_contracts = AttrDict()
         self._deploy_scripts = []
