@@ -1,4 +1,5 @@
 from web3 import Web3
+from hexbytes import HexBytes
 from ...common.logging import getLogger
 from .connection import Web3ConfiguredConnection
 
@@ -7,8 +8,10 @@ web3c = Web3ConfiguredConnection()
 
 
 def normalize_hexstring(hexstr):
-    if isinstance(hexstr, bytes):
+    if isinstance(hexstr, HexBytes):
         hexstr = hexstr.hex()
+    elif isinstance(hexstr, bytes):
+        hexstr = hexstr.decode('utf-8')
     if hexstr[:2] != '0x':
         hexstr = '0x{}'.format(hexstr)
     return hexstr
