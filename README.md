@@ -3,6 +3,8 @@
 
 Development tools for creating Ethereum smart contracts
 
+**NOTE**: Solidbyte has **only been tested on Linux**.  If you use another OS, please consider testing and [submit an issue](https://github.com/mikeshultz/solidbyte/issues/new) for any bugs you find.
+
 ## Contents
 
  - [Documentation](https://github.com/mikeshultz/solidbyte/blob/master/docs/index.md)
