@@ -12,3 +12,5 @@ eth-abi==1.2.2
 # Until web3[tester] can be removed from py-ethpm, we need these
 py-geth<3.0.0,>=2.0.1
 eth-tester[py-evm]==0.1.0-beta.33
+# Vyper
+vyper==0.1.0b6

@@ -17,6 +17,8 @@ Development tools for creating Ethereum smart contracts
 
 ### 1) Install Solidbyte
 
+Solidbyte requires some system-level libraries to be installed first.  Make sure openssl/libssl and libffi headers are installed before proceeding.  For more information, see the longer [installation docs](https://github.com/mikeshultz/solidbyte/blob/master/docs/install.md).
+
 First, install solidbyte.  The easiest way to do that is from [PyPi](https://pypi.org)
 with `pip`.
 

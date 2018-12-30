@@ -53,6 +53,16 @@ contract Test {
 
 }
 """
+CONTRACT_VYPER_SOURCE_FILE_1 = """owner: public(address)
+
+@public
+def __init__():
+    self.owner = msg.sender
+
+@public
+def getOwner() -> address:
+    return self.owner
+"""
 CONTRACT_DEPLOY_SCRIPT_1 = """
 def main(contracts, deployer_account, web3, network):
     assert contracts is not None
