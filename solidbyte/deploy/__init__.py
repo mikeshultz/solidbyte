@@ -188,7 +188,7 @@ class Deployer(object):
             that, we need to inspect the function to see what they want, then
             provide what we can.
             """
-            spec = inspect.getargspec(script.main)
+            spec = inspect.getfullargspec(script.main)
             script_kwargs = {k: available_kwargs.get(k) for k in spec.args}
             retval = script.main(**script_kwargs)
             if retval is not True:
