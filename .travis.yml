@@ -12,7 +12,7 @@ script:
 after_success:
   - coveralls
 deploy:
-  provider: testpypi
+  provider: pypi
   server: https://test.pypi.org/
   user: mikeshultz
   password:
