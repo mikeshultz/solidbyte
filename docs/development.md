@@ -4,13 +4,21 @@ If you're looking to hack on SolidByte, you're in the right place.
 
 ## Testing
 
-TBD
+    pytest
 
 ## Release
 
-Build and upload a TestPyPi release:
+Bump the version with tbump.  This will update the version in the source, create a commit, tag the release as `v[version]` and push it up in the current branch.  All versions will deploy to test.pypi, but alpha/beta will NOT be deployed to prod pypi.
 
-    ./release.sh
+For example, a beta release:
+
+    tbump v0.3.1b1
+
+And a prod release:
+
+    tbump v0.3.1
+
+These will be automagically deployed to PyPi by TravisCI.
 
 ## Linting
 
