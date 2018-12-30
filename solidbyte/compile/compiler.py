@@ -1,5 +1,5 @@
 """ Solidity compiling functionality """
-from subprocess import Popen, PIPE, check_call, check_output
+from subprocess import Popen, PIPE
 from pathlib import Path
 from ..common import (
     builddir,
@@ -92,8 +92,16 @@ class Compiler(object):
             log.debug("Executing compiler with: {}".format(' '.join(abi_cmd)))
 
             # Do the needful
-            compile_retval = check_call(compile_cmd)
-            abi_retval = check_call(abi_cmd)
+            p_bin = Popen(compile_cmd)
+            p_abi = Popen(abi_cmd)
+
+            # Twiddle our thumbs
+            p_bin.wait()
+            p_abi.wait()
+
+            # Check the return codes
+            compile_retval = p_bin.returncode
+            abi_retval = p_abi.returncode
             if compile_retval != 0 or abi_retval != 0:
                 raise CompileError("Solidity compiler returned non-zero exit code")
 
