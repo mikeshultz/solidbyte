@@ -19,15 +19,15 @@ deploy:
       secure: AvvIOf07UV9dpZv/m7NXKtDKnJARQiMkd/U9ete3VNbTI8Bv+n66yzHzBnsWUE72I1Wt6x97yi21moTlo1PrSi1tJKsHX2N6hkpsyxofuDjMZy905y+kiRSxGh3beZqCrpIn8vudw1cOo8QwIRsF+Uh6K5b7TzhcmP3DMa/lsuf1etsShp3N7VWmltvhE2KrHywv/qRmkqubh/ZsrffGGUlJkXC5Z+EPJCdB1Y9iwkHtRVemsVLzn0b/tqIbAXuU6qL4fNyrs4SXGdG5yH3V7rNSYa3jEHQm7bB5uBbpFBuyKNb7yqYXdiZ92tJXa+nkbCJWudrrqlNmkuSzMokxNgTAarAV3D9hKiQlUtLYG9ZDmRCmXUUV8xcgbVxUUT8SRFJdbbkO3gEWB+gnUNiokoRljAX2NG8XeTABFQXoZlT8CP7aCbCnlb/YnbQBU4WjRJiGwLMfb2W1/It/fFnNlkgK6RI1o7fhURUFctFIoGUCcw6g6NsyIjeHr1gO9w9xmMNIt91W42i1us76//DEyKKcm1vkEc75MqtevHKoaF6C13xcD9cb3hQwL+rkgJqouPmzty00cOTrUQJ7nC76pbLqpfJA0F26ThBR7IyX2SqiMXlY/RLG+Ioe6XodFAfPKA5wonEtsZ2ij0oIMWkNMtF4o2wzyUlL3hgrJkQvYgg=
     skip_existing: true
     on:
-      branch: develop
+      tags: true
       python: 3.6
-      condition: -n $TRAVIS_TAG
+      condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+[ab]{1}[0-9]+$
   - provider: pypi
     user: mikeshultz
     password:
       secure: MaWGPvS36//eoM0ncpnR3ryUQtdrW3mPmk35yaeeolFLGT7qthhmY6aqNYVCYl3LYKRy1hqx+s9npKWOwhUk4ilw02zRJFl0oF4QOAsJ6RFkFScuxxAfe9fOmqJXFJCpKDv5zFIdLKEs4TjFeKcAs8K46j+3HskszfZzWvTw/Wls+hGMow6OzOm0HSfk/PR1t7Mq5FoLk0ZU1RKpHB6mwV1N4hzQQjwqoOZZxSi2XJfozoz+WQJQtoeKBSa8nx5BfGWUAJT/mqnvzHdM+HeSZeLt5miWzZCsBl/PzaWkg+X+R4yfOz5gvBxGe0WWKXWvsme1KfrWbzENxLCR8d5/nIXEA7ImFQJsXGF2gAVNy7RWdgR7yJqrjpTCCq/uARLb84p9+dULxQRqD/OeBe/Ta8y7HbY76yt/wBV9OgqCmUrQA7pSKv7o+G9PwiyJnorYC0roRhJm2O4C//EecZ7wE3cjU2ifwa08KzJAXQ4eXypbZ/UCeyaod0vF/1F6fiwmczwuZUaZwZWHsSiP6yIfx+9i5sH/GDcT20fuGeP1XROaMH5wPpiRaIwXGK5ZRHZEPF33LOmHZr5tD436Ydbsl/DnmHVW0WcF2RyAQwYPJL6y5daX0OpgVIG0KXQljbfOJoDgA+Fe7WPTbeJP57pW+EWoXW5MA8VbVW7EVIfsbHU=
     skip_existing: true
     on:
-      branch: master
+      tags: true
       python: 3.6
-      condition: -n $TRAVIS_TAG
+      condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$
