@@ -18,6 +18,5 @@ deploy:
   password:
     secure: AvvIOf07UV9dpZv/m7NXKtDKnJARQiMkd/U9ete3VNbTI8Bv+n66yzHzBnsWUE72I1Wt6x97yi21moTlo1PrSi1tJKsHX2N6hkpsyxofuDjMZy905y+kiRSxGh3beZqCrpIn8vudw1cOo8QwIRsF+Uh6K5b7TzhcmP3DMa/lsuf1etsShp3N7VWmltvhE2KrHywv/qRmkqubh/ZsrffGGUlJkXC5Z+EPJCdB1Y9iwkHtRVemsVLzn0b/tqIbAXuU6qL4fNyrs4SXGdG5yH3V7rNSYa3jEHQm7bB5uBbpFBuyKNb7yqYXdiZ92tJXa+nkbCJWudrrqlNmkuSzMokxNgTAarAV3D9hKiQlUtLYG9ZDmRCmXUUV8xcgbVxUUT8SRFJdbbkO3gEWB+gnUNiokoRljAX2NG8XeTABFQXoZlT8CP7aCbCnlb/YnbQBU4WjRJiGwLMfb2W1/It/fFnNlkgK6RI1o7fhURUFctFIoGUCcw6g6NsyIjeHr1gO9w9xmMNIt91W42i1us76//DEyKKcm1vkEc75MqtevHKoaF6C13xcD9cb3hQwL+rkgJqouPmzty00cOTrUQJ7nC76pbLqpfJA0F26ThBR7IyX2SqiMXlY/RLG+Ioe6XodFAfPKA5wonEtsZ2ij0oIMWkNMtF4o2wzyUlL3hgrJkQvYgg=
   on:
-    branch: develop
-    skip_existing: true
-    tags: false
+    all_branches: true
+    tags: true
