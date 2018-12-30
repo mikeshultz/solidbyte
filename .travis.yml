@@ -20,7 +20,7 @@ deploy:
     skip_existing: true
     on:
       python: 3.6
-      condition: $TRAVIS_BRANCH =~ ^develop$ && -n $TRAVIS_TAG
+      condition: $TRAVIS_BRANCH == "develop" && -n $TRAVIS_TAG
   - provider: pypi
     user: mikeshultz
     password:
@@ -28,4 +28,4 @@ deploy:
     skip_existing: true
     on:
       python: 3.6
-      condition: $TRAVIS_BRANCH =~ ^master$ && -n $TRAVIS_TAG
+      condition: $TRAVIS_BRANCH == "master" && -n $TRAVIS_TAG
