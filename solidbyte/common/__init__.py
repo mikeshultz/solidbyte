@@ -1,17 +1,18 @@
-from os import path, getcwd, mkdir
+from shutil import which
+from pathlib import Path
 
 BUILDDIR_NAME = 'build'
-SUPPORTED_EXTENSIONS = ('sol',)
+SUPPORTED_EXTENSIONS = ('sol', 'vy')
 
 
 def builddir(loc=None):
     """ Get (and create if necessary) the temporary build dir """
     if loc is None:
-        loc = getcwd()
-    full_path = path.join(loc, BUILDDIR_NAME)
-    if not path.exists(full_path):
-        mkdir(full_path)
-    elif not path.isdir(full_path) and path.exists(full_path):
+        loc = Path.cwd()
+    full_path = Path(loc, BUILDDIR_NAME)
+    if not full_path.exists():
+        full_path.mkdir()
+    elif not full_path.is_dir():
         raise FileExistsError("{} exists and is blocking the build directory creation!".format(
                 full_path
             ))
@@ -20,6 +21,8 @@ def builddir(loc=None):
 
 def get_filename_and_ext(filename):
     """ Return the filename and extension as a tuple """
+    if isinstance(filename, Path):
+        filename = filename.name
     cmps = filename.split('.')
     if len(cmps) < 2:
         return (filename, '')
@@ -84,3 +87,8 @@ def defs_not_in(items: list, di: dict):
         if i[0] not in di:
             missing_items.append(i[0])
     return missing_items
+
+
+def find_vyper():
+    """ Get the path to vyper """
+    return which('vyper')

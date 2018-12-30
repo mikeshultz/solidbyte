@@ -44,12 +44,22 @@ def hash_string(strong):
     return normalize_hexstring(Web3.sha3(text=strong))
 
 
+def clean_bytecode(bytecode):
+    """ Cleanup bytecode for web3.py """
+    # Remove comment lines
+    bytecode = '\n'.join([ln.strip() for ln in bytecode.split('\n') if not ln.startswith('//')])
+    # remove spurious newlines
+    bytecode = bytecode.strip('\n')
+    # Normalize and strip 0x because web3.py doesn't like it
+    return remove_0x(normalize_hexstring(bytecode))
+
+
 def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
     assert w3inst is not None
     assert abi is not None
     assert bytecode is not None
     try:
-        inst = w3inst.eth.contract(abi=abi, bytecode=bytecode)
+        inst = w3inst.eth.contract(abi=abi, bytecode=clean_bytecode(bytecode))
         return inst.constructor(*args, **kwargs).buildTransaction(tx)
     except Exception as e:
         log.exception("Error creating deploy transaction")
