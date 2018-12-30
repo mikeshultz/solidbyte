@@ -5,15 +5,14 @@ Development tools for creating Ethereum smart contracts
 
 ### What makes Solidbyte different?
 
-- Primarily, this was developed for my own use, so **I get to be opiniated** about things.  Well, that might not be a selling point for you...
-- Solidbyte **can use (and probably should) the local accounts stored as Ethereum secretstore files** located at `~/.ethereum/keystore`.  You do not need to trust the node you are using to handle your private keys and risk opening your account with `personal.unlock`.
-- **Python!**  Deploy scripts and tests are written using Python.
-- **EthPM support**.  Well, it's in progress and not usable yet, but...
-- **Vyper and Solidity support**.  Contracts written in either language can co-exist side by side with eachother in your project.
-- Solidbyte provides an **interactive python console** and provides an active web3 object and contract instances.  Have I mentioned Python yet?
-- **Projcet templates**.  You can initialize a project template with a single command that includes example deploy scripts, tests, and contracts.  Right now only 'bare' and 'erc20' templates are available, but I hope to add more.
-- **Test your contracts with pytest** with some provided fixtures.  Something something Python.
-- **[eth_tester](https://github.com/ethereum/eth-tester/) support for testing**.  It's super fast and really useful for first-pass testing.
+- **Local accounts** - Solidbyte can use the local accounts stored as Ethereum secretstore files located at `~/.ethereum/keystore`.  You do not need to trust the node you are using to handle your private keys and risk opening your account with `personal.unlock`.
+- **Python!** - Deploy scripts and tests are written using Python.
+- **EthPM support** - Well, it's in progress and not usable yet, but... it probably will be at some point.
+- **Vyper and Solidity support** -  Contracts written in either language can co-exist side by side with eachother in your project.
+- **Interactive python console** - Solidbyte provides a console with an insantiated Web3 object and your deployed contract instances.  Have I mentioned Python yet?
+- **Projcet templates** - You can initialize a project template with a single command that includes example deploy scripts, tests, and contracts.  Right now only 'bare' and 'erc20' templates are available, but I hope to add more.
+- **Contract testing with pytest** - Pytest is used for contract testing with some provided fixtures.  Something something Python.
+- **[eth_tester](https://github.com/ethereum/eth-tester/) support for testing** - It's super fast and really useful for first-pass testing.
 
 **NOTE**: Solidbyte has **only been tested on Linux**.  If you use another OS, please consider testing and [submit an issue](https://github.com/mikeshultz/solidbyte/issues/new) for any bugs you find.
 
