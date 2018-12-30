@@ -1,0 +1,20 @@
+[version]
+current = "0.3.0b8"
+regex = '''
+  (?P<major>\d+)
+  \.
+  (?P<minor>\d+)
+  \.
+  (?P<patch>\d+)
+  (
+    (?P<lifecycle>a|b)
+    (?P<release>\d*)
+  )?
+'''
+
+[git]
+message_template = "Version {new_version}"
+tag_template = "v{new_version}"
+
+[[file]]
+src = "solidbyte/__init__.py"
