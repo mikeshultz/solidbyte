@@ -1,6 +1,8 @@
 import re
 import pytest
+from subprocess import Popen
 from pathlib import Path
+from datetime import datetime
 from web3 import Web3
 from hexbytes import HexBytes
 from .const import (
@@ -11,7 +13,7 @@ from .const import (
     PYTEST_TEST_1,
 )
 
-RECURSUION_MAX = 10
+RECURSUION_MAX = 15
 
 
 def write_temp_file(txt, fname=None, directory=None, overwrite=False):
@@ -88,9 +90,40 @@ def delete_path_recursively(pth, depth=0):
         raise Exception('Max recursion depth!')
     if not pth.exists():
         return False
-    if pth.is_file():
+    if pth.is_file() or pth.is_symlink():
         pth.unlink()
     elif pth.is_dir():
         for child in pth.iterdir():
             delete_path_recursively(child, depth+1)
         pth.rmdir()
+    else:
+        raise Exception("Unable to remove {}".format(str(pth)))
+
+
+def create_venv(loc=None):
+    """ Create a python virtualenv """
+    if loc is None:
+        loc = TMP_DIR.joinpath('venv-{}'.format(datetime.now().timestamp()))
+    proc = Popen(['python3', '-m', 'venv', str(loc)])
+    proc.wait()
+    if proc.returncode != 0:
+        raise Exception("Unable to create test venv")
+    return loc
+
+
+def setuppy_install(python, setuppy):
+    proc = Popen([python, setuppy, 'install'])
+    proc.wait()
+    if proc.returncode != 0:
+        return False
+    return True
+
+
+def setup_venv_with_solidbyte(loc=None):
+    """ Install solidbyte to a venv """
+    venv_path = create_venv(loc)
+    py = '{}'.format(venv_path.joinpath('bin/python'))
+    setuppy = Path.cwd().joinpath('setup.py')
+    assert setuppy.is_file(), "unable to find Solidbyte's setup.py"
+    assert setuppy_install(py, setuppy), "Install of solidbyte failed"
+    return venv_path

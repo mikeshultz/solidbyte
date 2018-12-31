@@ -4,7 +4,7 @@ from datetime import datetime
 from contextlib import contextmanager
 from solidbyte.common.logging import setDebugLogging
 from .const import TMP_DIR
-from .utils import create_mock_project, delete_path_recursively
+from .utils import create_mock_project, delete_path_recursively, setup_venv_with_solidbyte
 
 
 def pytest_sessionstart(session):
@@ -29,3 +29,21 @@ def mock_project():
             })
         delete_path_recursively(project_dir)
     return yield_mock_project
+
+
+@pytest.fixture
+def virtualenv():
+    @contextmanager
+    def yield_venv(tmpdir=TMP_DIR):
+        venv_dir = tmpdir.joinpath('venv-{}'.format(datetime.now().timestamp()))
+        python = setup_venv_with_solidbyte(venv_dir)
+        assert venv_dir.joinpath('bin', 'activate').is_file(), "Invalid venv created"
+        yield AttrDict({
+                'paths': AttrDict({
+                        'python': python,
+                        'venv': venv_dir,
+                        'activate': venv_dir.joinpath('bin', 'activate'),
+                    })
+            })
+        delete_path_recursively(venv_dir)
+    return yield_venv
