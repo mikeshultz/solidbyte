@@ -5,6 +5,7 @@ from datetime import datetime
 TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
 
 # Ethereum stuff
+NETWORK_ID = 999
 NETWORK_NAME = 'test'
 TEST_HASH = '0x9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658'
 PASSWORD_1 = 'asdf1234'
