@@ -95,7 +95,11 @@ def test_argparse_help():
 def test_argparse_valid(argv, expected):
     """ Test command parsing """
 
-    args, _ = parse_args(argv.split())
+    try:
+        args, _ = parse_args(argv.split())
+    except SystemExit:
+        assert False, 'Command failed parsing: {}'.format(argv)
+
     for expect in expected:
         assert hasattr(args, expect[0])
         if expect[1] is None:
@@ -125,6 +129,6 @@ def test_argparse_invalid(argv):
 
     try:
         args, _ = parse_args(argv.split())
-        assert False, "This command should have caused an exit"
+        assert False, 'This command should have caused an exit: {}'.format(argv)
     except SystemExit:
         assert True
