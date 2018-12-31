@@ -83,11 +83,19 @@ def main(contracts, deployer_account, web3, network):
         receipt = web3.eth.waitForTransactionReceipt(tx)
         assert receipt.status == 1
 
-    test = contracts.get('Test')
+    Test = contracts.get('Test')
+    test = Test.deployed()
+    assert test.functions.getOwner().call() is not None
     return True
 """
 NETWORKS_YML_1 = """# networks.yml
 ---
 test:
   type: eth_tester
+"""
+PYTEST_TEST_1 = """
+def test_fixtures(web3, contracts):
+    assert web3 is not None
+    assert contracts is not None
+    assert contracts.get('Test') is not None
 """
