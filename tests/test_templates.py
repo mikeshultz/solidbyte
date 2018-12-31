@@ -96,3 +96,34 @@ def test_template_required_files(template_name):
         assert contracts_dir.is_dir(), "Template must have a contracts directory"
         assert tests_dir.exists(), "Template must have a tests directory"
         assert tests_dir.is_dir(), "Template must have a tests directory"
+
+
+@pytest.mark.parametrize("template_name", [
+    'bare',
+    'erc20',
+])
+def test_template_init(template_name):
+    """ Make sure the templates create the required project structure """
+
+    project_dir = TMP_DIR.joinpath('template-init-{}'.format(template_name))
+    project_dir.mkdir(parents=True)
+
+    templates = lazy_load_templates()
+    tmpl_module = templates.get(template_name)
+    assert tmpl_module is not None
+    assert hasattr(tmpl_module, 'get_template_instance')
+
+    tmpl = tmpl_module.get_template_instance(pwd=project_dir)
+    assert isinstance(tmpl, Template)
+    assert hasattr(tmpl, 'initialize'), "Template should have the initialize implemented"
+    assert hasattr(tmpl, 'pwd'), "Template should have the pwd defined"
+    assert tmpl.pwd == project_dir
+
+    # Init
+    tmpl.initialize()
+
+    # The required files and dirs a template should create
+    assert project_dir.joinpath('deploy').is_dir()
+    assert project_dir.joinpath('contracts').is_dir()
+    assert project_dir.joinpath('tests').is_dir()
+    assert project_dir.joinpath('networks.yml').is_file()
