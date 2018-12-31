@@ -20,8 +20,8 @@ def add_parser_arguments(parser):
                         help='Ethereum network to connect the console to')
 
     # Subcommands
-    subparsers = parser.add_subparsers(title='Account Commands',
-                                       dest='account_command',
+    subparsers = parser.add_subparsers(title='Account Commands', dest='account_command', 
+                                       required=False,
                                        help='Perform various Ethereum account operations')
 
     # List accounts
