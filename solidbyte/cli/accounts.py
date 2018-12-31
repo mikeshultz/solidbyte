@@ -61,7 +61,7 @@ def main(parser_args):
     log.info("Account operations")
 
     if parser_args.network:
-        network_name = collapse_oel(parser_args.network)
+        network_name = parser_args.network
     else:
         network_name = None
     web3 = web3c.get_web3(network_name)
