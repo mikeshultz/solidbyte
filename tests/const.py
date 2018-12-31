@@ -3,9 +3,6 @@ from datetime import datetime
 
 # Filesystem
 TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
-PROJECT_DIR = TMP_DIR.joinpath('project')
-CONTRACT_DIR = PROJECT_DIR.joinpath('contracts')
-DEPLOY_DIR = PROJECT_DIR.joinpath('deploy')
 
 # Ethereum stuff
 NETWORK_NAME = 'test'

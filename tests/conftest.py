@@ -1,4 +1,5 @@
 import pytest
+from attrdict import AttrDict
 from datetime import datetime
 from contextlib import contextmanager
 from solidbyte.common.logging import setDebugLogging
@@ -17,6 +18,14 @@ def mock_project():
     def yield_mock_project(tmpdir=TMP_DIR):
         project_dir = tmpdir.joinpath('project-{}'.format(datetime.now().timestamp()))
         create_mock_project(project_dir)
-        yield project_dir
+        yield AttrDict({
+                'paths': AttrDict({
+                        'project': project_dir,
+                        'tests': project_dir.joinpath('tests'),
+                        'contracts': project_dir.joinpath('contracts'),
+                        'deploy': project_dir.joinpath('deploy'),
+                        'networksyml': project_dir.joinpath('networks.yml'),
+                    })
+            })
         delete_path_recursively(project_dir)
     return yield_mock_project
