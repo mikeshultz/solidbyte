@@ -96,9 +96,14 @@ formatter = ColoredFormatter()
 console_handler.setFormatter(formatter)
 parent_logger.addHandler(console_handler)
 
-if '-d' in sys.argv:
+
+def setDebugLogging():
     console_handler.setLevel(logging.DEBUG)
     parent_logger.setLevel(logging.DEBUG)
+
+
+if '-d' in sys.argv:
+    setDebugLogging()
 else:
     console_handler.setLevel(logging.INFO)
     parent_logger.setLevel(logging.INFO)
