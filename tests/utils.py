@@ -65,9 +65,13 @@ def create_mock_project(project_dir):
     """ Create a mock project with a contract, and deploy script """
     assert isinstance(project_dir, Path), "project_dir needs to be a Path object"
 
+    contract_dir = project_dir.joinpath('contracts')
+    deploy_dir = project_dir.joinpath('deploy')
+
     project_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
-    CONTRACT_DIR.mkdir(parents=True, mode=0o755, exist_ok=True)
-    DEPLOY_DIR.mkdir(parents=True, mode=0o755, exist_ok=True)
+    contract_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
+    deploy_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
+
     write_temp_file(NETWORKS_YML_1, 'networks.yml', project_dir)
-    write_temp_file(CONTRACT_SOURCE_FILE_1, 'Test.sol', CONTRACT_DIR)
-    write_temp_file(CONTRACT_DEPLOY_SCRIPT_1, 'deploy_main.py', DEPLOY_DIR)
+    write_temp_file(CONTRACT_SOURCE_FILE_1, 'Test.sol', contract_dir)
+    write_temp_file(CONTRACT_DEPLOY_SCRIPT_1, 'deploy_main.py', deploy_dir)
