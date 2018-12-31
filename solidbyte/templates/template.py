@@ -13,7 +13,7 @@ class Template(object):
     def __init__(self, *args, **kwargs):
 
         self.dir_mode = kwargs.get('dir_mode', 0o755)
-        self.pwd = Path(getcwd())
+        self.pwd = kwargs.get('pwd', Path(getcwd()))
         self.template_dir = Path(path.dirname(sys.modules[self.__module__].__file__))
         print(self.template_dir)
 
