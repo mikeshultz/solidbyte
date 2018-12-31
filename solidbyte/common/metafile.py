@@ -24,7 +24,7 @@ Example JSON structure:
     }
 """
 import json
-from os import path, getcwd
+from pathlib import Path
 from datetime import datetime
 from attrdict import AttrDict
 from ..common.logging import getLogger
@@ -59,16 +59,18 @@ def autosave(f):
 class MetaFile(object):
     """ Class representing the project metafile """
 
-    def __init__(self, filename_override=None):
-        self.project_dir = getcwd()
-        self.file_name = filename_override or path.join(self.project_dir, METAFILE_FILENAME)
+    def __init__(self, filename_override=None, project_dir=None):
+        if project_dir is not None and not isinstance(project_dir, Path):
+            project_dir = Path(project_dir)
+        self.project_dir = project_dir or Path.cwd()
+        self.file_name = self.project_dir.joinpath(filename_override or METAFILE_FILENAME)
         self._file = None
         self._json = None
 
     def _load(self):
         """ Lazily load the metafile """
         if not self._file:
-            if not path.exists(self.file_name):
+            if not self.file_name.exists():
                 with open(self.file_name, 'w') as openFile:
                     openFile.write('{}')
             with open(self.file_name, 'r') as openFile:
