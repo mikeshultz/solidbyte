@@ -112,6 +112,14 @@ class Accounts(object):
 
         raise FileNotFoundError("Unable to find requested account")
 
+    def account_known(self, address: str) -> bool:
+        """ Check if an account is known """
+        try:
+            self._get_account_index(address)
+            return True
+        except IndexError:
+            return False
+
     def get_accounts(self) -> List[AttrDict]:
         """ Return all the known account addresses """
 

@@ -17,6 +17,7 @@ from .middleware import SolidbyteSignerMiddleware
 log = getLogger(__name__)
 
 TEST_BLOCK_GAS_LIMIT = int(6.5e6)
+ETH_TESTER_TYPES = ('eth_tester', 'eth-tester', 'ethereum-tester')
 
 
 class Web3ConfiguredConnection(object):
@@ -76,7 +77,7 @@ class Web3ConfiguredConnection(object):
             return WebsocketProvider(config.get('url'))
         elif config['type'] == 'http':
             return HTTPProvider(config.get('url'))
-        elif config['type'] in ('eth_tester', 'eth-tester', 'ethereum-tester'):
+        elif config['type'] in ETH_TESTER_TYPES:
             params = PyEVMBackend._generate_genesis_params(overrides={
                 'gas_limit': TEST_BLOCK_GAS_LIMIT,
             })
@@ -111,6 +112,13 @@ class Web3ConfiguredConnection(object):
                 provider = self._init_provider_from_type(conn_conf)
                 success = provider.isConnected()
                 self.web3 = Web3(provider)
+
+            # Stupid hack because eth_tester has chain_id == 1 hardcoded.  It's checked in
+            # deploy.objects.Deploy so SB knows if it has to prompt for a password and unlock.
+            if conn_conf.get('type') in ETH_TESTER_TYPES:
+                self.web3.is_eth_tester = True
+            else:
+                self.web3.is_eth_tester = False
 
             if not success:
                 log.error("Connection to {} provider failed".format(conn_conf.get('type')))
