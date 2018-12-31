@@ -10,20 +10,15 @@ def test_testing(mock_project):
 
     with mock_project() as mock:
 
-        # Create a mock project
-        testdir = mock.joinpath('tests')
-        contractdir = mock.joinpath('contracts')
-        deploydir = mock.joinpath('deploy')
-
         # Since we're not using the pwd, we need to use this undocumented API (I know...)
-        web3c._load_configuration(mock.joinpath('networks.yml'))
+        web3c._load_configuration(mock.paths.networksyml)
         web3 = web3c.get_web3(NETWORK_NAME)
 
         # Need to compile and deploy first
-        compiler = Compiler(contractdir, mock)
+        compiler = Compiler(mock.paths.contracts, mock.paths.project)
         compiler.compile_all()
-        d = Deployer(NETWORK_NAME, account=web3.eth.accounts[0], project_dir=mock,
-                     contract_dir=contractdir, deploy_dir=deploydir)
+        d = Deployer(NETWORK_NAME, account=web3.eth.accounts[0], project_dir=mock.paths.project,
+                     contract_dir=mock.paths.contracts, deploy_dir=mock.paths.deploy)
         assert d.check_needs_deploy()
         assert d.deploy()
 
@@ -31,11 +26,11 @@ def test_testing(mock_project):
         try:
             exitcode = run_tests(
                 NETWORK_NAME,
-                args=[str(testdir)],
+                args=[str(mock.paths.tests)],
                 web3=web3,
-                project_dir=mock,
-                contract_dir=contractdir,
-                deploy_dir=deploydir,
+                project_dir=mock.paths.project,
+                contract_dir=mock.paths.contracts,
+                deploy_dir=mock.paths.deploy,
             )
         except Exception as err:
             assert False, str(err)

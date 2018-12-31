@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from solidbyte.templates import (
     lazy_load_templates,
     get_templates,
