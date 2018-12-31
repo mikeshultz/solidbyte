@@ -2,57 +2,42 @@ from solidbyte.common.web3 import web3c
 from solidbyte.compile import Compiler
 from solidbyte.deploy import Deployer
 from solidbyte.testing import run_tests
-from .const import TMP_DIR, NETWORK_NAME, PYTEST_TEST_1, CONTRACT_VYPER_SOURCE_FILE_1
-from .utils import create_mock_project, write_temp_file
+from .const import NETWORK_NAME
 
 
-def test_testing():
+def test_testing(mock_project):
     """ test that testing works, and that the SB fixtures are available and working """
 
-    test_filename = 'test_testing.py'
+    with mock_project() as mock:
 
-    # Create a mock project
-    workdir = TMP_DIR.joinpath('test-testing')
-    testdir = workdir.joinpath('tests')
-    contractdir = workdir.joinpath('contracts')
-    deploydir = workdir.joinpath('deploy')
+        # Create a mock project
+        testdir = mock.joinpath('tests')
+        contractdir = mock.joinpath('contracts')
+        deploydir = mock.joinpath('deploy')
 
-    workdir.mkdir(parents=True)
-    testdir.mkdir(parents=True)
-    contractdir.mkdir(parents=True)
-    deploydir.mkdir(parents=True)
+        # Since we're not using the pwd, we need to use this undocumented API (I know...)
+        web3c._load_configuration(mock.joinpath('networks.yml'))
+        web3 = web3c.get_web3(NETWORK_NAME)
 
-    create_mock_project(workdir)
+        # Need to compile and deploy first
+        compiler = Compiler(contractdir, mock)
+        compiler.compile_all()
+        d = Deployer(NETWORK_NAME, account=web3.eth.accounts[0], project_dir=mock,
+                     contract_dir=contractdir, deploy_dir=deploydir)
+        assert d.check_needs_deploy()
+        assert d.deploy()
 
-    # Create a test file
-    write_temp_file(PYTEST_TEST_1, test_filename, testdir)
+        exitcode = None
+        try:
+            exitcode = run_tests(
+                NETWORK_NAME,
+                args=[str(testdir)],
+                web3=web3,
+                project_dir=mock,
+                contract_dir=contractdir,
+                deploy_dir=deploydir,
+            )
+        except Exception as err:
+            assert False, str(err)
 
-    assert testdir.joinpath(test_filename).exists()
-    assert testdir.joinpath(test_filename).is_file()
-
-    # Since we're not using the pwd, we need to use this undocumented API (I know...)
-    web3c._load_configuration(workdir.joinpath('networks.yml'))
-    web3 = web3c.get_web3(NETWORK_NAME)
-
-    # Need to compile and deploy first
-    compiler = Compiler(contractdir, workdir)
-    compiler.compile_all()
-    d = Deployer(NETWORK_NAME, account=web3.eth.accounts[0], project_dir=workdir,
-                 contract_dir=contractdir, deploy_dir=deploydir)
-    assert d.check_needs_deploy()
-    assert d.deploy()
-
-    exitcode = None
-    try:
-        exitcode = run_tests(
-            NETWORK_NAME,
-            args=[str(testdir)],
-            web3=web3,
-            project_dir=workdir,
-            contract_dir=contractdir,
-            deploy_dir=deploydir,
-        )
-    except Exception as err:
-        assert False, str(err)
-
-    assert exitcode == 0, "Invalid return code: {}".format(exitcode)
+        assert exitcode == 0, "Invalid return code: {}".format(exitcode)

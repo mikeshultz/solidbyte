@@ -5,12 +5,13 @@ from web3 import Web3
 from hexbytes import HexBytes
 from .const import (
     TMP_DIR,
-    CONTRACT_DIR,
-    DEPLOY_DIR,
     NETWORKS_YML_1,
     CONTRACT_SOURCE_FILE_1,
     CONTRACT_DEPLOY_SCRIPT_1,
+    PYTEST_TEST_1,
 )
+
+RECURSUION_MAX = 10
 
 
 def write_temp_file(txt, fname=None, directory=None, overwrite=False):
@@ -67,6 +68,7 @@ def create_mock_project(project_dir):
 
     contract_dir = project_dir.joinpath('contracts')
     deploy_dir = project_dir.joinpath('deploy')
+    test_dir = project_dir.joinpath('tests')
 
     project_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
     contract_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
@@ -75,3 +77,20 @@ def create_mock_project(project_dir):
     write_temp_file(NETWORKS_YML_1, 'networks.yml', project_dir)
     write_temp_file(CONTRACT_SOURCE_FILE_1, 'Test.sol', contract_dir)
     write_temp_file(CONTRACT_DEPLOY_SCRIPT_1, 'deploy_main.py', deploy_dir)
+    write_temp_file(PYTEST_TEST_1, 'test_testing.py', test_dir)
+
+
+def delete_path_recursively(pth, depth=0):
+    """ Delete a path and everything under it """
+    assert isinstance(pth, Path)
+    assert str(pth).startswith('/tmp')  # Only temp files.
+    if depth > RECURSUION_MAX:
+        raise Exception('Max recursion depth!')
+    if not pth.exists():
+        return False
+    if pth.is_file():
+        pth.unlink()
+    elif pth.is_dir():
+        for child in pth.iterdir():
+            delete_path_recursively(child, depth+1)
+        pth.rmdir()
