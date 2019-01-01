@@ -122,8 +122,8 @@ def setuppy_install(python, setuppy):
 def setup_venv_with_solidbyte(loc=None):
     """ Install solidbyte to a venv """
     venv_path = create_venv(loc)
-    py = '{}'.format(venv_path.joinpath('bin/python'))
+    py = venv_path.joinpath('bin', 'python')
     setuppy = Path.cwd().joinpath('setup.py')
     assert setuppy.is_file(), "unable to find Solidbyte's setup.py"
     assert setuppy_install(py, setuppy), "Install of solidbyte failed"
-    return venv_path
+    return py
