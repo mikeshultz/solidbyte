@@ -27,7 +27,7 @@ def execute_command_assert_no_error_success(cmd):
     assert list_proc.returncode == 0, "Invalid return code from command"
 
 
-def test_cli_integration(mock_project, virtualenv):
+def test_cli_integration(mock_project):
     """ Test valid CLI `accounts` commands """
 
     orig_pwd = Path.cwd()
