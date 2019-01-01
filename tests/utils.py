@@ -114,7 +114,7 @@ def create_venv(loc=None):
     if proc.returncode != 0:
         raise Exception("Unable to create test venv")
     assert loc.joinpath('bin').is_dir(), "bin directory is missing from venv {}".format(loc)
-    print("bin contents: {}".format(' '.join([i for i in loc.joinpath('bin').iterdir()])))
+    print("bin contents: {}".format(' '.join([str(i) for i in loc.joinpath('bin').iterdir()])))
     assert loc.joinpath('bin', 'python').exists(), "python is missing from venv {}".format(loc)
     assert loc.joinpath('bin', 'pip').exists(), "pip is missing from venv {}".format(loc)
     return loc
