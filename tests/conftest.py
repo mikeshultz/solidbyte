@@ -38,7 +38,7 @@ def virtualenv():
         venv_dir = tmpdir.joinpath('venv-{}'.format(datetime.now().timestamp()))
         python = setup_venv_with_solidbyte(venv_dir)
         assert venv_dir.joinpath('bin', 'activate').is_file(), "Invalid venv created"
-        assert venv_dir.joinpath('bin', 'sb').is_file(), "Missing sb command"
+        assert venv_dir.joinpath('bin', 'sb').exists(), "Missing sb command"
         yield AttrDict({
                 'paths': AttrDict({
                         'python': python,
