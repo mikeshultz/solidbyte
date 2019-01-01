@@ -32,81 +32,83 @@ def test_cli_integration(mock_project, virtualenv):
 
     orig_pwd = Path.cwd()
 
-    with virtualenv() as venv:
-        with mock_project() as mock:
+    #with virtualenv() as venv:
 
-            TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
+    # Our command
+    #sb = [str(venv.paths.python), '-m', SOLIDBYTE_MODULE]
+    sb = [SOLIDBYTE_COMMAND]
 
-            os.chdir(mock.paths.project)
+    with mock_project() as mock:
 
-            # Our command
-            sb = [str(venv.paths.python), '-m', SOLIDBYTE_MODULE]
+        TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
 
-            # test `sb version`
-            execute_command_assert_no_error_success([*sb, 'version'])
+        os.chdir(mock.paths.project)
 
-            # test `sb accounts list`
-            execute_command_assert_no_error_success([*sb, 'accounts', 'list'])
+        # test `sb version`
+        execute_command_assert_no_error_success([*sb, 'version'])
 
-            # test `sb accounts [network] list`
-            execute_command_assert_no_error_success([*sb, 'accounts', 'test', 'list'])
+        # test `sb accounts list`
+        execute_command_assert_no_error_success([*sb, 'accounts', 'list'])
 
-            # test `sb accounts create`
-            # Need to deal with stdin for the account encryption passphrase
-            # execute_command_assert_no_error_success([
-            #     *sb,
-            #     'accounts',
-            #     '-k',
-            #     str(TMP_KEY_DIR),
-            #     'create'
-            # ])
+        # test `sb accounts [network] list`
+        execute_command_assert_no_error_success([*sb, 'accounts', 'test', 'list'])
 
-            # test `sb accounts default -a [account]`
-            # Need an account for this command
-            # execute_command_assert_no_error_success([
-            #     *sb,
-            #     'accounts',
-            #     'default',
-            #     '-k',
-            #     str(TMP_KEY_DIR),
-            #     '-a',
-            #     ACCOUNT
-            # ])
+        # test `sb accounts create`
+        # Need to deal with stdin for the account encryption passphrase
+        # execute_command_assert_no_error_success([
+        #     *sb,
+        #     'accounts',
+        #     '-k',
+        #     str(TMP_KEY_DIR),
+        #     'create'
+        # ])
 
-            # test `sb compile`
-            execute_command_assert_no_error_success([*sb, 'compile'])
+        # test `sb accounts default -a [account]`
+        # Need an account for this command
+        # execute_command_assert_no_error_success([
+        #     *sb,
+        #     'accounts',
+        #     'default',
+        #     '-k',
+        #     str(TMP_KEY_DIR),
+        #     '-a',
+        #     ACCOUNT
+        # ])
 
-            # test `sb console [network]`
-            # Disabled for now.  It's interactive and no idea how to deal with that
-            # execute_command_assert_no_error_success([*sb, 'console', 'test'])
+        # test `sb compile`
+        execute_command_assert_no_error_success([*sb, 'compile'])
 
-            # test `sb deploy [network] -a [account]`
-            # Disabled.  Need an account to test with
-            # execute_command_assert_no_error_success([
-            #     *sb,
-            #     'deploy',
-            #     'test',
-            #     '-a',
-            #     '0xdeadbeef'
-            # ])
+        # test `sb console [network]`
+        # Disabled for now.  It's interactive and no idea how to deal with that
+        # execute_command_assert_no_error_success([*sb, 'console', 'test'])
 
-            # test `sb show [network]`
-            execute_command_assert_no_error_success([*sb, 'show', 'test'])
+        # test `sb deploy [network] -a [account]`
+        # Disabled.  Need an account to test with
+        # execute_command_assert_no_error_success([
+        #     *sb,
+        #     'deploy',
+        #     'test',
+        #     '-a',
+        #     '0xdeadbeef'
+        # ])
 
-            # test `sb test [network]`
-            # TODO: Currently throwing an exception.  Look into it.
-            # execute_command_assert_no_error_success([*sb, 'test', 'test'])
+        # test `sb show [network]`
+        execute_command_assert_no_error_success([*sb, 'show', 'test'])
 
-        # Create a new project without the mock
-        project_dir = TMP_DIR.joinpath('test-cli-init')
-        project_dir.mkdir()
-        os.chdir(project_dir)
+        # test `sb test [network]`
+        # TODO: Currently throwing an exception.  Look into it.
+        # execute_command_assert_no_error_success([*sb, 'test', 'test'])
 
-        # test `sb init --list-templates`
-        execute_command_assert_no_error_success([*sb, 'init', '--list-templates'])
+    # Create a new project without the mock
+    project_dir = TMP_DIR.joinpath('test-cli-init')
+    project_dir.mkdir()
+    os.chdir(project_dir)
 
-        # test `sb init -t [template]`
-        execute_command_assert_no_error_success([*sb, 'init', '-t', 'erc20'])
+    # test `sb init --list-templates`
+    execute_command_assert_no_error_success([*sb, 'init', '--list-templates'])
 
-        # Head back to where we were
-        os.chdir(orig_pwd)
+    # test `sb init -t [template]`
+    execute_command_assert_no_error_success([*sb, 'init', '-t', 'erc20'])
+
+    # Head back to where we were
+    os.chdir(orig_pwd)
