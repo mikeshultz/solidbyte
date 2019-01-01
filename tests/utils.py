@@ -1,6 +1,6 @@
 import re
 import pytest
-from subprocess import Popen
+from subprocess import Popen, PIPE
 from pathlib import Path
 from datetime import datetime
 from web3 import Web3
@@ -108,7 +108,8 @@ def create_venv(loc=None):
     assert loc.is_dir(), "Venv dir not created properly"
     cmd = ['python', '-m', 'venv', str(loc)]
     print("Building venv with command: {}".format(' '.join(cmd)))
-    proc = Popen(cmd)
+    proc = Popen(cmd, stdout=PIPE)
+    print(proc.stdout.read())
     proc.wait()
     if proc.returncode != 0:
         raise Exception("Unable to create test venv")
@@ -116,6 +117,7 @@ def create_venv(loc=None):
 
 
 def pip_install(pip):
+    assert pip.exists(), "pip not found"
     cmd = [str(pip), 'install', '.']
     print("Installing SB to venv with command: {}".format(' '.join(cmd)))
     proc = Popen(cmd)
