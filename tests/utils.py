@@ -112,7 +112,9 @@ def create_venv(loc=None):
 
 
 def setuppy_install(python, setuppy):
-    proc = Popen([python, setuppy, 'install'])
+    cmd = [python, setuppy, 'install']
+    print("Installing SB to venv with command: {}".format(' '.join(cmd)))
+    proc = Popen(cmd)
     proc.wait()
     if proc.returncode != 0:
         return False
@@ -126,4 +128,5 @@ def setup_venv_with_solidbyte(loc=None):
     setuppy = Path.cwd().joinpath('setup.py')
     assert setuppy.is_file(), "unable to find Solidbyte's setup.py"
     assert setuppy_install(py, setuppy), "Install of solidbyte failed"
+    print("Installed SB to venv at: {}".format(venv_path))
     return py
