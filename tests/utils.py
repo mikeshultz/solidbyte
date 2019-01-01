@@ -112,7 +112,7 @@ def create_venv(loc=None):
 
 
 def setuppy_install(python, setuppy):
-    cmd = [python, setuppy, 'install']
+    cmd = [str(python), str(setuppy), 'install']
     print("Installing SB to venv with command: {}".format(' '.join(cmd)))
     proc = Popen(cmd)
     proc.wait()
