@@ -107,14 +107,11 @@ def create_venv(loc=None):
     loc.mkdir(parents=True)
     assert loc.is_dir(), "Venv dir not created properly"
     cmd = ['python', '-m', 'venv', str(loc)]
-    print("Building venv with command: {}".format(' '.join(cmd)))
     proc = Popen(cmd, stdout=PIPE)
-    print(proc.stdout.read())
     proc.wait()
     if proc.returncode != 0:
         raise Exception("Unable to create test venv")
     assert loc.joinpath('bin').is_dir(), "bin directory is missing from venv {}".format(loc)
-    print("bin contents: {}".format(' '.join([str(i) for i in loc.joinpath('bin').iterdir()])))
     assert loc.joinpath('bin', 'python').exists(), "python is missing from venv {}".format(loc)
     return loc
 
@@ -122,7 +119,6 @@ def create_venv(loc=None):
 def pip_install(python):
     assert python.exists(), "python not found"
     cmd = [str(python), '-m', 'pip', 'install', '.']
-    print("Installing SB to venv with command: {}".format(' '.join(cmd)))
     proc = Popen(cmd)
     proc.wait()
     if proc.returncode != 0:
@@ -137,5 +133,4 @@ def setup_venv_with_solidbyte(loc=None):
     setuppy = Path.cwd().joinpath('setup.py')
     assert setuppy.is_file(), "unable to find Solidbyte's setup.py"
     assert pip_install(python), "Install of solidbyte failed"
-    print("Installed SB to venv at: {}".format(venv_path))
     return python

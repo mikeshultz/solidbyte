@@ -33,14 +33,12 @@ def mock_project():
 
 @pytest.fixture
 def virtualenv():
+    """ This has some issues on Travis.  TODO: Maybe look into this at some point """
     @contextmanager
     def yield_venv(tmpdir=TMP_DIR):
         venv_dir = tmpdir.joinpath('venv-{}'.format(datetime.now().timestamp()))
         python = setup_venv_with_solidbyte(venv_dir)
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        print("bin contents: {}".format([str(i) for i in venv_dir.joinpath('bin').iterdir()]))
         assert venv_dir.joinpath('bin', 'activate').is_file(), "Invalid venv created"
-        #assert venv_dir.joinpath('bin', 'sb').exists(), "Missing sb command"
         yield AttrDict({
                 'paths': AttrDict({
                         'python': python,
