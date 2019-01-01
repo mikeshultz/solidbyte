@@ -106,7 +106,7 @@ def create_venv(loc=None):
         loc = TMP_DIR.joinpath('venv-{}'.format(datetime.now().timestamp()))
     cmd = ['python', '-m', 'venv', str(loc)]
     print("Building venv with command: {}".format(' '.join(cmd)))
-    proc = Popen()
+    proc = Popen(cmd)
     proc.wait()
     if proc.returncode != 0:
         raise Exception("Unable to create test venv")
