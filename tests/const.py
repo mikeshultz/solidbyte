@@ -5,6 +5,7 @@ from datetime import datetime
 TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
 
 SOLIDBYTE_COMMAND = 'sb'
+SOLIDBYTE_MODULE = 'solidbyte'
 
 # Ethereum stuff
 NETWORK_ID = 999
