@@ -104,7 +104,9 @@ def create_venv(loc=None):
     """ Create a python virtualenv """
     if loc is None:
         loc = TMP_DIR.joinpath('venv-{}'.format(datetime.now().timestamp()))
-    proc = Popen(['python3', '-m', 'venv', str(loc)])
+    cmd = ['python', '-m', 'venv', str(loc)]
+    print("Building venv with command: {}".format(' '.join(cmd)))
+    proc = Popen()
     proc.wait()
     if proc.returncode != 0:
         raise Exception("Unable to create test venv")
