@@ -40,7 +40,7 @@ def virtualenv():
         print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         print("bin contents: {}".format([str(i) for i in venv_dir.joinpath('bin').iterdir()]))
         assert venv_dir.joinpath('bin', 'activate').is_file(), "Invalid venv created"
-        assert venv_dir.joinpath('bin', 'sb').exists(), "Missing sb command"
+        #assert venv_dir.joinpath('bin', 'sb').exists(), "Missing sb command"
         yield AttrDict({
                 'paths': AttrDict({
                         'python': python,

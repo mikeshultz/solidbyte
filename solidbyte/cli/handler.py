@@ -51,9 +51,9 @@ def parse_args(argv=None):
     return parser.parse_args(argv), parser
 
 
-def main():
+def main(argv=None):
 
-    args, parser = parse_args()
+    args, parser = parse_args(argv)
 
     if not hasattr(args, 'command') or len(args.command) < 1:
         log.warning('noop')
