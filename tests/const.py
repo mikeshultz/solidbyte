@@ -100,3 +100,13 @@ def test_fixtures(web3, contracts):
     assert contracts is not None
     assert contracts.get('Test') is not None
 """
+
+# Console test commands
+CONSOLE_TEST_ASSERT_LOCALS = [
+    "assert 'web3' in locals(), 'web3 missing'\n",
+    "assert 'accounts' in locals(), 'accounts missing'\n",
+    "assert 'network' in locals(), 'network missing'\n",
+    "assert 'network_id' in locals(), 'network_id missing'\n",
+    "assert 'nothing' not in locals(), 'nothing found'\n",
+    "exit(0)\n",
+]

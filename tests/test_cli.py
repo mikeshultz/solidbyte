@@ -3,10 +3,11 @@
     the venv and install Solidbyte.
 """
 import os
+import time
 import pytest
 from pathlib import Path
 from subprocess import Popen, PIPE
-from .const import TMP_DIR, SOLIDBYTE_COMMAND
+from .const import TMP_DIR, SOLIDBYTE_COMMAND, CONSOLE_TEST_ASSERT_LOCALS
 
 
 def no_error(output):
@@ -38,8 +39,6 @@ def test_cli_integration(mock_project):
     with mock_project() as mock:
 
         TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
-
-        os.chdir(mock.paths.project)
 
         # test `sb version`
         execute_command_assert_no_error_success([sb, 'version'])
@@ -107,5 +106,43 @@ def test_cli_integration(mock_project):
     # test `sb init -t [template]`
     execute_command_assert_no_error_success([sb, 'init', '-t', 'erc20'])
 
-    # Head back to where we were
     os.chdir(orig_pwd)
+
+
+@pytest.mark.skip("Test does not work")
+def test_cli_console(mock_project):
+    """ test the interactive console and some present commands """
+
+    with mock_project():
+        # Run the console command
+        console_proc = Popen([SOLIDBYTE_COMMAND, 'console', 'test'], universal_newlines=True,
+                             bufsize=1, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+
+        time.sleep(3)  # Arbitrary number that may fail randomly on loaded machines...
+        # Pretend we're a user by typing randomly in the console
+        commands = CONSOLE_TEST_ASSERT_LOCALS.copy()
+        seen_output = False
+        while True:
+            out = console_proc.stdout.readline()
+            err = console_proc.stderr.readline()
+
+            if seen_output:
+                cmd = commands.pop(0)
+                console_proc.stdin.write(cmd)
+                console_proc.stdin.flush()
+
+            # We're waiting for the console to make the first move
+            if (out or err) and not seen_output:
+                seen_output = True
+
+            if commands and len(commands) == 0:
+                break
+
+            time.sleep(0.5)
+
+        console_proc.stdin.close()
+        out = console_proc.stdout.read()
+        err = console_proc.stderr.read()
+        console_proc.stdout.close()
+        console_proc.stderr.close()
+        assert False
