@@ -33,15 +33,13 @@ jobs:
             tags: true
             python: 3.6
             condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$
-      env: 
-        - SCRIPT="pytest -v --cov solidbyte --cov-report term-missing"
+      script:
+        - pytest -v --cov solidbyte --cov-report term-missing
 
     - stage: "lint"
       matrix:
         include:
           - python: 3.6
-      env: 
-        - SCRIPT="python setup.py lint"
-
-script: $SCRIPT
+      script: 
+        - python setup.py lint
 
