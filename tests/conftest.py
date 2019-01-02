@@ -1,6 +1,8 @@
+import os
 import pytest
-from attrdict import AttrDict
+from pathlib import Path
 from datetime import datetime
+from attrdict import AttrDict
 from contextlib import contextmanager
 from solidbyte.common.logging import setDebugLogging
 from .const import TMP_DIR
@@ -18,6 +20,8 @@ def mock_project():
     def yield_mock_project(tmpdir=TMP_DIR):
         project_dir = tmpdir.joinpath('project-{}'.format(datetime.now().timestamp()))
         create_mock_project(project_dir)
+        original_pwd = Path.cwd()
+        os.chdir(project_dir)
         yield AttrDict({
                 'paths': AttrDict({
                         'project': project_dir,
@@ -27,6 +31,7 @@ def mock_project():
                         'networksyml': project_dir.joinpath('networks.yml'),
                     })
             })
+        os.chdir(original_pwd)
         delete_path_recursively(project_dir)
     return yield_mock_project
 
