@@ -34,7 +34,7 @@ class Deployer(object):
         self._contracts = AttrDict()
         self._source_contracts = AttrDict()
         self._deploy_scripts = []
-        self.metafile = MetaFile()
+        self.metafile = MetaFile(project_dir=project_dir)
         self.web3 = web3c.get_web3(network_name)
         self.network_id = self.web3.net.chainId or self.web3.net.version
         if account:
@@ -105,16 +105,19 @@ class Deployer(object):
 
     def _load_user_scripts(self):
         """ Load the user deploy scripts from deploy folder """
-        script_dir = Path(self.deploy_dir)
 
+        log.debug("Loading user deploy scripts...")
+
+        script_dir = Path(self.deploy_dir)
         if not script_dir.is_dir():
             raise DeploymentError("deploy directory does not appear to be a directory")
 
-        for node in script_dir.iterdir():
-            if node.is_file() \
-                    and node.name.startswith('deploy') \
-                    and node.name.endswith('.py'):
+        deploy_scripts = list(script_dir.glob('deploy*.py'))
 
+        if len(deploy_scripts) > 0:
+            for node in deploy_scripts:
+
+                log.debug("Executing deploy script {}".format(node.name))
                 try:
                     mod = SourceFileLoader(node.name[:-3], str(node)).load_module()
                     self._deploy_scripts.append(mod)
@@ -125,6 +128,8 @@ class Deployer(object):
                             )
                     else:
                         raise e
+        else:
+            log.warning("No deploy scripts found")
 
     def _get_script_kwargs(self):
         """ Return the available kwargs to give to user scripts """
@@ -163,8 +168,10 @@ class Deployer(object):
                 log.warning("Bytecode is zero")
             elif newest_bytecode \
                     and self.contracts[key].check_needs_deployment(newest_bytecode):
+                log.debug("Deployment is needed")
                 return True
 
+        log.debug("Deployment is not needed")
         return False
 
     def deploy(self):

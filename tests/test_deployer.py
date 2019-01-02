@@ -1,11 +1,10 @@
 from solidbyte.common.web3 import web3c
 from solidbyte.deploy import Deployer
 from solidbyte.compile.compiler import Compiler
-from .const import NETWORK_NAME, PROJECT_DIR, CONTRACT_DIR, DEPLOY_DIR
-from .utils import create_mock_project
+from .const import NETWORK_NAME
 
 
-def test_deployer():
+def test_deployer(mock_project):
     """ Test deploying a project """
 
     """
@@ -17,45 +16,46 @@ def test_deployer():
     one, start on the other one first.
     """
 
-    # Setup our environment
-    create_mock_project(PROJECT_DIR)
-    compiler = Compiler(contract_dir=CONTRACT_DIR, project_dir=PROJECT_DIR)
-    compiler.compile_all()
+    with mock_project() as mock:
 
-    # Since we're not using the pwd, we need to use this undocumented API (I know...)
-    web3c._load_configuration(PROJECT_DIR.joinpath('networks.yml'))
-    web3 = web3c.get_web3(NETWORK_NAME)
+        # Setup our environment
+        compiler = Compiler(contract_dir=mock.paths.contracts, project_dir=mock.paths.project)
+        compiler.compile_all()
 
-    deployer_account = web3.eth.accounts[0]
+        # Since we're not using the pwd, we need to use this undocumented API (I know...)
+        web3c._load_configuration(mock.paths.networksyml)
+        web3 = web3c.get_web3(NETWORK_NAME)
 
-    # Init the Deployer
-    d = Deployer(
-        network_name=NETWORK_NAME,
-        account=deployer_account,
-        project_dir=PROJECT_DIR,
-        contract_dir=CONTRACT_DIR,
-        deploy_dir=DEPLOY_DIR
-    )
+        deployer_account = web3.eth.accounts[0]
 
-    # Test initial state with the mock project
-    assert len(d.source_contracts) == 1
-    contract_key = list(d.source_contracts.keys())[0]
-    assert d.source_contracts[contract_key].get('name') == 'Test'
-    assert d.source_contracts[contract_key].get('abi') is not None
-    assert d.source_contracts[contract_key].get('bytecode') is not None
-    assert len(d.deployed_contracts) == 0
+        # Init the Deployer
+        d = Deployer(
+            network_name=NETWORK_NAME,
+            account=deployer_account,
+            project_dir=mock.paths.project,
+            contract_dir=mock.paths.contracts,
+            deploy_dir=mock.paths.deploy
+        )
 
-    # Check that deployment needs to happen
-    assert d.check_needs_deploy()
-    assert d.check_needs_deploy('Test')
+        # Test initial state with the mock project
+        assert len(d.source_contracts) == 1
+        contract_key = list(d.source_contracts.keys())[0]
+        assert d.source_contracts[contract_key].get('name') == 'Test'
+        assert d.source_contracts[contract_key].get('abi') is not None
+        assert d.source_contracts[contract_key].get('bytecode') is not None
+        assert len(d.deployed_contracts) == 0
 
-    d._load_user_scripts()
-    assert len(d._deploy_scripts) == 1  # Mock project has 1 deploy script
+        # Check that deployment needs to happen
+        assert d.check_needs_deploy()
+        assert d.check_needs_deploy('Test')
 
-    # Run a deployment
-    assert d.deploy(), "Test deployment failed"
+        d._load_user_scripts()
+        assert len(d._deploy_scripts) == 1  # Mock project has 1 deploy script
 
-    # Verify it looks complete to the deployer
-    # assert not d.check_needs_deploy()
-    # assert not d.check_needs_deploy('Test')
-    # TODO: Disabled asserts due to a probable bug or bad test env.  Look into it.
+        # Run a deployment
+        assert d.deploy(), "Test deployment failed"
+
+        # Verify it looks complete to the deployer
+        # assert not d.check_needs_deploy()
+        # assert not d.check_needs_deploy('Test')
+        # TODO: Disabled asserts due to a probable bug or bad test env.  Look into it.

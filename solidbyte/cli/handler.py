@@ -22,7 +22,9 @@ MODULES = [
 IMPORTED_MODULES = {}
 
 
-def main():
+def parse_args(argv=None):
+    """ Parse command line arguments """
+
     parser = argparse.ArgumentParser(description='SolidByte Ethereum development tools')
     parser.add_argument('-d', action='store_true',
                         help='Print debug level messages')
@@ -46,9 +48,14 @@ def main():
     # Help command
     subparsers.add_parser('help', help='print usage')
 
-    args = parser.parse_args()
+    return parser.parse_args(argv), parser
 
-    if not hasattr(args, 'command') or len(args.command) < 1:
+
+def main(argv=None):
+
+    args, parser = parse_args(argv)
+
+    if not hasattr(args, 'command') or not args.command:
         log.warning('noop')
         sys.exit(1)
 

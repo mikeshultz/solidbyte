@@ -2,6 +2,7 @@
 import binascii
 from datetime import datetime
 from attrdict import AttrDict
+from getpass import getpass
 from eth_utils.exceptions import ValidationError
 from ..accounts import Accounts
 from ..compile import link_library, clean_bytecode
@@ -12,10 +13,17 @@ from ..common.web3 import (
     hash_string,
     create_deploy_tx,
 )
-from ..common.exceptions import DeploymentValidationError
+from ..common.exceptions import DeploymentError, DeploymentValidationError
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
+
+MAX_OFFICIAL_NETWORK_ID = 100
+DISABLED_REMOTE_NOTICE = (
+    "Deployment with remote accounts is currently disabled. If you're interested in having this "
+    "enabled, please add your feedback to this issue: "
+    "https://github.com/mikeshultz/solidbyte/issues/32"
+)
 
 
 class Deployment(object):
@@ -119,6 +127,79 @@ class Contract(object):
         self.source_abi = source.abi
         self.source_bytecode = normalize_hexstring(source.bytecode)
 
+    def _create_deploy_transaction(self, bytecode, gas, gas_price, *args, **kwargs):
+        """ Create the transaction to deploy the contract """
+
+        nonce = self.web3.eth.getTransactionCount(self.from_account)
+
+        # Create the tx object
+        deploy_tx = create_deploy_tx(self.web3, self.source_abi, bytecode, {
+             'chainId': int(self.network_id),
+             'gas': gas,
+             'gasPrice': gas_price,
+             'nonce': nonce,
+             'from': self.from_account,
+            }, *args, **kwargs)
+
+        return deploy_tx
+
+    def _transact(self, tx):
+        """ Execute the deploy transaction """
+
+        if self.accounts.account_known(self.from_account):
+
+            # Sign it
+            signed_tx = self.accounts.sign_tx(self.from_account, tx)
+
+            # Send it
+            try:
+                deploy_txhash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+            except (
+                ValidationError,
+                ValueError,
+            ) as err:
+                str_err = str(err)
+                if 'out of gas' in str_err or 'exceeds gas' in str_err:
+                    log.error('TX ran out of gas when deploying {}.'.format(self.name))
+                elif 'cannot afford txn gas' in str_err:
+                    log.error('Deployer account unable to afford network fees')
+                log.debug(tx)
+                log.debug({k: v for k, v in signed_tx.items()})
+                raise err
+
+        else:
+
+            if int(self.network_id) < MAX_OFFICIAL_NETWORK_ID and not self.web3.is_eth_tester:
+                """ Disabling personal.unlock for official chains. It's not really a secure way to
+                    deal with sending transactions. At least on go-ethereum, when you unlock an
+                    account, that allows any party that can send a JSON-RPC request to the node to
+                    send transactions on that acocunt's behalf.  If the machine isn't strictly local
+                    or firewalled in some way to prevent malicious parties from communicating with
+                    it (rare), that leaves the account easily compromised once unlocked.
+
+                    If you want to disagree or call me an idiot, please do:
+                        https://github.com/mikeshultz/solidbyte/issues/32
+                """
+                raise DeploymentValidationError(DISABLED_REMOTE_NOTICE)
+            else:
+                tx['from'] = self.from_account
+                if self.web3.is_eth_tester:
+                    deploy_txhash = self.web3.eth.sendTransaction(tx)
+                else:
+                    # TODO: maybe incorporate this into Accounts?
+                    passphrase = getpass("Enter password to unlock account ({}):".format(
+                        self.from_account
+                    ))
+                    if self.web3.personal.unlockAccount(self.from_account, passphrase,
+                                                        duration=60*5):
+                        deploy_txhash = self.web3.eth.sendTransaction(tx)
+                    else:
+                        raise DeploymentError("Unable to unlock account {}".format(
+                            self.from_account
+                        ))
+
+        return deploy_txhash
+
     def _deploy(self, *args, **kwargs):
         """ Deploy the contract """
 
@@ -148,38 +229,17 @@ class Contract(object):
                     )
                 )
 
-        nonce = self.web3.eth.getTransactionCount(self.from_account)
+        log.debug("Sending deploy transaction...")
+        deploy_tx = self._create_deploy_transaction(bytecode, gas, gas_price, *args, **kwargs)
 
-        # Create the tx object
-        deploy_tx = create_deploy_tx(self.web3, self.source_abi, bytecode, {
-             'chainId': int(self.network_id),
-             'gas': gas,
-             'gasPrice': gas_price,
-             'nonce': nonce,
-             'from': self.from_account,
-            }, *args, **kwargs)
-
-        # Sign it
-        signed_tx = self.accounts.sign_tx(self.from_account, deploy_tx)
-
-        # Send it
-        try:
-            deploy_txhash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
-        except (
-            ValidationError,
-            ValueError,
-        ) as err:
-            str_err = str(err)
-            if 'out of gas' in str_err or 'exceeds gas' in str_err:
-                log.error('TX ran out of gas when deploying {}.'.format(self.name))
-            elif 'cannot afford txn gas' in str_err:
-                log.error('Deployer account unable to afford network fees')
-            log.debug(deploy_tx)
-            log.debug({k: v for k, v in signed_tx.items()})
-            raise err
+        log.info("Sending deploy transaction.  This may take a moment...")
+        deploy_txhash = self._transact(deploy_tx)
 
         # Wait for it to be mined
         deploy_receipt = self.web3.eth.waitForTransactionReceipt(deploy_txhash)
+
+        log.info("Successfully deployed contract. {}".format(deploy_txhash))
+        log.debug("Contract Deploy Receipt: {}".format(deploy_receipt))
 
         # TODO: Should this take into account a library address changing? (using linked bytecode?)
         bytecode_hash = None
@@ -202,6 +262,8 @@ class Contract(object):
         self.metafile.add(self.name, self.network_id,
                           deploy_receipt.contractAddress, self.source_abi,
                           bytecode_hash)
+
+        log.info("Updated metadata for new deployment.")
 
         return self._get_web3_contract()
 

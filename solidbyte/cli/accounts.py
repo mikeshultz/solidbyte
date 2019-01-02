@@ -1,5 +1,6 @@
 """ account opperations
 """
+import sys
 from getpass import getpass
 from ..accounts import Accounts
 from ..common import collapse_oel
@@ -19,10 +20,26 @@ def add_parser_arguments(parser):
     parser.add_argument('network', metavar="NETWORK", type=str, nargs="?",
                         help='Ethereum network to connect the console to')
 
-    # Subcommands
-    subparsers = parser.add_subparsers(title='Account Commands',
-                                       dest='account_command',
-                                       help='Perform various Ethereum account operations')
+    """ This is some hinky shit with a specific version of Python (3.7.0a4+) which was seen on
+        Travis, which seems like it will not always be a problem in 3.7.
+
+        See: https://bugs.python.org/issue33109
+
+        Basically, for a brief period of time, the required keyword defaulted to True.  Which makes
+        the command `sb accounts` fail, because there's no followup sucommand like:
+        `sb accounts list`.  So, we have to play around here and dance because 3.6 does not accept
+        the required kwarg.
+    """
+    subparsers_kwargs = {
+        'title': 'Account Commands',
+        'dest': 'account_command',
+        'help': 'Perform various Ethereum account operations',
+    }
+
+    if sys.version_info[0] == 3 and sys.version_info[1] == 7:
+        subparsers_kwargs['required'] = False
+
+    subparsers = parser.add_subparsers(**subparsers_kwargs)
 
     # List accounts
     list_parser = subparsers.add_parser('list', help="List all accounts")  # noqa: F841
@@ -44,7 +61,7 @@ def main(parser_args):
     log.info("Account operations")
 
     if parser_args.network:
-        network_name = collapse_oel(parser_args.network)
+        network_name = parser_args.network
     else:
         network_name = None
     web3 = web3c.get_web3(network_name)

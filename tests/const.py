@@ -3,11 +3,12 @@ from datetime import datetime
 
 # Filesystem
 TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
-PROJECT_DIR = TMP_DIR.joinpath('project')
-CONTRACT_DIR = PROJECT_DIR.joinpath('contracts')
-DEPLOY_DIR = PROJECT_DIR.joinpath('deploy')
+
+SOLIDBYTE_COMMAND = 'sb'
+SOLIDBYTE_MODULE = 'solidbyte'
 
 # Ethereum stuff
+NETWORK_ID = 999
 NETWORK_NAME = 'test'
 TEST_HASH = '0x9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658'
 PASSWORD_1 = 'asdf1234'
@@ -83,7 +84,9 @@ def main(contracts, deployer_account, web3, network):
         receipt = web3.eth.waitForTransactionReceipt(tx)
         assert receipt.status == 1
 
-    test = contracts.get('Test')
+    Test = contracts.get('Test')
+    test = Test.deployed()
+    assert test.functions.getOwner().call() is not None
     return True
 """
 NETWORKS_YML_1 = """# networks.yml
@@ -91,3 +94,19 @@ NETWORKS_YML_1 = """# networks.yml
 test:
   type: eth_tester
 """
+PYTEST_TEST_1 = """
+def test_fixtures(web3, contracts):
+    assert web3 is not None
+    assert contracts is not None
+    assert contracts.get('Test') is not None
+"""
+
+# Console test commands
+CONSOLE_TEST_ASSERT_LOCALS = [
+    "assert 'web3' in locals(), 'web3 missing'\n",
+    "assert 'accounts' in locals(), 'accounts missing'\n",
+    "assert 'network' in locals(), 'network missing'\n",
+    "assert 'network_id' in locals(), 'network_id missing'\n",
+    "assert 'nothing' not in locals(), 'nothing found'\n",
+    "exit(1337)\n",
+]
