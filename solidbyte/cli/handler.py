@@ -55,7 +55,7 @@ def main(argv=None):
 
     args, parser = parse_args(argv)
 
-    if not hasattr(args, 'command') or len(args.command) < 1:
+    if not hasattr(args, 'command') or not args.command:
         log.warning('noop')
         sys.exit(1)
 
