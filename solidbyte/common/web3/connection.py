@@ -1,5 +1,4 @@
 import yaml
-from os import getcwd
 from pathlib import Path
 from eth_tester import PyEVMBackend, EthereumTester
 from web3 import (
@@ -41,7 +40,7 @@ class Web3ConfiguredConnection(object):
         """ Load configuration from the configuration file """
 
         if config_file is None:
-            config_file = Path(getcwd()).joinpath('networks.yml')
+            config_file = Path.cwd().joinpath('networks.yml')
         elif type(config_file) == str:
             config_file = Path(config_file).expanduser().resolve()
 
