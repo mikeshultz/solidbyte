@@ -6,7 +6,7 @@ python:
 install:
 - pip install -r requirements.dev.txt
 - pip install -r requirements.test.txt
-- pip install .
+- pip install -e .
 script:
 - pytest -v --cov solidbyte --cov-report term-missing
 after_success:
