@@ -108,5 +108,5 @@ CONSOLE_TEST_ASSERT_LOCALS = [
     "assert 'network' in locals(), 'network missing'\n",
     "assert 'network_id' in locals(), 'network_id missing'\n",
     "assert 'nothing' not in locals(), 'nothing found'\n",
-    "exit(0)\n",
+    "exit(1337)\n",
 ]
