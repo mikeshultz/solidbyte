@@ -40,3 +40,5 @@ jobs:
         include:
           - python: 3.6
       script: flake8
+
+script: echo "complete"
