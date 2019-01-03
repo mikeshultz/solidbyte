@@ -35,6 +35,7 @@ class LintCommand(develop):
         except CalledProcessError as err:
             if 'non-zero' in str(err):
                 print("linting failed with warnings", file=sys.stderr)
+                sys.exit(1)
 
 
 def requirements_to_list(filename):
