@@ -87,13 +87,17 @@ setup(
         ],
     },
     package_data={
+        '': [
+            'README.md',
+            'LICENSE',
+        ],
         'solidbyte': [
             'bin/solc',
             'templates/templates/*/networks.yml',
             'templates/templates/*/contracts/*',
             'templates/templates/*/tests/*',
             'templates/templates/*/deploy/*',
-        ]
+        ],
     },
     cmdclass={
         'develop': DevelopCommand,

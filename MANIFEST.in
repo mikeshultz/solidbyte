@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include bin/solc
+include templates/templates/*/networks.yml
+include templates/templates/*/contracts/*
+include templates/templates/*/tests/*
+include templates/templates/*/deploy/*
