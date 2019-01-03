@@ -5,7 +5,6 @@ python:
   - 3.7-dev
 env:
   - SCRIPT='pytest -v --cov solidbyte --cov-report term-missing'
-  - TESTING=1
 install:
   - pip install -r requirements.dev.txt
   - pip install -r requirements.test.txt
@@ -18,7 +17,6 @@ jobs:
           - python: 3.6
       env: 
         - SCRIPT="python setup.py lint"
-        - TESTING=0
 
 after_success:
   - "[[ $TESTING -eq 1 ]] && coveralls"
