@@ -36,9 +36,9 @@ def test_cli_integration(mock_project):
     # Our command
     sb = SOLIDBYTE_COMMAND
 
-    with mock_project() as mock:
+    with mock_project():
 
-        TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
+        # TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
 
         # test `sb version`
         execute_command_assert_no_error_success([sb, 'version'])

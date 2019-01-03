@@ -8,7 +8,7 @@ from attrdict import AttrDict
 from ..common import builddir, source_filename_to_name, supported_extension
 from ..common.exceptions import DeploymentError
 from ..common.logging import getLogger
-from ..common.web3 import web3c, remove_0x
+from ..common.web3 import web3c
 from ..common.metafile import MetaFile
 from .objects import Contract
 
