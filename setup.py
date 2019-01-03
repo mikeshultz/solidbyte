@@ -38,10 +38,22 @@ class LintCommand(develop):
                 sys.exit(1)
 
 
-def requirements_to_list(filename):
-    return [dep for dep in open(path.join(pwd, filename)).read().split('\n') if dep and not dep.startswith('#')]
+class TestCommand(develop):
+    """ Run linting"""
+    def run(self):
+        try:
+            check_call(["pytest"])
+        except CalledProcessError as err:
+            if 'non-zero' in str(err):
+                print("testing failed", file=sys.stderr)
+                sys.exit(1)
 
-print("Requirements: {}".format(requirements_to_list('requirements.txt')))
+
+def requirements_to_list(filename):
+    return [dep for dep in open(path.join(pwd, filename)).read().split('\n') if (
+        dep and not dep.startswith('#')
+    )]
+
 
 setup(
     name='solidbyte',
@@ -87,5 +99,6 @@ setup(
         'develop': DevelopCommand,
         'install': InstallCommand,
         'lint': LintCommand,
+        'test': TestCommand,
     }
 )

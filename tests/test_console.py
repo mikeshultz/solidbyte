@@ -1,5 +1,3 @@
-import os
-import pytest
 from solidbyte.common.web3 import web3c
 from solidbyte.console import (
     get_default_banner,

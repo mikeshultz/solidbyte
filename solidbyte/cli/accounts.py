@@ -3,7 +3,6 @@
 import sys
 from getpass import getpass
 from ..accounts import Accounts
-from ..common import collapse_oel
 from ..common.web3 import web3c
 from ..common.metafile import MetaFile
 from ..common.logging import getLogger

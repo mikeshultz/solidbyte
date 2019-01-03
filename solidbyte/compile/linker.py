@@ -15,7 +15,7 @@ log = getLogger(__name__)
 # TODO: Always 34?
 LINK_CONTRACT_REGEX = r':([A-Za-z0-9]+)$'
 LINK_PLACEHOLDER_REGEX = r'\$[A-Za-z0-9]{34}\$'
-#BYTECODE_PLACEHOLDER_REGEX = r'__(\$[A-Za-z0-9]{34}\$)__'
+# BYTECODE_PLACEHOLDER_REGEX = r'__(\$[A-Za-z0-9]{34}\$)__'
 BYTECODE_PLACEHOLDER_REGEX = '__({})__'
 
 
