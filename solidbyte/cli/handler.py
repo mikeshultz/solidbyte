@@ -17,6 +17,7 @@ MODULES = [
     'console',
     'accounts',
     'install',
+    'metafile',
 ]
 
 IMPORTED_MODULES = {}
