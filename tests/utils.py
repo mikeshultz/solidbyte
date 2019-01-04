@@ -1,5 +1,6 @@
 import re
 import pytest
+import hashlib
 from subprocess import Popen, PIPE
 from pathlib import Path
 from datetime import datetime

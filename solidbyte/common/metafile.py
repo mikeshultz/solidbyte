@@ -24,18 +24,25 @@ Example JSON structure:
     }
 """
 import json
+from typing import TypeVar, Generic, Callable, List, Tuple
 from pathlib import Path
 from datetime import datetime
+from shutil import copyfile
 from attrdict import AttrDict
-from ..common.logging import getLogger
+from .logging import getLogger
+from .utils import hash_file
 from .web3 import normalize_address, normalize_hexstring
 
 log = getLogger(__name__)
 
 METAFILE_FILENAME = 'metafile.json'
+NETWORK_ID_MAX_OFFICIAL = 100
+
+T = TypeVar('T')
+PS = TypeVar('PS', Path, str)
 
 
-def autoload(f):
+def autoload(f: Callable) -> Callable:
     """ Automatically load the metafile before method execution """
     def wrapper(*args, **kwargs):
         # A bit defensive, but make sure this is a decorator of a MetaFile method
@@ -56,10 +63,13 @@ def autosave(f):
     return wrapper
 
 
-class MetaFile(object):
+class MetaFile:
     """ Class representing the project metafile """
 
-    def __init__(self, filename_override=None, project_dir=None):
+    def __init__(self,
+                 filename_override: Generic[PS] = None,
+                 project_dir: Generic[PS] = None) -> None:
+
         if project_dir is not None and not isinstance(project_dir, Path):
             project_dir = Path(project_dir)
         self.project_dir = project_dir or Path.cwd()
@@ -67,11 +77,11 @@ class MetaFile(object):
         self._file = None
         self._json = None
 
-    def _load(self):
+    def _load(self) -> None:
         """ Lazily load the metafile """
         if not self._file:
             if not self.file_name.exists():
-                with open(self.file_name, 'w') as openFile:
+                with open(self.file_name, 'x') as openFile:
                     openFile.write('{}')
             with open(self.file_name, 'r') as openFile:
                 self._file = openFile.read()
@@ -79,13 +89,13 @@ class MetaFile(object):
 
     def _save(self):
         """ Save the metafile """
-        with open(self.file_name, 'r+') as openFile:
+        with open(self.file_name, 'w') as openFile:
             openFile.write(json.dumps(self._json, indent=2))
-            self._file = openFile.read()
+        self._load()
         return True
 
     @autoload
-    def get_all_contracts(self):
+    def get_all_contracts(self) -> List[AttrDict]:
         """ return all meta data for all contracts """
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
@@ -94,7 +104,7 @@ class MetaFile(object):
         return self._json['contracts']
 
     @autoload
-    def get_contract(self, name):
+    def get_contract(self, name) -> AttrDict:
         """ Get the meta data for a contract """
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
@@ -109,26 +119,29 @@ class MetaFile(object):
         return entries[0]
 
     @autoload
-    def get_contract_index(self, name):
+    def get_contract_index(self, name: str) -> int:
 
         if not self._json.get('contracts') or len(self._json['contracts']) < 1:
-            return None
+            return -1
 
         i = 0
         for ct in self._json['contracts']:
             if ct.get('name') == name:
                 return i
             i += 1
-        return None
+        return -1
 
     @autoload
     @autosave
-    def add(self, name, network_id, address, abi, bytecode_hash):  # noqa: E211
+    def add(self, name: str, network_id: int, address: str, abi: dict,
+            bytecode_hash: str) -> None:
+
         contract_idx = self.get_contract_index(name)
         address = normalize_address(address)
         bytecode_hash = normalize_hexstring(bytecode_hash)
+        network_id = str(network_id)
 
-        if contract_idx is not None:
+        if contract_idx > -1:
             if not self._json['contracts'][contract_idx]['networks'].get(network_id):
                 self._json['contracts'][contract_idx]['networks'][network_id] = AttrDict({
                     'deployedHash': '',
@@ -173,7 +186,7 @@ class MetaFile(object):
                 }))
 
     @autoload
-    def account_known(self, address):
+    def account_known(self, address: str) -> bool:
         """ Check if an account is known """
         if self._json.get('seenAccounts') is None or type(self._json['seenAccounts']) != list:
             return False
@@ -186,7 +199,7 @@ class MetaFile(object):
 
     @autoload
     @autosave
-    def add_account(self, address):
+    def add_account(self, address: str) -> None:
         """ Add an account to seenAccounts """
         address = normalize_address(address)
 
@@ -200,7 +213,7 @@ class MetaFile(object):
 
     @autoload
     @autosave
-    def set_default_account(self, address):
+    def set_default_account(self, address) -> None:
         """ Set the default account """
 
         address = normalize_address(address)
@@ -211,6 +224,79 @@ class MetaFile(object):
         self._json['defaultAccount'] = address
 
     @autoload
-    def get_default_account(self):
+    def get_default_account(self) -> str:
         """ Get the default account """
         return self._json.get('defaultAccount')
+
+    @autoload
+    def cleanup(self, dry_run: bool = False) -> List[Tuple[str, str, str]]:
+        """ Cleanup metafile.json of test deployments.  In practice, this means any deployments with
+            a network_id > 100, as the last semi-official network_id is 99.
+
+            Returns a list of tuple.  Tuples are (name, network_id).
+        """
+        if 'contracts' not in self._json or len(self._json['contracts']) < 1:
+            return []
+
+        removed = []
+
+        contract_idx = 0
+        for contract in self._json['contracts']:
+
+            if 'networks' in contract and len(contract['networks']) > 0:
+                keys_to_del = []
+
+                # We can't alter the dict while iterating it, so get the IDs together first
+                for net_id, depl in contract['networks'].items():
+                    if int(net_id) > NETWORK_ID_MAX_OFFICIAL:
+                        keys_to_del.append(net_id)
+
+                if len(keys_to_del) > 0:
+                    for net_id in keys_to_del:
+
+                        removed += [(contract['name'], net_id) for net_id in keys_to_del]
+
+                        if not dry_run:
+                            self._json['contracts'][contract_idx]['networks'].pop(net_id)
+
+                        log.debug(("(Probably) removed metafile entries for contract {} "
+                                  "deployments on network {}.").format(
+                            contract['name'],
+                            net_id
+                        ))
+            else:
+                log.debug("No deployments for contract {}".format(contract.get('name')))
+
+            contract_idx += 1
+
+        if len(removed) > 0:
+            self._save()
+            log.debug("Successfully cleaned up metafile.json.")
+            return removed
+
+        log.debug("Nothing to cleanup.")
+        return removed
+
+    def backup(self, outfile) -> bool:
+        """ Backup the metafile.json and verify """
+        if not isinstance(outfile, Path):
+            outfile = Path(outfile)
+
+        if not outfile.parent.exists():
+            raise FileNotFoundError('Directory {} does not exist.'.format(outfile.parent))
+
+        log.debug("Backup up metafile.json from {} to {}...".format(self.file_name, outfile))
+
+        original_hash = hash_file(self.file_name)
+
+        copyfile(self.file_name, outfile)
+
+        backup_hash = hash_file(outfile)
+
+        try:
+            assert original_hash == backup_hash
+            log.info("Backup complete!")
+            return True
+        except AssertionError:
+            log.error("Backup failed.  File mismatch!")
+            return False
