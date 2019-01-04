@@ -56,3 +56,15 @@ Execute a python script within the context of soidbyte
 ## `install` [Planning]
 
 Ethereum package registry? https://www.ethpm.com/
+
+## `metafile`
+
+Commands to backup and cleanup the metafile.
+
+### `metafile cleanup`
+
+Cleanup and compact `metafile.json` by removing deployed contract instances for test networks.
+
+### `metafile backup`
+
+Make a copy of `metafile.json` to the given location and verify.
