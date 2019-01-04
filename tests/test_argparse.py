@@ -91,6 +91,25 @@ def test_argparse_help():
     ('version', [
         ('command', 'version'),
     ]),
+    ('metafile backup metafile.json.bak', [
+        ('command', 'metafile'),
+        ('metafile_command', 'backup'),
+        ('destfile', ['metafile.json.bak']),  # TODO: Weirdness with argparse and nargs=1?
+    ]),
+    ('metafile cleanup', [
+        ('command', 'metafile'),
+        ('metafile_command', 'cleanup'),
+    ]),
+    ('metafile -f metafile.json cleanup', [
+        ('command', 'metafile'),
+        ('metafile_command', 'cleanup'),
+        ('file', 'metafile.json'),
+    ]),
+    ('metafile cleanup --dry-run', [
+        ('command', 'metafile'),
+        ('metafile_command', 'cleanup'),
+        ('dry_run', True),
+    ]),
 ])
 def test_argparse_valid(argv, expected):
     """ Test command parsing """
@@ -103,9 +122,16 @@ def test_argparse_valid(argv, expected):
     for expect in expected:
         assert hasattr(args, expect[0])
         if expect[1] is None:
-            assert not getattr(args, expect[0])
+            assert not getattr(args, expect[0]), "Expected {} to be None. Command: {}".format(
+                getattr(args, expect[0]),
+                argv
+            )
         else:
-            assert getattr(args, expect[0]) == expect[1]
+            assert getattr(args, expect[0]) == expect[1], "Expected {}, got {}. Command: {}".format(
+                expect[1],
+                getattr(args, expect[0]),
+                argv,
+            )
 
 
 @pytest.mark.parametrize('argv', [
@@ -118,6 +144,7 @@ def test_argparse_valid(argv, expected):
     'install mypackage',  # TODO: This maybe should be implemented
     'show',
     'test',
+    'metafile backup',  # TODO: This maybe should be implemented
 ])
 def test_argparse_invalid(argv):
     """ Test invalid command parsing. Argparse will SystemExit when it sees invalid commands.
