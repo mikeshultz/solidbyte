@@ -44,7 +44,7 @@ def test_cli_integration(mock_project):
         execute_command_assert_no_error_success([sb, 'version'])
 
         # test `sb accounts list`
-        execute_command_assert_no_error_success([sb, 'accounts', 'list'])
+        # execute_command_assert_no_error_success([sb, 'accounts', 'list'])
 
         # test `sb accounts [network] list`
         execute_command_assert_no_error_success([sb, 'accounts', 'test', 'list'])
@@ -94,6 +94,15 @@ def test_cli_integration(mock_project):
         # test `sb test [network]`
         # TODO: Currently throwing an exception.  Look into it.
         # execute_command_assert_no_error_success([sb, 'test', 'test'])
+
+        # test `sb metafile backup metafile.json.bak`
+        execute_command_assert_no_error_success([sb, 'metafile', 'backup', 'metafile.json.bak'])
+
+        # test `sb metafile cleanup --dry-run`
+        execute_command_assert_no_error_success([sb, 'metafile', 'cleanup', '--dry-run'])
+
+        # test `sb metafile cleanup`
+        execute_command_assert_no_error_success([sb, 'metafile', 'cleanup'])
 
     # Create a new project without the mock
     project_dir = TMP_DIR.joinpath('test-cli-init')
