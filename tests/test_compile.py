@@ -2,7 +2,6 @@
 import json
 from solidbyte.compile import Compiler
 from .const import (
-    TMP_DIR,
     CONTRACT_SOURCE_FILE_1,
     CONTRACT_VYPER_SOURCE_FILE_1,
 )
