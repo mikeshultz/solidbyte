@@ -21,7 +21,6 @@ def add_parser_arguments(parser):
         '--passphrase',
         metavar='PASSPHRASE',
         type=str,
-        nargs="?",
         dest='passphrase',
         help='The passphrase to use to decrypt the account.'
     )
