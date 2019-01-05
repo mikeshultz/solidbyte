@@ -93,6 +93,29 @@ NETWORKS_YML_1 = """# networks.yml
 ---
 test:
   type: eth_tester
+  autodeploy_allowed: true
+"""
+NETWORKS_YML_2 = """# networks.yml
+---
+test:
+  type: eth_tester
+  autodeploy_allowed: true
+
+dev:
+  type: auto
+  autodeploy_allowed: true
+
+geth:
+  type: ipc
+  file: ~/.ethereum/geth.ipc
+
+infura-mainnet:
+  type: websocket
+  url: wss://mainnet.infura.io/ws
+
+infura-mainnet-http:
+  type: http
+  url: https://mainnet.infura.io/asdfkey
 """
 PYTEST_TEST_1 = """
 def test_fixtures(web3, contracts):
