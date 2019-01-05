@@ -207,7 +207,8 @@ class Accounts(object):
         log.debug("Signing tx with account {}".format(account_address))
 
         if not self.web3:
-            raise ValidationError("Unable to sign a transaction without an instanced Web3 object.")
+            raise ValidationError("Unable to sign a transaction without an instantiated Web3 "
+                                  "object.")
 
         """ Do some tx verification and substitution if necessary
         """
