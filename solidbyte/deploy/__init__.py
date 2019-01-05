@@ -158,7 +158,7 @@ class Deployer(object):
             return True
         elif name is not None:
             newest_bytecode = self.source_contracts[name].bytecode
-            self.contracts[name].check_needs_deployment(newest_bytecode)
+            return self.contracts[name].check_needs_deployment(newest_bytecode)
 
         # If any known contract needs deployment, we need to deploy
         for key in self.contracts.keys():
@@ -191,7 +191,7 @@ class Deployer(object):
         for script in self._deploy_scripts:
             """
             It should be be flexible for users to write their deploy scripts.
-            They can pick and choose what kwargs they want to reeive.  To handle
+            They can pick and choose what kwargs they want to receive.  To handle
             that, we need to inspect the function to see what they want, then
             provide what we can.
             """
@@ -200,5 +200,7 @@ class Deployer(object):
             retval = script.main(**script_kwargs)
             if retval is not True:
                 raise DeploymentError("Deploy script did not complete properly!")
+
+        self.refresh()
 
         return True
