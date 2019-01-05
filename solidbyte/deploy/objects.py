@@ -10,9 +10,10 @@ from ..common import pop_key_from_dict
 from ..common.web3 import (
     web3c,
     normalize_hexstring,
-    hash_string,
+    hash_hexstring,
     create_deploy_tx,
 )
+from ..common.store import Store, StoreKeys
 from ..common.exceptions import DeploymentError, DeploymentValidationError
 from ..common.logging import getLogger
 
@@ -79,13 +80,13 @@ class Contract(object):
     def check_needs_deployment(self, bytecode):
         log.debug("{}.check_needs_deployment({})".format(
             self.name,
-            bytecode
+            clean_bytecode(bytecode)
         ))
         if not bytecode:
             raise Exception("bytecode is required")
         return (
             not self.bytecode_hash
-            or hash_string(clean_bytecode(bytecode)) != self.bytecode_hash
+            or hash_hexstring(clean_bytecode(bytecode)) != self.bytecode_hash
         )
 
     def _process_instances(self, metafile_instances):
@@ -186,10 +187,11 @@ class Contract(object):
                 if self.web3.is_eth_tester:
                     deploy_txhash = self.web3.eth.sendTransaction(tx)
                 else:
-                    # TODO: maybe incorporate this into Accounts?
-                    passphrase = getpass("Enter password to unlock account ({}):".format(
-                        self.from_account
-                    ))
+                    passphrase = Store.get(StoreKeys.DECRYPT_PASSPHRASE)
+                    if not passphrase:
+                        passphrase = getpass("Enter password to unlock account ({}):".format(
+                            self.from_account
+                        ))
                     if self.web3.personal.unlockAccount(self.from_account, passphrase,
                                                         duration=60*5):
                         deploy_txhash = self.web3.eth.sendTransaction(tx)
@@ -244,7 +246,7 @@ class Contract(object):
         # TODO: Should this take into account a library address changing? (using linked bytecode?)
         bytecode_hash = None
         try:
-            bytecode_hash = hash_string(clean_bytecode(self.source_bytecode))
+            bytecode_hash = hash_hexstring(clean_bytecode(self.source_bytecode))
         except binascii.Error as err:
             log.exception("Invalid characters in hex string: {}".format(
                 clean_bytecode(self.source_bytecode))
