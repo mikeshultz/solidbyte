@@ -21,6 +21,10 @@ Example JSON structure:
                 }
             }
         ],
+        "seenAccounts": [
+            "0xdeadbeef..."
+        ],
+        "defaultAccount": "0xdeadbeef..."
     }
 """
 import json
@@ -68,12 +72,14 @@ class MetaFile:
 
     def __init__(self,
                  filename_override: Generic[PS] = None,
-                 project_dir: Generic[PS] = None) -> None:
+                 project_dir: Generic[PS] = None,
+                 read_only: bool = False) -> None:
 
         self.project_dir = to_path_or_cwd(project_dir)
         self.file_name = self.project_dir.joinpath(filename_override or METAFILE_FILENAME)
         self._file = None
         self._json = None
+        self._read_only = read_only
 
     def _load(self) -> None:
         """ Lazily load the metafile """
@@ -87,6 +93,9 @@ class MetaFile:
 
     def _save(self):
         """ Save the metafile """
+        if self._read_only:
+            return False
+        log.debug("Saving metafile...")
         with open(self.file_name, 'w') as openFile:
             openFile.write(json.dumps(self._json, indent=2))
         self._load()

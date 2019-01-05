@@ -14,6 +14,9 @@ T = TypeVar('T')
 PathString = TypeVar('PathString', Path, str)
 NetworkConfig = Dict[str, Dict[str, T]]
 
+# Const
+ETH_TESTER_TYPES = ('eth_tester', 'eth-tester', 'ethereum-tester')
+
 
 class NetworksYML:
     """ Object representation of the networks.yml file
@@ -105,3 +108,11 @@ class NetworksYML:
             raise ConfigurationError("Network config for '{}' does not exist.".format(name))
 
         return self.get_network_config(name).get('autodeploy_allowed', False)
+
+    def is_eth_tester(self, name: str) -> bool:
+        """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
+
+        if not self.network_config_exists(name):
+            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
+
+        return self.get_network_config(name).get('type') in ETH_TESTER_TYPES
