@@ -56,18 +56,17 @@ class NetworksYML:
 
     def load_configuration(self, config_file: PathString = None) -> None:
         """ Load the configuration from networks.yml """
-        log.debug("load_configuration(config_file={})".format(config_file))
+
         if config_file is None:
             config_file = self.config_file
         elif type(config_file) in (str, bytes):
             if type(config_file) == bytes:
                 config_file = config_file.decode('utf-8')
-            self.config_file = Path(config_file).expanduser().resolve()
-        else:
-            self.config_file = config_file
+            config_file = Path(config_file).expanduser().resolve()
+
+        self.config_file = config_file
 
         log.debug("resolved config file to: {}".format(self.config_file))
-        log.debug("type: {}".format(type(self.config_file)))
 
         if not self.config_file or not self.config_file.exists():
             log.warning("Missing config_file")
@@ -85,10 +84,6 @@ class NetworksYML:
 
     def network_config_exists(self, name: str) -> bool:
         """ Check and see if we have configuration for name """
-
-        log.debug("network_config_exists({})".format(name))
-        log.debug(self.networks)
-
         try:
             self.networks.index(name)
             return True
@@ -106,13 +101,7 @@ class NetworksYML:
     def autodeploy_allowed(self, name: str) -> bool:
         """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
 
-        log.debug("autodeploy_allowed(name={})".format(name))
-
         if not self.network_config_exists(name):
             raise ConfigurationError("Network config for '{}' does not exist.".format(name))
-
-        log.debug("self.get_network_config(name) -> {}".format(
-            self.get_network_config(name)
-        ))
 
         return self.get_network_config(name).get('autodeploy_allowed', False)
