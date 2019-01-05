@@ -1,6 +1,6 @@
 # Project Structure 
 
-The project directory structure pretty straight forward.  Most of this will be created by `sb ini` with a simple template.  This example is what is created by the `erc20` template:
+The project directory structure pretty straight forward.  Most of this will be created by `sb init` with a simple template.  This example is what is created by the `erc20` template:
 
     project_directory/
         |- build/  # Files created by the compilers, including contract ABIs and their compiled bytecode.
