@@ -1,5 +1,3 @@
-import yaml
-from pathlib import Path
 from eth_tester import PyEVMBackend, EthereumTester
 from web3 import (
     Web3,
