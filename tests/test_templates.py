@@ -6,8 +6,6 @@ from solidbyte.templates import (
 )
 from solidbyte.templates.template import Template
 
-from .const import TMP_DIR
-
 
 def test_lazy_load_templates():
     templates = lazy_load_templates()
@@ -28,26 +26,24 @@ def test_get_templates():
     'bare',
     'erc20',
 ])
-def test_init_template(template_name):
+def test_init_template(template_name, temp_dir):
 
-    # Setup the test dir
-    workdir = TMP_DIR.joinpath('template-test-{}'.format(template_name))
-    workdir.mkdir(parents=True)
+    with temp_dir() as tmp:
 
-    # Get the Template object
-    tmpl = init_template(template_name)
+        # Get the Template object
+        tmpl = init_template(template_name, pwd=tmp)
 
-    # For testing, override pwd
-    tmpl.pwd = workdir
+        # For testing, override pwd
+        tmpl.pwd = tmp
 
-    assert hasattr(tmpl, 'initialize'), "All templates must implement initialize()"
-    tmpl.initialize()
+        assert hasattr(tmpl, 'initialize'), "All templates must implement initialize()"
+        tmpl.initialize()
 
-    # All of these need to be part of the template, even if empty
-    assert workdir.joinpath('tests').is_dir()
-    assert workdir.joinpath('contracts').is_dir()
-    assert workdir.joinpath('deploy').is_dir()
-    assert workdir.joinpath('networks.yml').is_file()
+        # All of these need to be part of the template, even if empty
+        assert tmp.joinpath('tests').is_dir()
+        assert tmp.joinpath('contracts').is_dir()
+        assert tmp.joinpath('deploy').is_dir()
+        assert tmp.joinpath('networks.yml').is_file()
 
 
 @pytest.mark.parametrize("template_name", [
@@ -102,28 +98,28 @@ def test_template_required_files(template_name):
     'bare',
     'erc20',
 ])
-def test_template_init(template_name):
+def test_template_init(template_name, temp_dir):
     """ Make sure the templates create the required project structure """
 
-    project_dir = TMP_DIR.joinpath('template-init-{}'.format(template_name))
-    project_dir.mkdir(parents=True)
+    with temp_dir() as tmp:
+        project_dir = tmp
 
-    templates = lazy_load_templates()
-    tmpl_module = templates.get(template_name)
-    assert tmpl_module is not None
-    assert hasattr(tmpl_module, 'get_template_instance')
+        templates = lazy_load_templates()
+        tmpl_module = templates.get(template_name)
+        assert tmpl_module is not None
+        assert hasattr(tmpl_module, 'get_template_instance')
 
-    tmpl = tmpl_module.get_template_instance(pwd=project_dir)
-    assert isinstance(tmpl, Template)
-    assert hasattr(tmpl, 'initialize'), "Template should have the initialize implemented"
-    assert hasattr(tmpl, 'pwd'), "Template should have the pwd defined"
-    assert tmpl.pwd == project_dir
+        tmpl = tmpl_module.get_template_instance(pwd=project_dir)
+        assert isinstance(tmpl, Template)
+        assert hasattr(tmpl, 'initialize'), "Template should have the initialize implemented"
+        assert hasattr(tmpl, 'pwd'), "Template should have the pwd defined"
+        assert tmpl.pwd == project_dir
 
-    # Init
-    tmpl.initialize()
+        # Init
+        tmpl.initialize()
 
-    # The required files and dirs a template should create
-    assert project_dir.joinpath('deploy').is_dir()
-    assert project_dir.joinpath('contracts').is_dir()
-    assert project_dir.joinpath('tests').is_dir()
-    assert project_dir.joinpath('networks.yml').is_file()
+        # The required files and dirs a template should create
+        assert project_dir.joinpath('deploy').is_dir()
+        assert project_dir.joinpath('contracts').is_dir()
+        assert project_dir.joinpath('tests').is_dir()
+        assert project_dir.joinpath('networks.yml').is_file()

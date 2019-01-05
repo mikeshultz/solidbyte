@@ -13,9 +13,6 @@ log = getLogger(__name__)
 def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
 
-    parser.add_argument('-k', '--keystore', type=str,
-                        default='~/.ethereum/keystore',
-                        help='The Ethereum keystore directory to load accounts from')
     parser.add_argument('network', metavar="NETWORK", type=str, nargs="?",
                         help='Ethereum network to connect the console to')
 
@@ -45,6 +42,15 @@ def add_parser_arguments(parser):
 
     # Create account
     create_parser = subparsers.add_parser('create', help="Create a new account")  # noqa: F841
+    create_parser.add_argument(
+        '-p'
+        '--passphrase',
+        metavar='PASSPHRASE',
+        type=str,
+        nargs="?",
+        dest='passphrase',
+        help='The passphrase to use to encrypt the keyfile. Leave empty for prompt.'
+    )
 
     # Set default account
     default_parser = subparsers.add_parser('default', help="Set the default account")
@@ -69,7 +75,10 @@ def main(parser_args):
 
     if parser_args.account_command == 'create':
         print("creating account...")
-        password = getpass('Encryption password:')
+        if parser_args.passphrase:
+            password = parser_args.passphrase
+        else:
+            password = getpass('Encryption password:')
         addr = accts.create_account(password)
         print("Created new account: {}".format(addr))
     elif parser_args.account_command == 'default':

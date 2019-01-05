@@ -1,8 +1,8 @@
 """ Abstract template class """
 import sys
-from os import path, getcwd
 from shutil import copyfile
 from pathlib import Path
+from ..common.utils import to_path
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -13,9 +13,11 @@ class Template(object):
     def __init__(self, *args, **kwargs):
 
         self.dir_mode = kwargs.get('dir_mode', 0o755)
-        self.pwd = kwargs.get('pwd', Path(getcwd()))
-        self.template_dir = Path(path.dirname(sys.modules[self.__module__].__file__))
-        print(self.template_dir)
+        self.pwd = to_path(kwargs.get('pwd') or Path.cwd())
+
+        # The path of the directory of the class that sublclasses this class.  Should be the
+        # template's __init__.py
+        self.template_dir = Path(sys.modules[self.__module__].__file__).parent
 
     def initialize(self):
         raise NotImplementedError("initialize() must be implemented for template")
@@ -23,10 +25,7 @@ class Template(object):
     def copy_template_file(self, dest_dir, subdir, filename):
         """ Copy a file from src to dest """
 
-        if type(dest_dir) == str:
-            dest_dir = Path(dest_dir)
-        if type(subdir) == str:
-            subdir = Path(subdir)
+        dest_dir = to_path(dest_dir)
 
         source = self.template_dir.joinpath(subdir, filename)
         dest = dest_dir.joinpath(subdir, filename)

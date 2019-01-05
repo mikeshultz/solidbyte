@@ -6,6 +6,7 @@ from ..common import (
     get_filename_and_ext,
     supported_extension,
     find_vyper,
+    to_path_or_cwd,
 )
 from ..common.exceptions import CompileError
 from ..common.logging import getLogger
@@ -19,8 +20,8 @@ VYPER_PATH = find_vyper()
 class Compiler(object):
     """ Handle compiling of contracts """
 
-    def __init__(self, contract_dir=None, project_dir=None):
-        self.dir = contract_dir or Path.cwd().joinpath('contracts')
+    def __init__(self, project_dir=None):
+        self.dir = to_path_or_cwd(project_dir).joinpath('contracts')
         self.builddir = builddir(project_dir)
 
     @property

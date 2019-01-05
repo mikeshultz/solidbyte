@@ -10,4 +10,6 @@ from .utils import (
     defs_not_in,
     find_vyper,
     hash_file,
+    to_path,
+    to_path_or_cwd,
 )

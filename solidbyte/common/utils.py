@@ -111,3 +111,15 @@ def hash_file(_file: Path) -> bytes:
                 break
             _hash.update(chunk.encode('utf-8'))
     return _hash.hexdigest()
+
+
+def to_path(v) -> Path:
+    if isinstance(v, Path):
+        return v
+    return Path(v).expanduser().resolve()
+
+
+def to_path_or_cwd(v) -> Path:
+    if not v:
+        return Path.cwd()
+    return to_path(v)

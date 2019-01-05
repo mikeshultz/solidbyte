@@ -3,11 +3,14 @@
     the venv and install Solidbyte.
 """
 import os
+import re
 import time
 import pytest
 from pathlib import Path
 from subprocess import Popen, PIPE
-from .const import TMP_DIR, SOLIDBYTE_COMMAND, CONSOLE_TEST_ASSERT_LOCALS
+from .const import TMP_DIR, PASSWORD_1, SOLIDBYTE_COMMAND, CONSOLE_TEST_ASSERT_LOCALS
+
+ACCOUNT_MATCH_PATTERN = r'^(0x[A-Fa-f0-9]{40})'
 
 
 def no_error(output):
@@ -26,6 +29,7 @@ def execute_command_assert_no_error_success(cmd):
     assert no_error(list_output)
     list_proc.wait()
     assert list_proc.returncode == 0, "Invalid return code from command"
+    return list_output
 
 
 def test_cli_integration(mock_project):
@@ -38,38 +42,59 @@ def test_cli_integration(mock_project):
 
     with mock_project():
 
-        # TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
+        TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
 
         # test `sb version`
         execute_command_assert_no_error_success([sb, 'version'])
+
+        # test `sb accounts create`
+        # Need to deal with stdin for the account encryption passphrase
+        execute_command_assert_no_error_success([
+            sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'accounts',
+            'create',
+            '-p',
+            PASSWORD_1,
+        ])
 
         # test `sb accounts list`
         # execute_command_assert_no_error_success([sb, 'accounts', 'list'])
 
         # test `sb accounts [network] list`
-        execute_command_assert_no_error_success([sb, 'accounts', 'test', 'list'])
+        accounts_output = execute_command_assert_no_error_success([
+            sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'accounts',
+            'test',
+            'list',
+        ]).decode('utf-8')
 
-        # test `sb accounts create`
-        # Need to deal with stdin for the account encryption passphrase
-        # execute_command_assert_no_error_success([
-        #     sb,
-        #     'accounts',
-        #     '-k',
-        #     str(TMP_KEY_DIR),
-        #     'create'
-        # ])
+        # We're going to need the default account later
+        default_account = None
+        print("accounts_output: {}".format(accounts_output))
+        for ln in accounts_output.split('\n'):
+            # 0xC4cf518bDeDe4bdbE3d98f2F8E3195c7d9DC080B
+            print("### matching {} against {}".format(ACCOUNT_MATCH_PATTERN, ln))
+            match = re.match(ACCOUNT_MATCH_PATTERN, ln)
+            if match:
+                default_account = match.group(1)
+                break
+        assert default_account is not None, "Did not find an account to use"
 
         # test `sb accounts default -a [account]`
         # Need an account for this command
-        # execute_command_assert_no_error_success([
-        #     sb,
-        #     'accounts',
-        #     'default',
-        #     '-k',
-        #     str(TMP_KEY_DIR),
-        #     '-a',
-        #     ACCOUNT
-        # ])
+        execute_command_assert_no_error_success([
+            sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'accounts',
+            'default',
+            '-a',
+            default_account
+        ])
 
         # test `sb compile`
         execute_command_assert_no_error_success([sb, 'compile'])
@@ -93,7 +118,16 @@ def test_cli_integration(mock_project):
 
         # test `sb test [network]`
         # TODO: Currently throwing an exception.  Look into it.
-        # execute_command_assert_no_error_success([sb, 'test', 'test'])
+        execute_command_assert_no_error_success([
+            sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            '-d',
+            'test',
+            'test',
+            '-p',
+            PASSWORD_1,
+        ])
 
         # test `sb metafile backup metafile.json.bak`
         execute_command_assert_no_error_success([sb, 'metafile', 'backup', 'metafile.json.bak'])
