@@ -37,6 +37,20 @@ def mock_project():
 
 
 @pytest.fixture
+def temp_dir():
+    @contextmanager
+    def yield_temp_dir(tmpdir=TMP_DIR):
+        temp_dir = tmpdir.joinpath('temp-{}'.format(datetime.now().timestamp()))
+        temp_dir.mkdir(parents=True)
+        original_pwd = Path.cwd()
+        os.chdir(temp_dir)
+        yield temp_dir
+        os.chdir(original_pwd)
+        delete_path_recursively(temp_dir)
+    return yield_temp_dir
+
+
+@pytest.fixture
 def virtualenv():
     """ This has some issues on Travis.  TODO: Maybe look into this at some point """
     @contextmanager

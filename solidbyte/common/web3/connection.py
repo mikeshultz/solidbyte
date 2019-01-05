@@ -1,5 +1,3 @@
-import yaml
-from pathlib import Path
 from eth_tester import PyEVMBackend, EthereumTester
 from web3 import (
     Web3,
@@ -9,8 +7,9 @@ from web3 import (
     EthereumTesterProvider,
 )
 from web3.gas_strategies.time_based import medium_gas_price_strategy
-from ...common.exceptions import SolidbyteException
-from ...common.logging import getLogger
+from ..exceptions import SolidbyteException
+from ..logging import getLogger
+from ..networks import NetworksYML
 from .middleware import SolidbyteSignerMiddleware
 
 log = getLogger(__name__)
@@ -25,45 +24,22 @@ class Web3ConfiguredConnection(object):
         Fallback is an automatic Web3 connection.
     """
 
-    def __init__(self, connection_name=None):
+    def __init__(self, connection_name=None, no_load=False):
         self.name = connection_name
         self.config = None
         self.networks = []
         self.web3 = None
+        self.yml = NetworksYML(no_load=no_load)
 
-        try:
-            self._load_configuration()
-        except FileNotFoundError:
-            log.warning("networks.yml not found")
+        if no_load is not True:
+            try:
+                self.yml.load_configuration()
+            except FileNotFoundError:
+                log.warning("networks.yml not found")
 
     def _load_configuration(self, config_file=None):
         """ Load configuration from the configuration file """
-
-        if config_file is None:
-            config_file = Path.cwd().joinpath('networks.yml')
-        elif type(config_file) == str:
-            config_file = Path(config_file).expanduser().resolve()
-
-        if not config_file or not config_file.exists():
-            log.warning("Missing config_file")
-            return
-
-        try:
-            with open(config_file, 'r') as cfile:
-                self.config = yaml.load(cfile)
-                self.networks = list(self.config.keys())
-        except Exception as e:
-            log.exception("Failed to load networks.yml")
-            raise e
-
-    def _network_config_exists(self, name):
-        """ Check and see if we have configuration for name """
-        log.debug("_network_config_exists({})".format(name))
-        try:
-            self.networks.index(name)
-            return True
-        except ValueError:
-            return False
+        return self.yml.load_configuration(config_file)
 
     def _init_provider_from_type(self, config):
         """ Initialize a provider using the config """
@@ -96,12 +72,12 @@ class Web3ConfiguredConnection(object):
 
         self.web3 = None
 
-        if name and not self._network_config_exists(name):
+        if name and not self.yml.network_config_exists(name):
             raise SolidbyteException("Provided network '{}' does not exist in networks.yml".format(
                     name
                 ))
-        elif name and self._network_config_exists(name):
-            conn_conf = self.config[name]
+        elif name and self.yml.network_config_exists(name):
+            conn_conf = self.yml.get_network_config(name)
 
             success = False
             if conn_conf.get('type') == 'auto':

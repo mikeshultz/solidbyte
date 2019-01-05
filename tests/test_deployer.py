@@ -19,7 +19,7 @@ def test_deployer(mock_project):
     with mock_project() as mock:
 
         # Setup our environment
-        compiler = Compiler(contract_dir=mock.paths.contracts, project_dir=mock.paths.project)
+        compiler = Compiler(project_dir=mock.paths.project)
         compiler.compile_all()
 
         # Since we're not using the pwd, we need to use this undocumented API (I know...)
@@ -33,8 +33,6 @@ def test_deployer(mock_project):
             network_name=NETWORK_NAME,
             account=deployer_account,
             project_dir=mock.paths.project,
-            contract_dir=mock.paths.contracts,
-            deploy_dir=mock.paths.deploy
         )
 
         # Test initial state with the mock project

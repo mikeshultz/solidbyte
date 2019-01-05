@@ -1,15 +1,15 @@
 """ Ethereum deployment functionality """
 import inspect
 import json
-from os import path, getcwd, listdir
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from attrdict import AttrDict
-from ..common import builddir, source_filename_to_name, supported_extension
+from ..common import builddir, source_filename_to_name, supported_extension, to_path_or_cwd
 from ..common.exceptions import DeploymentError
 from ..common.logging import getLogger
 from ..common.web3 import web3c
 from ..common.metafile import MetaFile
+from ..common.networks import NetworksYML
 from .objects import Contract
 
 log = getLogger(__name__)
@@ -23,26 +23,29 @@ def get_latest_from_deployed(deployed_instances, deployed_hash):
 
 class Deployer(object):
 
-    # TODO: Simplify this constructor (if project_dir is known the others should probably be built
-    #       off it)
-    def __init__(self, network_name, account=None, project_dir=None, contract_dir=None,
-                 deploy_dir=None):
+    def __init__(self, network_name, account=None, project_dir=None):
         self.network_name = network_name
-        self.contracts_dir = contract_dir or path.join(getcwd(), 'contracts')
-        self.deploy_dir = deploy_dir or path.join(getcwd(), 'deploy')
+        self.contracts_dir = to_path_or_cwd(project_dir).joinpath('contracts')
+        self.deploy_dir = to_path_or_cwd(project_dir).joinpath('deploy')
         self.builddir = builddir(project_dir)
         self._contracts = AttrDict()
         self._source_contracts = AttrDict()
         self._deploy_scripts = []
-        self.metafile = MetaFile(project_dir=project_dir)
         self.web3 = web3c.get_web3(network_name)
         self.network_id = self.web3.net.chainId or self.web3.net.version
+
+        yml = NetworksYML(project_dir=project_dir)
+        if yml.is_eth_tester(network_name):
+            self.metafile = MetaFile(project_dir=project_dir, read_only=True)
+        else:
+            self.metafile = MetaFile(project_dir=project_dir)
+
         if account:
             self.account = self.web3.toChecksumAddress(account)
         else:
             self.account = self.metafile.get_default_account()
 
-        if not path.isdir(self.contracts_dir):
+        if not self.contracts_dir.is_dir():
             raise FileNotFoundError("contracts directory does not exist")
 
     def get_source_contracts(self, force=False):
@@ -52,8 +55,8 @@ class Deployer(object):
             return self._source_contracts
 
         self._source_contracts = AttrDict()
-        contract_files = [f for f in listdir(self.contracts_dir) if (
-            path.isfile(path.join(self.contracts_dir, f)) and supported_extension(f)
+        contract_files = [f for f in self.contracts_dir.iterdir() if (
+            f.is_file() and supported_extension(f)
         )]
 
         for contract in contract_files:
@@ -62,11 +65,11 @@ class Deployer(object):
             log.debug("Loading contract: {}".format(name))
 
             try:
-                abi_filename = path.join(self.builddir, name, '{}.abi'.format(name))
+                abi_filename = self.builddir.joinpath(name, '{}.abi'.format(name))
                 with open(abi_filename, 'r') as abi_file:
                     abi = json.loads(abi_file.read())
 
-                bytecode_filename = path.join(self.builddir, name, '{}.bin'.format(name))
+                bytecode_filename = self.builddir.joinpath(name, '{}.bin'.format(name))
                 with open(bytecode_filename, 'r') as bytecode_file:
                     bytecode = bytecode_file.read()
 
@@ -158,7 +161,7 @@ class Deployer(object):
             return True
         elif name is not None:
             newest_bytecode = self.source_contracts[name].bytecode
-            self.contracts[name].check_needs_deployment(newest_bytecode)
+            return self.contracts[name].check_needs_deployment(newest_bytecode)
 
         # If any known contract needs deployment, we need to deploy
         for key in self.contracts.keys():
@@ -191,7 +194,7 @@ class Deployer(object):
         for script in self._deploy_scripts:
             """
             It should be be flexible for users to write their deploy scripts.
-            They can pick and choose what kwargs they want to reeive.  To handle
+            They can pick and choose what kwargs they want to receive.  To handle
             that, we need to inspect the function to see what they want, then
             provide what we can.
             """
@@ -200,5 +203,7 @@ class Deployer(object):
             retval = script.main(**script_kwargs)
             if retval is not True:
                 raise DeploymentError("Deploy script did not complete properly!")
+
+        self.refresh()
 
         return True

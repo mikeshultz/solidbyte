@@ -111,3 +111,25 @@ def test_metafile_backup(mock_project):
 
         assert str(metafile_path) != str(outfile)
         assert orig_hash == backup_hash
+
+
+def test_metafile_read_only(mock_project):
+    """ Test backup method of MetaFile """
+
+    CONTRACT_NAME_1 = 'PhantomContract'
+    NETWORK_ID_1 = 15
+
+    with mock_project() as mock:
+        project_dir = mock.paths.project
+        mfile = MetaFile(project_dir=project_dir, read_only=True)
+
+        # Add one so we have something in the file
+        assert mfile.add(CONTRACT_NAME_1, NETWORK_ID_1, ADDRESS_1, {}, BYTECODE_HASH_1) is None
+
+        # Reload the file and verify our changes don't exist
+        reloaded_mfile = MetaFile(project_dir=project_dir)
+
+        # Get an entirely new instance so we know the file was updated
+        assert reloaded_mfile.get_contract_index(CONTRACT_NAME_1) == -1
+        e_entry = reloaded_mfile.get_contract(CONTRACT_NAME_1)
+        assert e_entry is None
