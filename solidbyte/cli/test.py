@@ -16,8 +16,6 @@ def add_parser_arguments(parser):
                         help='Ethereum network to connect the console to')
     parser.add_argument('-a', '--address', type=str, required=False,
                         help='Address of the Ethereum account to use for deployment')
-    parser.add_argument('--default', dest="use_default_account", action='store_true', default=False,
-                        help='Use the account that was set as default')
     parser.add_argument(
         '-p',
         '--passphrase',
@@ -40,8 +38,7 @@ def main(parser_args):
 
     network_name = collapse_oel(parser_args.network)
     try:
-        run_tests(network_name=network_name, use_default_account=parser_args.use_default_account,
-                  account_address=parser_args.address)
+        run_tests(network_name=network_name, account_address=parser_args.address)
     except DeploymentValidationError as err:
         if 'autodeployment' in str(err):
             log.error("The -a/--address option or --default must be provided for autodeployment")
