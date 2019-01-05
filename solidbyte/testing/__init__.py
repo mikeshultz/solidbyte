@@ -2,7 +2,12 @@ import pytest
 from attrdict import AttrDict
 from ..deploy import Deployer, get_latest_from_deployed
 from ..common.web3 import web3c
-from ..common.exceptions import SolidbyteException
+from ..common.metafile import MetaFile
+from ..common.networks import NetworksYML
+from ..common.exceptions import SolidbyteException, DeploymentValidationError
+from ..common.logging import getLogger
+
+log = getLogger(__name__)
 
 
 class SolidbyteTestPlugin(object):
@@ -57,8 +62,47 @@ class SolidbyteTestPlugin(object):
 
 
 def run_tests(network_name, args=[], web3=None, project_dir=None, contract_dir=None,
-              deploy_dir=None):
+              deploy_dir=None, use_default_account=False, account_address=None):
     """ Run all tests on project """
+
+    yml = NetworksYML(project_dir=project_dir)
+
+    if use_default_account or account_address:
+        if use_default_account:
+            mfile = MetaFile(project_dir=project_dir)
+            account_address = mfile.get_default_account()
+            if not account_address:
+                raise DeploymentValidationError("Default account not set.")
+            else:
+                log.warning("Using account {} for deployer.".format(account_address))
+
+        # First, see if we're allowed to deploy, and whether we need to
+        deployer = Deployer(
+            network_name=network_name,
+            account=account_address,
+            project_dir=project_dir,
+            contract_dir=contract_dir,
+            deploy_dir=deploy_dir,
+        )
+
+        if (deployer.check_needs_deploy()
+                and yml.network_config_exists(network_name)
+                and yml.autodeploy_allowed(network_name)):
+
+            if not account_address:
+                raise DeploymentValidationError("Account needs to be provided for autodeployment")
+
+            deployer.deploy()
+
+        elif deployer.check_needs_deploy() and not (
+                yml.network_config_exists(network_name)
+                and yml.autodeploy_allowed(network_name)):
+
+            raise DeploymentValidationError(
+                "Deployment is required for network but autodpeloy is not allowed.  Please deploy "
+                "your contracts using the `sb deploy` command."
+            )
+
     return pytest.main(args, plugins=[
             SolidbyteTestPlugin(
                 network_name=network_name,

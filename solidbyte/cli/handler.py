@@ -3,6 +3,7 @@
 import sys
 import argparse
 from importlib import import_module
+from ..common.store import Store, StoreKeys
 from ..common.logging import getLogger, loggingShutdown
 
 log = getLogger(__name__)
@@ -29,6 +30,9 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description='SolidByte Ethereum development tools')
     parser.add_argument('-d', action='store_true',
                         help='Print debug level messages')
+    parser.add_argument('-k', '--keystore', type=str, dest="keystore",
+                        default='~/.ethereum/keystore',
+                        help='Ethereum account keystore directory to use.')
 
     subparsers = parser.add_subparsers(title='Submcommands', dest='command',
                                        help='do the needful')
@@ -67,6 +71,10 @@ def main(argv=None):
     if args.command not in MODULES:
         log.error('Unknown command: {}'.format(args.command))
         sys.exit(2)
+
+    if args.keystore:
+        log.warning("Using keystore at {}".format(args.keystore))
+        Store.set(StoreKeys.KEYSTORE_DIR, args.keystore)
 
     IMPORTED_MODULES[args.command].main(parser_args=args)
 
