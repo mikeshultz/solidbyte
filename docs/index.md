@@ -12,3 +12,5 @@ compiling, and deploying your smart contracts easy.
  - [metafile.json](metafile.md) - The JSON file that contains information about deployments and project state
  - [networks.yml](networks.md) - The Ethereum JSON-RPC network configuration file
  - [SolidByte Development](development.md)
+ - [Project Directory Structure](structure.md)
+ 
