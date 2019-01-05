@@ -1,13 +1,16 @@
 """ Objects and utility functions for account operations """
 import os
 import json
-from typing import TypeVar, List
+from typing import TypeVar, List, Callable
 from getpass import getpass
 from pathlib import Path
 from datetime import datetime
 from attrdict import AttrDict
 from eth_account import Account
 from web3 import Web3
+from ..common import to_path
+from ..common.store import Store, StoreKeys
+from ..common.exceptions import ValidationError
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -15,17 +18,41 @@ log = getLogger(__name__)
 T = TypeVar('T')
 
 
+def autoload(f: Callable) -> Callable:
+    """ Automatically load the metafile before method execution """
+    def wrapper(*args, **kwargs):
+        # A bit defensive, but make sure this is a decorator of a MetaFile method
+        if len(args) > 0 and isinstance(args[0], Accounts):
+            args[0]._load_accounts()
+        return f(*args, **kwargs)
+    return wrapper
+
+
 class Accounts(object):
     def __init__(self, network_name: str = None,
-                 keystore_dir: str = '~/.ethereum/keystore',
+                 keystore_dir: str = None,
                  web3: object = None) -> None:
+
         self.eth_account = Account()
         self.accounts = []
-        self.keystore_dir = Path(keystore_dir).expanduser().resolve()
+
+        if keystore_dir:
+            self.keystore_dir = to_path(keystore_dir)
+        else:
+            # Try the session store first.
+            if Store.defined(StoreKeys.KEYSTORE_DIR):
+                self.keystore_dir = to_path(Store.get(StoreKeys.KEYSTORE_DIR))
+            else:
+                # Default to the standard loc
+                self.keystore_dir = to_path('~/.ethereum/keystore')
+        log.debug("Keystore directory: {}".format(self.keystore_dir))
+
         if web3:
             self.web3 = web3
         else:
-            self.web3 = Web3()
+            log.warning("Accounts initialized without a web3 instance.  Some things like gas price "
+                        "estimation might be off or not working.")
+            self.web3 = None
 
         if not self.keystore_dir.is_dir():
             if self.keystore_dir.exists():
@@ -54,7 +81,7 @@ class Accounts(object):
             filename = self.keystore_dir.joinpath(
                 'UTC--{}--{}'.format(
                     datetime.now().isoformat(),
-                    json_object.get('address')
+                    Web3.toChecksumAddress(json_object.get('address'))
                     )
                 )
         with open(filename, 'w') as json_file:
@@ -78,63 +105,68 @@ class Accounts(object):
             if not jason:
                 log.warning("Unable to read JSON from {}".format(file))
             else:
-                addr = self.web3.toChecksumAddress(jason.get('address'))
+                addr = Web3.toChecksumAddress(jason.get('address'))
+                bal = -1
+                if self.web3:
+                    bal = self.web3.fromWei(
+                        self.web3.eth.getBalance(self.web3.toChecksumAddress(addr)),
+                        'ether'
+                    )
                 self.accounts.append(AttrDict({
                     'address': addr,
                     'filename': file,
-                    'balance': self.web3.fromWei(
-                        self.web3.eth.getBalance(self.web3.toChecksumAddress(addr)),
-                        'ether'
-                        ),
+                    'balance': bal,
                     'privkey': None
                 }))
 
     def refresh(self) -> None:
         self._load_accounts(True)
 
+    @autoload
     def _get_account_index(self, address: str) -> int:
         """ Return the list index for the account """
         idx = 0
         for a in self.accounts:
-            if a.address == address:
+            if Web3.toChecksumAddress(a.address) == Web3.toChecksumAddress(address):
                 return idx
             idx += 1
         raise IndexError("account does not exist")
 
+    @autoload
     def get_account(self, address: str) -> AttrDict:
         """ Return all the known account addresses """
 
-        self._load_accounts()
-
         for a in self.accounts:
-            if a.address == address:
+            if Web3.toChecksumAddress(a.address) == Web3.toChecksumAddress(address):
                 return a
 
         raise FileNotFoundError("Unable to find requested account")
 
+    @autoload
     def account_known(self, address: str) -> bool:
         """ Check if an account is known """
+
         try:
             self._get_account_index(address)
             return True
         except IndexError:
+            log.debug("Account {} is not locally managed in keystore {}".format(
+                address,
+                self.keystore_dir
+            ))
             return False
 
+    @autoload
     def get_accounts(self) -> List[AttrDict]:
         """ Return all the known account addresses """
-
-        self._load_accounts()
-
         return self.accounts
 
     def set_account_attribute(self, address: str, key: str, val: T) -> None:
         """ Set an attribute of an account """
-        idx = 0
-        for a in self.accounts:
-            if a.address == address:
-                setattr(self.accounts[idx], key, val)
-                return
-            idx += 1
+        idx = self._get_account_index(address)
+        if idx < 0:
+            raise IndexError("{} not found.  Unable to set attribute.".format(address))
+        return setattr(self.accounts[idx], key, val)
 
     def create_account(self, password: str) -> str:
         """ Create a new account and encrypt it with password """
@@ -144,8 +176,9 @@ class Accounts(object):
 
         self._write_json_file(encrypted_account)
 
-        return new_account.address
+        return Web3.toChecksumAddress(new_account.address)
 
+    @autoload
     def unlock(self, account_address: str, password: str = None) -> bytes:
         """ Unlock an account keystore file and return the private key """
 
@@ -157,7 +190,11 @@ class Accounts(object):
             return account.privkey
 
         if not password:
-            password = getpass("Enter password to decrypt account ({}):".format(account_address))
+            password = Store.get(StoreKeys.DECRYPT_PASSPHRASE)
+            if not password:
+                password = getpass("Enter password to decrypt account ({}):".format(
+                    account_address
+                ))
 
         jason = self._read_json_file(account.filename)
         privkey = self.eth_account.decrypt(jason, password)
@@ -168,6 +205,9 @@ class Accounts(object):
         """ Sign a transaction using the provided account """
 
         log.debug("Signing tx with account {}".format(account_address))
+
+        if not self.web3:
+            raise ValidationError("Unable to sign a transaction without an instanced Web3 object.")
 
         """ Do some tx verification and substitution if necessary
         """
