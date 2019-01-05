@@ -31,17 +31,17 @@ class Web3ConfiguredConnection(object):
         self.config = None
         self.networks = []
         self.web3 = None
-        self.yml = NetworksYML()
+        self.yml = NetworksYML(no_load=no_load)
 
         if no_load is not True:
             try:
-                self.yml._load_configuration()
+                self.yml.load_configuration()
             except FileNotFoundError:
                 log.warning("networks.yml not found")
 
     def _load_configuration(self, config_file=None):
         """ Load configuration from the configuration file """
-        return self.yml._load_configuration(config_file)
+        return self.yml.load_configuration(config_file)
 
     def _init_provider_from_type(self, config):
         """ Initialize a provider using the config """
@@ -74,11 +74,11 @@ class Web3ConfiguredConnection(object):
 
         self.web3 = None
 
-        if name and not self.yml._network_config_exists(name):
+        if name and not self.yml.network_config_exists(name):
             raise SolidbyteException("Provided network '{}' does not exist in networks.yml".format(
                     name
                 ))
-        elif name and self.yml._network_config_exists(name):
+        elif name and self.yml.network_config_exists(name):
             conn_conf = self.yml.get_network_config(name)
 
             success = False

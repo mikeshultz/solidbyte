@@ -22,19 +22,11 @@ class SolidbyteSignerMiddleware(object):
         """ Check if an account is available """
         if addr in self.web3.eth.accounts:
             return True
-        accounts = self.accounts.get_accounts()
-        for a in accounts:
-            if a == a.address:
-                return True
-        return False
+        return self.accounts.account_known(addr)
 
     def _account_signer(self, addr):
-        """ Check if an account is available """
-        accounts = self.accounts.get_accounts()
-        for a in accounts:
-            if self.web3.toChecksumAddress(addr) == a.address:
-                return True
-        return False
+        """ Check if an account is a locally managed 'signer' """
+        return self.accounts.account_known(addr)
 
     def __call__(self, method, params):
         if method == 'eth_sendTransaction':
