@@ -1,6 +1,6 @@
 import sys
 from importlib import import_module
-from os import path, listdir
+from pathlib import Path
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -18,7 +18,7 @@ For more details, see the Bare template.
 TODO: Better docs
 """
 
-TEMPLATE_DIR = path.join(path.dirname(__file__), 'templates')
+TEMPLATE_DIR = Path(__file__).parent.joinpath('templates')
 TEMPLATES = {}
 
 
@@ -27,21 +27,20 @@ def lazy_load_templates(force_load=False):
     if len(TEMPLATES.keys()) > 0 and not force_load:
         return TEMPLATES
 
-    for d in listdir(TEMPLATE_DIR):
-        log.debug("burp: {}".format(d))
-        if path.isdir(path.join(TEMPLATE_DIR, d)):
+    for d in TEMPLATE_DIR.iterdir():
+        if d.is_dir() and d.name != '__pycache__':
 
+            name = d.name
             mod = None
 
             try:
-                mod = import_module('.{}'.format(d), package='solidbyte.templates.templates')
+                mod = import_module('.{}'.format(name), package='solidbyte.templates.templates')
                 if hasattr(mod, 'get_template_instance'):
-                    TEMPLATES[d] = mod
+                    TEMPLATES[name] = mod
             except ImportError as e:
                 # not a module, skip
                 log.debug("sys.path: {}".format(sys.path))
                 log.debug("Unable to import template module", exc_info=e)
-                pass
 
     return TEMPLATES
 
@@ -53,7 +52,7 @@ def get_templates():
     return lazy_load_templates()
 
 
-def init_template(name, dir_mode=0o755):
+def init_template(name, dir_mode=0o755, pwd=None):
     """ Initialize and return a Template instance with name """
 
     lazy_load_templates()
@@ -61,4 +60,4 @@ def init_template(name, dir_mode=0o755):
     if name not in TEMPLATES:
         raise FileNotFoundError("Unknown template")
 
-    return TEMPLATES[name].get_template_instance(dir_mode=dir_mode)
+    return TEMPLATES[name].get_template_instance(dir_mode=dir_mode, pwd=pwd)

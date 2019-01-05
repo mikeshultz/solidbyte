@@ -125,7 +125,6 @@ def test_cli_integration(mock_project):
             '-d',
             'test',
             'test',
-            '--default',
             '-p',
             PASSWORD_1,
         ])

@@ -1,9 +1,9 @@
 import atexit
 import code
-import os
 import readline
 import rlcompleter
 import solidbyte
+from pathlib import Path
 from ..common.web3 import web3c
 from ..common.logging import getLogger
 from ..deploy import Deployer, get_latest_from_deployed
@@ -28,7 +28,7 @@ def get_default_banner(network_id, contracts=[], variables={}):
 
 class SolidbyteConsole(code.InteractiveConsole):
     def __init__(self, _locals=None, filename="<console>", network_name=None,
-                 histfile=os.path.expanduser("~/.solidbyte-history")):
+                 histfile=Path("~/.solidbyte-history").expanduser().resolve()):
 
         log.debug("Connecting to network {}...".format(network_name))
         self.web3 = web3c.get_web3(network_name)

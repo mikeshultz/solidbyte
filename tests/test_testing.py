@@ -39,8 +39,6 @@ def test_testing(mock_project):
             'args': [str(mock.paths.tests)],
             'web3': web3,
             'project_dir': mock.paths.project,
-            'contract_dir': mock.paths.contracts,
-            'deploy_dir': mock.paths.deploy,
         }
         try:
             exitcode = run_tests(
@@ -68,8 +66,6 @@ def test_testing_autodeploy(mock_project):
             'args': [str(mock.paths.tests)],
             'web3': web3,
             'project_dir': mock.paths.project,
-            'contract_dir': mock.paths.contracts,
-            'deploy_dir': mock.paths.deploy,
             'account_address': web3.eth.accounts[0],
         }
         try:

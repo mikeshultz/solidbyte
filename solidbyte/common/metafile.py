@@ -30,7 +30,7 @@ from datetime import datetime
 from shutil import copyfile
 from attrdict import AttrDict
 from .logging import getLogger
-from .utils import hash_file
+from .utils import hash_file, to_path_or_cwd
 from .web3 import normalize_address, normalize_hexstring
 
 log = getLogger(__name__)
@@ -70,9 +70,7 @@ class MetaFile:
                  filename_override: Generic[PS] = None,
                  project_dir: Generic[PS] = None) -> None:
 
-        if project_dir is not None and not isinstance(project_dir, Path):
-            project_dir = Path(project_dir)
-        self.project_dir = project_dir or Path.cwd()
+        self.project_dir = to_path_or_cwd(project_dir)
         self.file_name = self.project_dir.joinpath(filename_override or METAFILE_FILENAME)
         self._file = None
         self._json = None

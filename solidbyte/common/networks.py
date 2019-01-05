@@ -5,6 +5,7 @@ from typing import TypeVar, Dict
 from pathlib import Path
 from .logging import getLogger
 from .exceptions import ConfigurationError
+from .utils import to_path_or_cwd
 
 log = getLogger(__name__)
 
@@ -40,11 +41,10 @@ class NetworksYML:
     """
 
     def __init__(self, project_dir: PathString = None, no_load: bool = False) -> None:
+
         log.debug("NetworksYML.__init__(project_dir={}, no_load={})".format(project_dir, no_load))
-        if project_dir is None:
-            project_dir = Path.cwd()
-        elif not isinstance(project_dir, Path):
-            project_dir = Path(project_dir)
+
+        project_dir = to_path_or_cwd(project_dir)
 
         self.config_file = project_dir.joinpath('networks.yml')
         self.config = None

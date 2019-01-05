@@ -1,6 +1,7 @@
 import pytest
 from attrdict import AttrDict
 from ..deploy import Deployer, get_latest_from_deployed
+from ..common.utils import to_path_or_cwd
 from ..common.web3 import web3c
 from ..common.metafile import MetaFile
 from ..common.networks import NetworksYML
@@ -12,16 +13,15 @@ log = getLogger(__name__)
 
 class SolidbyteTestPlugin(object):
 
-    def __init__(self, network_name, web3=None, project_dir=None, contract_dir=None,
-                 deploy_dir=None):
+    def __init__(self, network_name, web3=None, project_dir=None):
         self.network = network_name
         self._web3 = None
         if web3 is not None:
             self._web3 = web3
 
-        self._project_dir = project_dir
-        self._contract_dir = contract_dir
-        self._deploy_dir = deploy_dir
+        self._project_dir = to_path_or_cwd(project_dir)
+        self._contract_dir = self._project_dir.joinpath('contracts')
+        self._deploy_dir = self._project_dir.joinpath('deploy')
 
     def pytest_sessionfinish(self):
         # TODO: There was something I wanted to do here...
@@ -32,8 +32,7 @@ class SolidbyteTestPlugin(object):
         if not self._web3:
             self._web3 = web3c.get_web3(self.network)
         network_id = self._web3.net.chainId or self._web3.net.version
-        d = Deployer(self.network, project_dir=self._project_dir, contract_dir=self._contract_dir,
-                     deploy_dir=self._deploy_dir)
+        d = Deployer(self.network, project_dir=self._project_dir)
         contracts_meta = d.deployed_contracts
         contracts_compiled = d.source_contracts
         test_contracts = {}
@@ -61,8 +60,7 @@ class SolidbyteTestPlugin(object):
         return self._web3
 
 
-def run_tests(network_name, args=[], web3=None, project_dir=None, contract_dir=None,
-              deploy_dir=None, account_address=None):
+def run_tests(network_name, args=[], web3=None, project_dir=None, account_address=None):
     """ Run all tests on project """
 
     yml = NetworksYML(project_dir=project_dir)
@@ -81,8 +79,6 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, contract_dir=N
         network_name=network_name,
         account=account_address,
         project_dir=project_dir,
-        contract_dir=contract_dir,
-        deploy_dir=deploy_dir,
     )
 
     if (deployer.check_needs_deploy()
@@ -108,7 +104,5 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, contract_dir=N
                 network_name=network_name,
                 web3=web3,
                 project_dir=project_dir,
-                contract_dir=contract_dir,
-                deploy_dir=deploy_dir,
             )
         ])
