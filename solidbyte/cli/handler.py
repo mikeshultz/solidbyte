@@ -73,7 +73,7 @@ def main(argv=None):
         sys.exit(2)
 
     if args.keystore:
-        log.warning("Using keystore at {}".format(args.keystore))
+        log.info("Using keystore at {}".format(args.keystore))
         Store.set(StoreKeys.KEYSTORE_DIR, args.keystore)
 
     IMPORTED_MODULES[args.command].main(parser_args=args)
