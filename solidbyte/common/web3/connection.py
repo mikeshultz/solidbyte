@@ -7,9 +7,11 @@ from web3 import (
     EthereumTesterProvider,
 )
 from web3.gas_strategies.time_based import medium_gas_price_strategy
+from .. import store
 from ..exceptions import SolidbyteException
 from ..logging import getLogger
 from ..networks import NetworksYML
+from ..utils import to_path_or_cwd
 from .middleware import SolidbyteSignerMiddleware
 
 log = getLogger(__name__)
@@ -29,7 +31,9 @@ class Web3ConfiguredConnection(object):
         self.config = None
         self.networks = []
         self.web3 = None
-        self.yml = NetworksYML(no_load=no_load)
+
+        project_dir = to_path_or_cwd(store.get(store.Keys.PROJECT_DIR))
+        self.yml = NetworksYML(project_dir=project_dir, no_load=no_load)
 
         if no_load is not True:
             try:
@@ -70,14 +74,24 @@ class Web3ConfiguredConnection(object):
         if name == self.name and self.web3:
             return self.web3
 
+        log.debug("Creating new web3 object.")
+
         self.web3 = None
 
-        if name and not self.yml.network_config_exists(name):
-            raise SolidbyteException("Provided network '{}' does not exist in networks.yml".format(
-                    name
+        if name and (not self.yml.network_config_exists(name) and name != 'test'):
+            raise SolidbyteException("Provided network '{}' does not exist in {}".format(
+                    name,
+                    self.yml.config_file,
                 ))
         elif name and self.yml.network_config_exists(name):
-            conn_conf = self.yml.get_network_config(name)
+            # Allow network 'test' even if it isn't defined
+            if name == 'test' and not self.yml.network_config_exists(name):
+                conn_conf = {
+                    'type': ETH_TESTER_TYPES[0],
+                    'autodeploy_allowed': True,
+                }
+            else:
+                conn_conf = self.yml.get_network_config(name)
 
             success = False
             if conn_conf.get('type') == 'auto':
