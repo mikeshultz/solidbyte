@@ -1,3 +1,4 @@
+tabulate>=0.8.2
 pytest>=3.9.3
 pytest-ethereum==0.1.3a5
 #pytest-ethereum==0.1.3a6
