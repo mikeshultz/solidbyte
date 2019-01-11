@@ -3,9 +3,9 @@
 Example placeholder: __$13811623e8434e588b8942cf9304d14b96$__
 """
 import re
-from typing import List
-from ..common import all_defs_in, defs_not_in
-from ..common.web3 import remove_0x
+from typing import Optional, List, Tuple, Dict, Set
+from ..common.utils import all_defs_in, defs_not_in
+from ..common.web3 import remove_0x, hash_string, hash_hexstring
 from ..common.exceptions import LinkError
 from ..common.logging import getLogger
 
@@ -44,15 +44,18 @@ def contract_from_def(s: str) -> str:
     return contract_match.group(1)
 
 
-def bytecode_link_defs(bytecode) -> List[tuple]:
-    link_defs = []
+def bytecode_link_defs(bytecode) -> Set[Tuple[str, str]]:
+    """ Return list of tuples with names and placeholders for link definitions from a bytecode
+        file
+    """
+    link_defs = set()
     bytecode_list = bytecode.split('\n')
     for ln in bytecode_list:
         if ln.startswith('// '):
             contract_name = contract_from_def(ln)
             placeholder = placeholder_from_def(ln)
             if contract_name and placeholder:
-                link_defs.append((contract_name, placeholder))
+                link_defs.add((contract_name, placeholder))
             else:
                 log.warn("Possible link definition missing or extra comment in bytecode "
                          "file: {}".format(ln))
@@ -68,7 +71,8 @@ def replace_placeholders(bytecode: str, placeholder: str, addr: str) -> str:
 def clean_bytecode(bytecode: str) -> str:
     """ Clean the bytecode string of any comments and whitespace """
     blist = [x for x in bytecode.split('\n') if x.strip() != '' and not x.startswith('//')]
-    return ''.join(blist)
+    btxt = ''.join(blist)
+    return btxt
 
 
 def link_library(bytecode: str, links: dict) -> str:
@@ -90,3 +94,31 @@ def link_library(bytecode: str, links: dict) -> str:
         linked_bytecode = bytecode
 
     return clean_bytecode(linked_bytecode)
+
+
+def address_placeholder(name):
+    """ Provide a false address for a link ref with name. Used in bytecode hashing. """
+    return remove_0x(hash_string('__{}__'.format(name)))
+
+
+def hash_linked_bytecode(bytecode) -> str:
+    """ Hash bytecode that has link references in a way that the addresses for delegate calls don't
+    matter.  Useful for comparing bytecode hashes when you don't know deployed addresses.
+    """
+
+    links: Dict[str, str] = {}
+
+    link_defs = bytecode_link_defs(bytecode)
+
+    if link_defs:
+        for name, _ in link_defs:
+            links[name] = address_placeholder(name)
+
+    if len(links) > 0:
+        bytecode = link_library(bytecode, links)
+    else:
+        bytecode = clean_bytecode(bytecode)
+
+    bytecode = remove_0x(bytecode)
+
+    return hash_hexstring(bytecode)
