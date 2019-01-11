@@ -11,6 +11,10 @@ from .const import (
     CONTRACT_SOURCE_FILE_1,
     CONTRACT_DEPLOY_SCRIPT_1,
     PYTEST_TEST_1,
+    CONTRACT_DEPLOY_SCRIPT_2,
+    CONTRACT_SOURCE_FILE_2,
+    LIBRARY_SOURCE_FILE_1,
+    LIBRARY_SOURCE_FILE_3,
 )
 
 RECURSUION_MAX = 15
@@ -79,6 +83,26 @@ def create_mock_project(project_dir):
     write_temp_file(NETWORKS_YML_1, 'networks.yml', project_dir)
     write_temp_file(CONTRACT_SOURCE_FILE_1, 'Test.sol', contract_dir)
     write_temp_file(CONTRACT_DEPLOY_SCRIPT_1, 'deploy_main.py', deploy_dir)
+    write_temp_file(PYTEST_TEST_1, 'test_testing.py', test_dir)
+
+
+def create_mock_project_with_libraries(project_dir):
+    """ Create a mock project with a contract, and deploy script """
+    assert isinstance(project_dir, Path), "project_dir needs to be a Path object"
+
+    contract_dir = project_dir.joinpath('contracts')
+    deploy_dir = project_dir.joinpath('deploy')
+    test_dir = project_dir.joinpath('tests')
+
+    project_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
+    contract_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
+    deploy_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
+
+    write_temp_file(NETWORKS_YML_1, 'networks.yml', project_dir)
+    write_temp_file(CONTRACT_SOURCE_FILE_2, 'TestMath.sol', contract_dir)
+    write_temp_file(LIBRARY_SOURCE_FILE_1, 'SafeMath.sol', contract_dir)
+    write_temp_file(LIBRARY_SOURCE_FILE_3, 'Unnecessary.sol', contract_dir)
+    write_temp_file(CONTRACT_DEPLOY_SCRIPT_2, 'deploy_main.py', deploy_dir)
     write_temp_file(PYTEST_TEST_1, 'test_testing.py', test_dir)
 
 

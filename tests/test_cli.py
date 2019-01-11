@@ -26,7 +26,7 @@ def execute_command_assert_no_error_success(cmd):
     assert type(cmd) == list
     list_proc = Popen(cmd, stdout=PIPE)
     list_output = list_proc.stdout.read()
-    assert no_error(list_output)
+    assert no_error(list_output), list_output
     list_proc.wait()
     assert list_proc.returncode == 0, "Invalid return code from command"
     return list_output
@@ -118,16 +118,16 @@ def test_cli_integration(mock_project):
 
         # test `sb test [network]`
         # TODO: Currently throwing an exception.  Look into it.
-        # execute_command_assert_no_error_success([
-        #     sb,
-        #     '-k',
-        #     str(TMP_KEY_DIR),
-        #     '-d',
-        #     'test',
-        #     '-p',
-        #     PASSWORD_1,
-        #     'test',
-        # ])
+        execute_command_assert_no_error_success([
+            sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            '-d',
+            'test',
+            '-p',
+            PASSWORD_1,
+            'test',
+        ])
 
         # test `sb metafile backup metafile.json.bak`
         execute_command_assert_no_error_success([sb, 'metafile', 'backup', 'metafile.json.bak'])

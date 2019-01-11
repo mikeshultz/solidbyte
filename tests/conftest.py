@@ -5,8 +5,14 @@ from datetime import datetime
 from attrdict import AttrDict
 from contextlib import contextmanager
 from solidbyte.common.logging import setDebugLogging
+from solidbyte.common import store
 from .const import TMP_DIR
-from .utils import create_mock_project, delete_path_recursively, setup_venv_with_solidbyte
+from .utils import (
+    create_mock_project,
+    create_mock_project_with_libraries,
+    delete_path_recursively,
+    setup_venv_with_solidbyte,
+)
 
 
 def pytest_sessionstart(session):
@@ -17,9 +23,14 @@ def pytest_sessionstart(session):
 @pytest.fixture
 def mock_project():
     @contextmanager
-    def yield_mock_project(tmpdir=TMP_DIR):
+    def yield_mock_project(tmpdir=TMP_DIR, with_libraries=False):
         project_dir = tmpdir.joinpath('project-{}'.format(datetime.now().timestamp()))
-        create_mock_project(project_dir)
+        # Explicitly set the project directory for the session.
+        # Doesn't work? store.set(store.Keys.PROJECT_DIR, project_dir)
+        if with_libraries:
+            create_mock_project_with_libraries(project_dir)
+        else:
+            create_mock_project(project_dir)
         original_pwd = Path.cwd()
         os.chdir(project_dir)
         yield AttrDict({
@@ -28,6 +39,7 @@ def mock_project():
                         'tests': project_dir.joinpath('tests'),
                         'contracts': project_dir.joinpath('contracts'),
                         'deploy': project_dir.joinpath('deploy'),
+                        'build': project_dir.joinpath('build'),
                         'networksyml': project_dir.joinpath('networks.yml'),
                     })
             })

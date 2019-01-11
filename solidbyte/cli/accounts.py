@@ -43,7 +43,7 @@ def add_parser_arguments(parser):
     # Create account
     create_parser = subparsers.add_parser('create', help="Create a new account")  # noqa: F841
     create_parser.add_argument(
-        '-p'
+        '-p',
         '--passphrase',
         metavar='PASSPHRASE',
         type=str,

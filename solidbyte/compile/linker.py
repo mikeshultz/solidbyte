@@ -45,8 +45,7 @@ def contract_from_def(s: str) -> str:
 
 
 def bytecode_link_defs(bytecode) -> Set[Tuple[str, str]]:
-    """ Return list of tuples with names and placeholders for link definitions from a bytecode
-        file
+    """ Return set of tuples with names and placeholders for link definitions from a bytecode file
     """
     link_defs = set()
     bytecode_list = bytecode.split('\n')

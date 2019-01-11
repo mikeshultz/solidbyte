@@ -68,7 +68,7 @@ def test_pop_key_from_dict():
         'one': 1,
         'two': 2,
     }
-    tdict, popped = pop_key_from_dict(tdict, 'two')
+    popped = pop_key_from_dict(tdict, 'two')
     assert len(tdict) == 1
     assert 'two' not in tdict
     assert popped == 2
@@ -88,4 +88,4 @@ def test_defs_not_in():
         'one': 1,
         'two': 2,
     }
-    assert defs_not_in([('one', '-'), ('two', '-'), ('three', '-')], tdict) == ['three']
+    assert defs_not_in([('one', '-'), ('two', '-'), ('three', '-')], tdict) == {'three'}

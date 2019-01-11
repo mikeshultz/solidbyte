@@ -1,6 +1,6 @@
 """ Test the artifact functions and objects """
 from solidbyte.compile import Compiler
-from solidbyte.compile.compiled import (
+from solidbyte.compile.artifacts import (
     artifacts,
     contract_artifacts,
     available_contract_names,
@@ -42,7 +42,7 @@ def test_contract_artifacts(mock_project):
         compiler = Compiler(project_dir=mock.paths.project)
         compiler.compile_all()
 
-        cc = contract_artifacts(mock.paths.project, contract_name)
+        cc = contract_artifacts(contract_name, mock.paths.project)
         assert isinstance(cc, CompiledContract)
         assert cc.abi
         assert cc.bytecode
