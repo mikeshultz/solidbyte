@@ -13,7 +13,7 @@ def test_metafile():
     mfile = MetaFile(filename_override=str(mfilename))
 
     # Contracts
-    assert mfile.get_all_contracts() == {}
+    assert mfile.get_all_contracts() == []
     assert mfile.get_contract('FakeName') is None
     assert mfile.get_contract_index('FakeName') == -1
 
