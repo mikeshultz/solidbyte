@@ -30,6 +30,12 @@ class CompiledContract:
         if not self._load_artifacts():
             log.warning("Loading of {} artifacts failed.".format(self.name))
 
+    def __getitem__(self, key: str) -> Optional[Any]:
+        """ Mostly for backwards compat, but allow this to be treated like a dict """
+        if not hasattr(self, key):
+            raise KeyError("Key {} not found".format(key))
+        return getattr(self, key)
+
     def _load_artifacts(self):
         """ Load the artifact files """
 
@@ -44,7 +50,7 @@ class CompiledContract:
             abi_str = _file.read()
             self.abi = json.loads(abi_str)
 
-        return self.abi and self.bytecode
+        return self.abi or (self.abi and self.bytecode)
 
 
 def available_contract_names(project_dir: PS) -> Set[str]:
@@ -64,7 +70,7 @@ def available_contract_names(project_dir: PS) -> Set[str]:
     return c_names
 
 
-def contract_artifacts(project_dir: PS, name: str) -> CompiledContract:
+def contract_artifacts(name: str, project_dir: PS = None) -> CompiledContract:
     """ Return a CompiledContract object with the artifacts for a contract """
     project_dir = to_path_or_cwd(project_dir)
     builddir = project_dir.joinpath('build')
@@ -82,6 +88,6 @@ def artifacts(project_dir: PS) -> Set[Any]:
     artifacts = set()
 
     for contract in contracts:
-        artifacts.add(contract_artifacts(project_dir, contract))
+        artifacts.add(contract_artifacts(contract, project_dir))
 
     return artifacts
