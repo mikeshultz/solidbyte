@@ -1,7 +1,7 @@
 """ Handle operations around networks.yml
 """
 import yaml
-from typing import TypeVar, Dict
+from typing import TypeVar, Any, Dict, List
 from pathlib import Path
 from .logging import getLogger
 from .exceptions import ConfigurationError
@@ -10,9 +10,8 @@ from .utils import to_path_or_cwd
 log = getLogger(__name__)
 
 # Typing
-T = TypeVar('T')
-PathString = TypeVar('PathString', Path, str)
-NetworkConfig = Dict[str, Dict[str, T]]
+PathString = TypeVar('PathString', Path, bytes, str)
+NetworkConfig = Dict[str, Dict[str, Any]]
 
 # Const
 ETH_TESTER_TYPES = ('eth_tester', 'eth-tester', 'ethereum-tester')
@@ -51,7 +50,7 @@ class NetworksYML:
 
         self.config_file = project_dir.joinpath('networks.yml')
         self.config = None
-        self.networks = []
+        self.networks: List = []
 
         if no_load is False:
             log.debug("self.load_configuration()")
@@ -80,6 +79,8 @@ class NetworksYML:
         try:
             with open(self.config_file, 'r') as cfile:
                 self.config = yaml.load(cfile)
+                if not self.config:
+                    raise ConfigurationError("Unable to load networks.yml!")
                 self.networks = list(self.config.keys())
         except Exception as e:
             log.exception("Failed to load networks.yml")
@@ -98,6 +99,8 @@ class NetworksYML:
 
         if not self.network_config_exists(name):
             raise ConfigurationError("Network config for '{}' does not exist.".format(name))
+        if not self.config:
+            raise ConfigurationError("Unable to load networks.yml!")
 
         return self.config[name]
 
