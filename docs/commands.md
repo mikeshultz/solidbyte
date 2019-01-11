@@ -68,3 +68,7 @@ Cleanup and compact `metafile.json` by removing deployed contract instances for 
 ### `metafile backup`
 
 Make a copy of `metafile.json` to the given location and verify.
+
+## `sigs`
+
+Show all event and function signatures for the compiled contracts.
