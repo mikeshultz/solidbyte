@@ -9,7 +9,7 @@ from attrdict import AttrDict
 from eth_account import Account
 from web3 import Web3
 from ..common import to_path
-from ..common.store import Store, StoreKeys
+from ..common import store
 from ..common.exceptions import ValidationError
 from ..common.logging import getLogger
 
@@ -40,8 +40,8 @@ class Accounts(object):
             self.keystore_dir = to_path(keystore_dir)
         else:
             # Try the session store first.
-            if Store.defined(StoreKeys.KEYSTORE_DIR):
-                self.keystore_dir = to_path(Store.get(StoreKeys.KEYSTORE_DIR))
+            if store.defined(store.Keys.KEYSTORE_DIR):
+                self.keystore_dir = to_path(store.get(store.Keys.KEYSTORE_DIR))
             else:
                 # Default to the standard loc
                 self.keystore_dir = to_path('~/.ethereum/keystore')
@@ -190,7 +190,7 @@ class Accounts(object):
             return account.privkey
 
         if not password:
-            password = Store.get(StoreKeys.DECRYPT_PASSPHRASE)
+            password = store.get(store.Keys.DECRYPT_PASSPHRASE)
             if not password:
                 password = getpass("Enter password to decrypt account ({}):".format(
                     account_address

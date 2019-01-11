@@ -2,8 +2,9 @@
 
 import sys
 import argparse
+from pathlib import Path
 from importlib import import_module
-from ..common.store import Store, StoreKeys
+from ..common import store
 from ..common.logging import getLogger, loggingShutdown
 
 log = getLogger(__name__)
@@ -19,6 +20,7 @@ MODULES = [
     'accounts',
     'install',
     'metafile',
+    'sigs',
 ]
 
 IMPORTED_MODULES = {}
@@ -74,7 +76,10 @@ def main(argv=None):
 
     if args.keystore:
         log.info("Using keystore at {}".format(args.keystore))
-        Store.set(StoreKeys.KEYSTORE_DIR, args.keystore)
+        store.set(store.Keys.KEYSTORE_DIR, args.keystore)
+
+    # Set some session data we'll need throughout
+    store.set(store.Keys.PROJECT_DIR, Path.cwd())
 
     IMPORTED_MODULES[args.command].main(parser_args=args)
 
