@@ -2,11 +2,18 @@ import hashlib
 from typing import Iterable
 from shutil import which
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime as datetime
 
 BUILDDIR_NAME = 'build'
 SUPPORTED_EXTENSIONS = ('sol', 'vy')
 JS_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
+
+
+class Py36Datetime(datetime):
+    """ Monkeypatch datetime for python<3.7 """
+    def fromisoformat(s):
+        """ Load an datetime.isoformat() date string as a datetime object """
+        return datetime.strptime(s, JS_DATE_FORMAT)
 
 
 def builddir(loc=None):
@@ -136,7 +143,3 @@ def keys_with(thedict, term):
         if term in v:
             keys.append(k)
     return keys
-
-def fromisoformat(s):
-    """ Load an datetime.isoformat() date string as a datetime object """
-    return datetime.strptime(s, JS_DATE_FORMAT)
