@@ -1,4 +1,5 @@
 import hashlib
+from typing import Iterable
 from shutil import which
 from pathlib import Path
 
@@ -57,23 +58,24 @@ def collapse_oel(lst):
 
 
 def pop_key_from_dict(d, key):
-    """ Remove and return an element from a dict and the modded dict
+    """ Remove and return an element from a dict and the modded dict without throwing an exception
+        if a key does not exist.
 
     Args:
         d {dict}: the original dict
         key {str}: they key to pop
 
     Returns:
-        {tuple}: A tuple of a dict and the wanted value
+        {T}: The value of the key or None
     """
+    if key not in d:
+        return None
     val = d.get(key)
-    if val is None:
-        return (d, None)
     del d[key]
-    return (d, val)
+    return val
 
 
-def all_defs_in(items: list, di: dict):
+def all_defs_in(items: Iterable, di: dict) -> bool:
     """ Check if all defs(tuple of name/placeholder) are in di """
     for i in items:
         if i[0] not in di:
@@ -81,12 +83,12 @@ def all_defs_in(items: list, di: dict):
     return True
 
 
-def defs_not_in(items: list, di: dict):
+def defs_not_in(items: Iterable, di: dict) -> set:
     """ Find items tha taren't keys in a dict """
-    missing_items = []
+    missing_items = set()
     for i in items:
         if i[0] not in di:
-            missing_items.append(i[0])
+            missing_items.add(i[0])
     return missing_items
 
 
@@ -95,7 +97,7 @@ def find_vyper():
     return which('vyper')
 
 
-def hash_file(_file: Path) -> bytes:
+def hash_file(_file: Path) -> str:
     """ Get an sha1 hash for a file """
 
     if not _file or not isinstance(_file, Path) or not _file.is_file():
@@ -104,9 +106,9 @@ def hash_file(_file: Path) -> bytes:
     CHUNK_SIZE = 65536
 
     _hash = hashlib.sha1()
-    with _file.open() as _file:
+    with _file.open() as f:
         while True:
-            chunk = _file.read(CHUNK_SIZE)
+            chunk = f.read(CHUNK_SIZE)
             if not chunk:
                 break
             _hash.update(chunk.encode('utf-8'))
@@ -123,3 +125,12 @@ def to_path_or_cwd(v) -> Path:
     if not v:
         return Path.cwd()
     return to_path(v)
+
+
+def keys_with(thedict, term):
+    """ Return any dict keys with key in """
+    keys = []
+    for k, v in thedict.items():
+        if term in v:
+            keys.append(k)
+    return keys
