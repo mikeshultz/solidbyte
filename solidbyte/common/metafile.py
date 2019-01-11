@@ -28,7 +28,7 @@ Example JSON structure:
     }
 """
 import json
-from typing import TypeVar, Generic, Callable, List, Tuple
+from typing import TypeVar, Optional, Callable, List, Tuple
 from pathlib import Path
 from datetime import datetime
 from shutil import copyfile
@@ -71,33 +71,53 @@ class MetaFile:
     """ Class representing the project metafile """
 
     def __init__(self,
-                 filename_override: Generic[PS] = None,
-                 project_dir: Generic[PS] = None,
+                 filename_override: PS = None,
+                 project_dir: PS = None,
                  read_only: bool = False) -> None:
 
+        self._file: Optional[str] = None
+        self._json: Optional[dict] = None
         self.project_dir = to_path_or_cwd(project_dir)
         self.file_name = self.project_dir.joinpath(filename_override or METAFILE_FILENAME)
-        self._file = None
-        self._json = None
         self._read_only = read_only
 
     def _load(self) -> None:
         """ Lazily load the metafile """
-        if not self._file:
-            if not self.file_name.exists():
-                with open(self.file_name, 'x') as openFile:
-                    openFile.write('{}')
-            with open(self.file_name, 'r') as openFile:
-                self._file = openFile.read()
+
+        if self._read_only:
+            log.warning("metafile.json opened read-only.  Not loading from disk!")
+            # Create _json if necessary
+            if self._json is None:
+                self._file = '{}'
                 self._json = json.loads(self._file)
+                return
+
+        if not self._read_only:
+
+            if not self._file:
+
+                if not self.file_name.exists():
+
+                    with open(self.file_name, 'x') as openFile:
+                        openFile.write('{}')
+
+                    log.info("New metafile.json created.")
+
+                with open(self.file_name, 'r') as openFile:
+                    self._file = openFile.read()
+                    log.debug("Reloaded metafile.json from file.")
+
+            self._json = json.loads(self._file)
 
     def _save(self):
         """ Save the metafile """
+        self._file = json.dumps(self._json, indent=2)
         if self._read_only:
+            log.warning("metafile.json opened read only.  Not saving to disk!")
             return False
-        log.debug("Saving metafile...")
+
         with open(self.file_name, 'w') as openFile:
-            openFile.write(json.dumps(self._json, indent=2))
+            openFile.write(self._file)
         self._load()
         return True
 
@@ -105,8 +125,9 @@ class MetaFile:
     def get_all_contracts(self) -> List[AttrDict]:
         """ return all meta data for all contracts """
 
-        if not self._json.get('contracts') or len(self._json['contracts']) < 1:
-            return {}
+        if self._json is None or not self._json.get('contracts') \
+                or len(self._json['contracts']) < 1:
+            return []
 
         return self._json['contracts']
 
@@ -114,7 +135,8 @@ class MetaFile:
     def get_contract(self, name) -> AttrDict:
         """ Get the meta data for a contract """
 
-        if not self._json.get('contracts') or len(self._json['contracts']) < 1:
+        if self._json is None or not self._json.get('contracts') \
+                or len(self._json['contracts']) < 1:
             return None
 
         entries = list(filter(lambda x: x.get('name') == name, self._json['contracts']))
@@ -128,7 +150,8 @@ class MetaFile:
     @autoload
     def get_contract_index(self, name: str) -> int:
 
-        if not self._json.get('contracts') or len(self._json['contracts']) < 1:
+        if self._json is None or not self._json.get('contracts') \
+                or len(self._json['contracts']) < 1:
             return -1
 
         i = 0
@@ -140,13 +163,16 @@ class MetaFile:
 
     @autoload
     @autosave
-    def add(self, name: str, network_id: int, address: str, abi: dict,
+    def add(self, name: str, _network_id: int, address: str, abi: dict,
             bytecode_hash: str) -> None:
+
+        if self._json is None:
+            raise Exception("Invalid configuration. Corrupted file?")
 
         contract_idx = self.get_contract_index(name)
         address = normalize_address(address)
         bytecode_hash = normalize_hexstring(bytecode_hash)
-        network_id = str(network_id)
+        network_id = str(_network_id)
 
         if contract_idx > -1:
             if not self._json['contracts'][contract_idx]['networks'].get(network_id):
@@ -195,7 +221,9 @@ class MetaFile:
     @autoload
     def account_known(self, address: str) -> bool:
         """ Check if an account is known """
-        if self._json.get('seenAccounts') is None or type(self._json['seenAccounts']) != list:
+        if (not self._json
+                or self._json.get('seenAccounts') is None
+                or type(self._json['seenAccounts']) != list):
             return False
 
         try:
@@ -208,9 +236,13 @@ class MetaFile:
     @autosave
     def add_account(self, address: str) -> None:
         """ Add an account to seenAccounts """
+
+        if self._json is None:
+            raise Exception("Invalid configuration. Corrupted file?")
+
         address = normalize_address(address)
 
-        if not self._json.get('seenAccounts'):
+        if self._json.get('seenAccounts') is None:
             self._json['seenAccounts'] = []
 
         if self.account_known(address):
@@ -223,6 +255,9 @@ class MetaFile:
     def set_default_account(self, address) -> None:
         """ Set the default account """
 
+        if self._json is None:
+            raise Exception("Invalid configuration. Corrupted file?")
+
         address = normalize_address(address)
 
         # Make sure we know about it
@@ -231,8 +266,12 @@ class MetaFile:
         self._json['defaultAccount'] = address
 
     @autoload
-    def get_default_account(self) -> str:
+    def get_default_account(self) -> Optional[str]:
         """ Get the default account """
+
+        if self._json is None:
+            raise Exception("Invalid configuration. Corrupted file?")
+
         return self._json.get('defaultAccount')
 
     @autoload
@@ -242,10 +281,10 @@ class MetaFile:
 
             Returns a list of tuple.  Tuples are (name, network_id).
         """
-        if 'contracts' not in self._json or len(self._json['contracts']) < 1:
+        if self._json is None or 'contracts' not in self._json or len(self._json['contracts']) < 1:
             return []
 
-        removed = []
+        removed: List = []
 
         contract_idx = 0
         for contract in self._json['contracts']:
