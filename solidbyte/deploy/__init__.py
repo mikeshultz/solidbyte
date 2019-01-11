@@ -59,15 +59,6 @@ class Deployer:
         :param network_name: The name of of the network, as defined in networks.yml.
         :param account: The address of the account to deploy with.
         :param project_dir: The project directory, if not pwd.
-
-        :Example:
-
-        >>> from solidbyte.deploy import Deployer
-        >>> d = Deployer('test', '0xdeadbeef00000000000000000000000000000000',
-                         Path('/path/to/my/project'))
-        >>> assert d.check_needs_deploy() == True
-        >>> d.deploy()
-
         """
         self._deploy_scripts: List = []
         self.network_name = network_name

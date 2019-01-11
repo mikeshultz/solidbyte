@@ -1,6 +1,6 @@
 """ Contract deployer """
 import sys
-from typing import TYPE_CHECKING, TypeVar, Optional, Dict, List, Tuple, Set
+from typing import TYPE_CHECKING, Union, Any, Optional, Dict, List, Tuple, Set
 from attrdict import AttrDict
 from getpass import getpass
 from eth_utils.exceptions import ValidationError
@@ -32,8 +32,8 @@ if TYPE_CHECKING:
 log = getLogger(__name__)
 
 # Typing
-T = TypeVar('T')
-MultiDict = TypeVar('MultiDict', AttrDict, dict)
+T = Union[Any, None]
+MultiDict = Union[AttrDict, dict]
 
 MAX_OFFICIAL_NETWORK_ID = 100
 DISABLED_REMOTE_NOTICE = (
@@ -41,7 +41,6 @@ DISABLED_REMOTE_NOTICE = (
     "enabled, please add your feedback to this issue: "
     "https://github.com/mikeshultz/solidbyte/issues/32"
 )
-ADDRESS_ZEROS = "0x0000000000000000000000000000000000000000"
 ROOT_LEAF_NAME = "__root__"
 
 
@@ -89,7 +88,7 @@ class ContractLeaf:
         return new_leaf
 
     def attach_dependent(self, el: 'ContractLeaf') -> None:
-        """ Attach an element to this Leaf as an element """
+        """ Attach an element to this Leaf as dependent """
         self.dependents.add(el)
 
     def get_parent(self) -> Optional['ContractLeaf']:
@@ -97,7 +96,7 @@ class ContractLeaf:
         return self.parent
 
     def is_root(self) -> bool:
-        """ Return the parent ContractLeaf """
+        """ Is this the root leaf? """
         return self.parent is None
 
     def has_dependencies(self) -> bool:
@@ -105,7 +104,7 @@ class ContractLeaf:
         return self.parent is not None and self.parent.name != ROOT_LEAF_NAME
 
     def has_dependents(self) -> bool:
-        """ Does this leaf have dependeants """
+        """ Does this leaf have dependents """
         return len(self.dependents) > 0
 
     def get_dependents(self) -> Set['ContractLeaf']:
@@ -141,9 +140,14 @@ class ContractDependencyTree:
             )
         return strong
 
-    def search_tree(self, name: str, el: ContractLeaf = None,
-                    depth: int = 0) -> Tuple[Optional[ContractLeaf], int]:
-        """ Search a tree for a named leaf """
+    def _search(self, name: str, el: ContractLeaf = None,
+                depth: int = 0) -> Tuple[Optional[ContractLeaf], int]:
+        """ Internal recursive tree search function
+
+        :param name: The name of the leaf to look for
+        :param el: The current leaf to search down from; for recursive use
+        :param depth: depth tracking, for recursive use
+        """
         if el is None:
             el = self.root
             depth = -1
@@ -152,10 +156,17 @@ class ContractDependencyTree:
         else:
             found = None
             for dep in el.dependents:
-                found, found_depth = self.search_tree(name, dep, depth+1)
+                found, found_depth = self._search(name, dep, depth+1)
                 if found:
                     return (found, found_depth)
             return (None, depth)
+
+    def search_tree(self, name: str) -> Tuple[Optional[ContractLeaf], int]:
+        """ Search a tree for a named leaf
+
+        :param name: The name of the leaf to look for
+        """
+        return self._search(name)
 
     def has_dependents(self, name: str):
         """ Check of name has dependents """
@@ -202,7 +213,7 @@ class Deployment:
 
 
 class Contract:
-    """ The internal representation of a smart contract.
+    """ The representation of a smart contract deployment state on a specific network.
 
     This object is exposed to users' in their deploy script, instantiated for each of their
     contracts.  The general use is to provide information about the contract state, a Web3 Contract
@@ -223,18 +234,19 @@ class Contract:
         :param name: The name of... me.  The name of the contract I represent.
         :param network_name: The name of of the network, as defined in networks.yml.
         :param from_account: The address of the account to deploy with.
-        :param source_contract: A dict representaing the source file for the contract. name, abi,
-            and bytecode
         :param metafile: An instantiated MetaFile object.
+        :param web3: An instantiated Web3 object
 
         :Example:
 
         >>> from solidbyte.deploy.objects import Contract
-        >>> MyContract = Contract('test', '0xdeadbeef00000000000000000000000000000000', {
-        ...         'abi': [],
-        ...         'bytecode': '0x1234...'
-        ...         'name': 'MyContract'
-        ...     }, {}, MetaFile())
+        >>> MyContract = Contract(
+        ...         'TestContract',
+        ...         'test',
+        ...         '0xdeadbeef00000000000000000000000000000000',
+        ...         MetaFile(),
+        ...         Web3(),
+        ... )
         >>> my_contract = MyContract.deployed()
 
         """
@@ -331,7 +343,7 @@ class Contract:
         :param **kargs: Any kwargs to provide the constructor OR one of the following special
             kwargs:
             - gas: The gas limit for the deploy transaction.
-            - gasPrice: The gas price to use, in wei.
+            - gas_price: The gas price to use, in wei.
             - links: This is a dict of {name,address} of library links for the contract.
         :returns: If the bytecode differs from the last known deployment.
 
@@ -382,10 +394,8 @@ class Contract:
                 ))
 
     def _load_metafile_contract(self) -> None:
-        """ Process the contract dict for this contract from the metafile.
+        """ Process the contract dict for this contract from the metafile. """
 
-        :param metafile_contract: The contract object from metafile.json.
-        """
         metafile_contract = self.metafile.get_contract(self.name)
 
         if not metafile_contract:
@@ -406,24 +416,12 @@ class Contract:
                     )
 
     def _load_artifacts(self) -> None:
-        """ Process the source dict provided to the constructor.
-
-        :param source: The dict where `source.keys() == ['name', 'abi', 'bytecode']`
-        """
+        """ Process the artifact dict from metafile.json. """
         source = contract_artifacts(self.name)
         if source:
             self.name = source['name']
             self.source_abi = source['abi']
             self.source_bytecode = normalize_hexstring(source['bytecode'])
-
-    def _get_links(self):
-        """ Find out what links this contract needs
-
-        :returns: Link definitions
-        """
-        if self.source_bytecode:
-            return bytecode_link_defs(self.source_bytecode)
-        return None
 
     def _create_deploy_transaction(self, bytecode: str, gas: int, gas_price: int,
                                    *args, **kwargs) -> dict:
@@ -514,7 +512,12 @@ class Contract:
 
     def _assemble_and_hash_bytecode(self, bytecode: str,
                                     links: Optional[dict] = None) -> Tuple[str, str]:
-        """ Handle links and all that """
+        """ Link bytecode(if necessary), and hash in a way that links are irrelevant
+
+        :param bytecode: The bytecode from compiler output
+        :param links: A dict with links(key: contract name, value: deployed address).
+        :returns: A Tuple of the bytecode hash and linked bytecode.
+        """
 
         bytecode_hash = hash_linked_bytecode(bytecode)  # Hash before linking
 

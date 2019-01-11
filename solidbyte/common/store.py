@@ -23,7 +23,7 @@ STORAGE: Dict[Keys, Any] = {}
 
 
 def defined(key: Keys) -> bool:
-    """ Get the value stored for the key """
+    """ Check if the key is defined and in STORAGE """
     return key in STORAGE
 
 

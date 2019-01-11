@@ -55,7 +55,7 @@ def clean_bytecode(bytecode):
 
 
 def abi_has_constructor(abi):
-    """ See if the ABI has a definition for a constructor with args """
+    """ See if the ABI has a definition for a constructor """
     if not abi or len(abi) < 1:
         return False
     for _def in abi:
@@ -72,6 +72,7 @@ def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
         if abi_has_constructor(abi):
             return inst.constructor(*args, **kwargs).buildTransaction(tx)
         else:
+            # web3.py still uses constructor() even if the contract does not have a constructor
             return inst.constructor().buildTransaction(tx)
     except Exception as e:
         log.exception("Error creating deploy transaction")
