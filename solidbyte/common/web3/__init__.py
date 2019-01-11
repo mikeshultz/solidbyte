@@ -54,14 +54,26 @@ def clean_bytecode(bytecode):
     return remove_0x(normalize_hexstring(bytecode))
 
 
+def abi_has_constructor(abi):
+    """ See if the ABI has a definition for a constructor with args """
+    if not abi or len(abi) < 1:
+        return False
+    for _def in abi:
+        if _def.get('name') == 'constructor':
+            return True
+
+
 def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
     assert w3inst is not None
     assert abi is not None
     assert bytecode is not None
     try:
         inst = w3inst.eth.contract(abi=abi, bytecode=clean_bytecode(bytecode))
-        return inst.constructor(*args, **kwargs).buildTransaction(tx)
+        if abi_has_constructor(abi):
+            return inst.constructor(*args, **kwargs).buildTransaction(tx)
+        else:
+            return inst.constructor().buildTransaction(tx)
     except Exception as e:
         log.exception("Error creating deploy transaction")
-        log.debug("create_deploy_tx args:\n{}\n{}".format(abi, bytecode))
+        log.debug("create_deploy_tx args:\n{}\n{}\n{}".format(abi, bytecode, tx))
         raise e
