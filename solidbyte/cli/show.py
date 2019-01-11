@@ -1,5 +1,6 @@
 """ show version information
 """
+from tabulate import tabulate
 from ..common.logging import getLogger
 from ..deploy import Deployer
 from ..common import collapse_oel
@@ -23,11 +24,13 @@ def main(parser_args):
     # TODO: Show all networks?
     web3 = web3c.get_web3(network_name)
     network_id = web3.net.chainId or web3.net.version
-    source_contracts = deployer.get_source_contracts()
+    source_contracts = deployer.get_artifacts()
     metafile = MetaFile()
 
     print("Current Deployed Contracts")
     print("==========================")
+
+    table_out = []
 
     for name, c in source_contracts.items():
         addr = 'n/a'
@@ -41,5 +44,6 @@ def main(parser_args):
 
             addr = deployed_c['networks'][network_id]['deployedInstances'][-1].get('address')
             date = deployed_c['networks'][network_id]['deployedInstances'][-1].get('date')
+            table_out.append([name, addr, date])
 
-        print("{}: {} ({})".format(name, addr, date))
+    print(tabulate(table_out, headers=['Contract', 'Address', 'Date Deployed']))
