@@ -1,23 +1,33 @@
 """ Contract deployer """
-import binascii
+from typing import TYPE_CHECKING, TypeVar, Optional, Dict, List, Tuple, Set
 from datetime import datetime
 from attrdict import AttrDict
 from getpass import getpass
 from eth_utils.exceptions import ValidationError
+from web3.eth import Contract as Web3Contract
 from ..accounts import Accounts
-from ..compile import link_library, clean_bytecode
+from ..compile import link_library, clean_bytecode, bytecode_link_defs
+from ..compile.artifacts import contract_artifacts
+from ..compile.linker import hash_linked_bytecode
 from ..common import pop_key_from_dict
 from ..common.web3 import (
     web3c,
     normalize_hexstring,
-    hash_hexstring,
     create_deploy_tx,
 )
-from ..common.store import Store, StoreKeys
+from ..common import store
 from ..common.exceptions import DeploymentError, DeploymentValidationError
 from ..common.logging import getLogger
 
+if TYPE_CHECKING:
+    from ..common.metafile import MetaFile
+    from web3 import Web3
+
 log = getLogger(__name__)
+
+# Typing
+T = TypeVar('T')
+MultiDict = TypeVar('MultiDict', AttrDict, dict)
 
 MAX_OFFICIAL_NETWORK_ID = 100
 DISABLED_REMOTE_NOTICE = (
@@ -25,10 +35,129 @@ DISABLED_REMOTE_NOTICE = (
     "enabled, please add your feedback to this issue: "
     "https://github.com/mikeshultz/solidbyte/issues/32"
 )
+ADDRESS_ZEROS = "0x0000000000000000000000000000000000000000"
+ROOT_LEAF_NAME = "__root__"
 
 
-class Deployment(object):
-    def __init__(self, network, address, bytecode_hash, date, abi):
+def get_lineage(leaf: 'ContractLeaf') -> Set['ContractLeaf']:
+    """ Climb a deptree and return all elements "above" the provided leaf """
+    _parents: Set['ContractLeaf'] = set()
+    if not leaf.parent or leaf.parent.name == ROOT_LEAF_NAME:
+        return _parents
+    else:
+        _parents.add(leaf.parent)
+        _parents.update(get_lineage(leaf.parent))
+    return _parents
+
+
+class ContractLeaf:
+    """ A leaf object in the dependency tree
+
+    :Definitions:
+     - dependant: Leaves that this leaf depends on
+     - dependency: A leaf that depends on this leaf
+    """
+    def __init__(self, name: str, parent: 'ContractLeaf' = None) -> None:
+        self.name = name
+        self.parent = parent
+        self.dependents: Set['ContractLeaf'] = set()
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def add_dependent(self, name: str) -> 'ContractLeaf':
+        new_leaf = ContractLeaf(name, self)
+        self.dependents.add(new_leaf)
+        return new_leaf
+
+    def get_parent(self) -> Optional['ContractLeaf']:
+        """ Return the parent ContractLeaf """
+        return self.parent
+
+    def is_root(self) -> bool:
+        """ Return the parent ContractLeaf """
+        return self.parent is None
+
+    def has_dependencies(self) -> bool:
+        """ Does this leaf have dependencies? """
+        return self.parent is not None
+
+    def has_dependents(self) -> bool:
+        """ Does this leaf have dependeants """
+        return len(self.dependents) > 0
+
+    def get_dependents(self) -> Set['ContractLeaf']:
+        """ Resolve and return all dependents in a flat set """
+        _dependents: Set['ContractLeaf'] = self.dependents
+        for d in self.dependents:
+            if d.has_dependents():
+                _dependents.update(d.get_dependents())
+        return _dependents
+
+    def get_dependencies(self) -> Set['ContractLeaf']:
+        """ Resolve and return all dependencies in a flat set """
+        return get_lineage(self)
+
+
+class ContractDependencyTree:
+    """ A tree of Leafs describing contract library dependencies
+
+    :Example:
+
+    >>> deptree = ContractDependencyTree()
+    """
+    def __init__(self):
+        self.root = ContractLeaf(ROOT_LEAF_NAME)
+
+    def __repr__(self):
+        strong = '[root]\n'
+        for el in self.root.dependents:
+            strong += '- {} (Dependants: {})\n'.format(el, el.get_dependents())
+        return strong
+
+    def search_tree(self, name: str, el: ContractLeaf = None,
+                    depth: int = 0) -> Tuple[Optional[ContractLeaf], int]:
+        """ Search a tree for a named leaf """
+        if el is None:
+            el = self.root
+            depth = -1
+        if el.name == name:
+            return (el, depth)
+        else:
+            found = None
+            for dep in el.dependents:
+                found, found_depth = self.search_tree(name, dep, depth+1)
+                if found:
+                    return (found, found_depth)
+            return (None, depth)
+
+    def has_dependents(self, name: str):
+        """ Check of name has dependencies """
+        el, _ = self.search_tree(name)
+        if el and len(el.dependents) > 0:
+            return True
+        return False
+
+    def has_dependencies(self, name: str):
+        """ Check of name has dependents """
+        el, depth = self.search_tree(name)
+        if el and depth > 0:
+            return True
+        return False
+
+    def add_dependent(self, name: str, parent: str = None) -> 'ContractLeaf':
+        """ Add a child dependent """
+        if parent:
+            el, _ = self.search_tree(parent)
+        if el is None:
+            el = self.root
+        return el.add_dependent(name)
+
+
+class Deployment:
+    """ representation of a simgle contract deployment """
+    def __init__(self, network: str, address: str, bytecode_hash: str, date: datetime,
+                 abi: List[Dict[str, T]]):
         self.network = network
         self.address = address
         self.bytecode_hash = bytecode_hash
@@ -36,64 +165,170 @@ class Deployment(object):
         self.abi = abi
 
 
-class Contract(object):
-    def __init__(self, network_name, from_account, source_contract=None, metafile_contract=None,
-                 metafile=None):
-        self.name = None
+class Contract:
+    """ The internal representation of a smart contract.
+
+    This object is exposed to users' in their deploy script, instantiated for each of their
+    contracts.  The general use is to provide information about the contract state, a Web3 Contract
+    instance and deploy it if necessary.  There's a bunch of properties, but two primary methods to
+    interact with the contract.
+
+    * check_needs_deployment(bytecode: str) -> bool: This function will take the provided bytecode
+        and return whether or not there's been a change compared to the known, deployed bytecode.
+
+    * deployed(*args: T, **kwargs: T) -> web3.eth.Contract: This is the primary interaction a user
+        has with this object in a deploy script.  It will return an instantiated web3.eth.Contract
+        instance and in the process, deploy the smart contract if necessary.
+    """
+    def __init__(self, name: str, network_name: str, from_account: str,
+                 metafile: 'MetaFile', web3: 'Web3' = None):
+        """ Initialize the Contract
+
+        :param name: The name of... me.  The name of the contract I represent.
+        :param network_name: The name of of the network, as defined in networks.yml.
+        :param from_account: The address of the account to deploy with.
+        :param source_contract: A dict representaing the source file for the contract. name, abi,
+            and bytecode
+        :param metafile: An instantiated MetaFile object.
+
+        :Example:
+
+        >>> from solidbyte.deploy.objects import Contract
+        >>> MyContract = Contract('test', '0xdeadbeef00000000000000000000000000000000', {
+        ...         'abi': [],
+        ...         'bytecode': '0x1234...'
+        ...         'name': 'MyContract'
+        ...     }, {}, MetaFile())
+        >>> my_contract = MyContract.deployed()
+
+        """
+
+        log.debug("Contract.__init__({}, {}, {}, {}, {})".format(name, network_name,
+                                                                 from_account, metafile, web3))
+
+        self.name = name
         self.deployedHash = None
         self.source_bytecode = None
         self.source_abi = None
+        self.links = None  # This will only populate after a _deploy()
+        self.deployments: List = []
         self.from_account = from_account
-        self.metafile = metafile
-        self.web3 = web3c.get_web3(network_name)
+        if web3:
+            self.web3 = web3
+        else:
+            self.web3 = web3c.get_web3(network_name)
         self.network_id = self.web3.net.chainId or self.web3.net.version
         self.accounts = Accounts(web3=self.web3)
-        self.deployments = []
-        if metafile_contract:
-            if type(metafile_contract) == dict:
-                metafile_contract = AttrDict(metafile_contract)
-            self._process_metafile_contract(metafile_contract)
-        if source_contract:
-            self._process_source_contract(source_contract)
+        self.metafile = metafile
 
-    def is_deployed(self):
-        return len(self.deployments) > 0
+        self.refresh()
+
+    def __repr__(self) -> str:
+        return self.name
 
     @property
-    def address(self):
+    def address(self) -> Optional[str]:
+        """ The latest deployed address """
         if len(self.deployments) < 1:
             return None
         return self.deployments[-1].address
 
     @property
-    def abi(self):
+    def abi(self) -> Optional[List[Dict[str, T]]]:
+        """ The latest deployed ABI """
         if len(self.deployments) < 1:
             return None
         return self.deployments[-1].abi
 
     @property
-    def bytecode_hash(self):
+    def bytecode_hash(self)-> Optional[str]:
+        """ The latest deployed bytecode hash """
         if len(self.deployments) < 1:
             return None
         return self.deployments[-1].bytecode_hash
 
-    def check_needs_deployment(self, bytecode):
-        log.debug("{}.check_needs_deployment({})".format(
-            self.name,
-            clean_bytecode(bytecode)
-        ))
+    def is_deployed(self) -> bool:
+        """ Return if this contract has deployments """
+        return len(self.deployments) > 0
+
+    def refresh(self) -> None:
+        """ Refresh metadata from MetaFile and the compiled artifacts """
+        self._load_metafile_contract()
+        self._load_artifacts()
+
+    def check_needs_deployment(self, bytecode: str) -> bool:
+        """ Check if this contract has been changed since last deployment
+
+        **NOTE**: This method does not take into account dependencies.  Check with Deployer
+
+        :param bytecode: The hex bytecode to compare to the latest known deployment.
+        :returns: If the bytecode differs from the last known deployment.
+
+        :Example:
+
+        >>> from solidbyte.deploy.objects import Contract
+        >>> MyContract = Contract('test', '0xdeadbeef00000000000000000000000000000000', {
+        ...         'abi': [],
+        ...         'bytecode': '0x1234...'
+        ...         'name': 'MyContract'
+        ...     }, {}, MetaFile())
+        >>> assert Mycontract.check_needs_deployment('0x2234...')
+
+        """
+
         if not bytecode:
-            raise Exception("bytecode is required")
+            raise DeploymentValidationError("bytecode is required")
+
+        bytecode_hash = hash_linked_bytecode(bytecode)
+
+        self.refresh()
+
         return (
             not self.bytecode_hash
-            or hash_hexstring(clean_bytecode(bytecode)) != self.bytecode_hash
+            or bytecode_hash != self.bytecode_hash
         )
 
-    def _process_instances(self, metafile_instances):
-        """ Process the deployedInstances object for that contract from the
-            metafile.
+    def deployed(self, *args, **kwargs):
+        """ Return an instantiated web3.eth.Contract tinstance and deploy the contract if necessary.
+
+        :param *args: Any args to provide the constructor.
+        :param **kargs: Any kwargs to provide the constructor OR one of the following special
+            kwargs:
+            - gas: The gas limit for the deploy transaction.
+            - gasPrice: The gas price to use, in wei.
+            - links: This is a dict of {name,address} of library links for the contract.
+        :returns: If the bytecode differs from the last known deployment.
+
+        :Example:
+
+        >>> from solidbyte.deploy.objects import Contract
+        >>> MyContract = Contract('test', '0xdeadbeef00000000000000000000000000000000', {
+        ...         'abi': [],
+        ...         'bytecode': '0x1234...'
+        ...         'name': 'MyContract'
+        ...     }, {}, MetaFile())
+        >>> contract = Mycontract.deploy(links={
+                    'MyLibrary': '0xdeadbeef00000000000000000000000000000001'
+                })
+        >>> assert contract.functions.owner().call() == contract.from_account
+
         """
-        self.deployments = []
+
+        if not self.check_needs_deployment(self.source_bytecode):
+            return self._get_web3_contract()
+
+        try:
+            return self._deploy(*args, **kwargs)
+        except Exception as e:
+            log.exception("Unknown error deploying contract")
+            raise e
+
+    def _process_instances(self, metafile_instances: List[Dict[str, T]]) -> None:
+        """ Process the deployedInstances dict for this contract from the metafile.
+
+        :param metafile_instances: A list of deployedInstances from metafile.json.
+        """
+        self.deployments: List[Deployment] = []
         last_date = None
         for inst in metafile_instances:
             # We want the latest deployed address for the active network
@@ -110,26 +345,61 @@ class Contract(object):
                 abi=inst.get('abi'),
                 ))
 
-    def _process_metafile_contract(self, metafile_contract):
-        self.name = metafile_contract.get('name')
+    def _load_metafile_contract(self) -> None:
+        """ Process the contract dict for this contract from the metafile.
 
-        if metafile_contract.networks.get(self.network_id):
-            self.deployedHash = metafile_contract.networks[self.network_id].get('deployedHash')
+        :param metafile_contract: The contract object from metafile.json.
+        """
+        metafile_contract = self.metafile.get_contract(self.name)
 
-            if metafile_contract.networks[self.network_id].get('deployedInstances') \
-                    and len(metafile_contract.networks[self.network_id]['deployedInstances']) > 0:
+        if not metafile_contract:
+            log.warning('No metafile.json entry for contract {}.'.format(self.name))
+            return
+
+        if metafile_contract['networks'].get(self.network_id):
+
+            self.deployedHash = metafile_contract['networks'][self.network_id].get('deployedHash')
+            deployed_instances = metafile_contract['networks'][self.network_id].get(
+                'deployedInstances'
+            )
+
+            if deployed_instances and len(deployed_instances) > 0:
 
                 self._process_instances(
-                        metafile_contract.networks[self.network_id]['deployedInstances']
+                        metafile_contract['networks'][self.network_id]['deployedInstances']
                     )
 
-    def _process_source_contract(self, source):
-        self.name = source.name
-        self.source_abi = source.abi
-        self.source_bytecode = normalize_hexstring(source.bytecode)
+    def _load_artifacts(self) -> None:
+        """ Process the source dict provided to the constructor.
 
-    def _create_deploy_transaction(self, bytecode, gas, gas_price, *args, **kwargs):
-        """ Create the transaction to deploy the contract """
+        :param source: The dict where `source.keys() == ['name', 'abi', 'bytecode']`
+        """
+        source = contract_artifacts(self.name)
+        if source:
+            self.name = source['name']
+            self.source_abi = source['abi']
+            self.source_bytecode = normalize_hexstring(source['bytecode'])
+
+    def _get_links(self):
+        """ Find out what links this contract needs
+
+        :returns: Link definitions
+        """
+        if self.source_bytecode:
+            return bytecode_link_defs(self.source_bytecode)
+        return None
+
+    def _create_deploy_transaction(self, bytecode: str, gas: int, gas_price: int,
+                                   *args, **kwargs) -> dict:
+        """ Create the transaction to deploy the contract
+
+        :param bytecode: The bytecode we're deploying.
+        :param gas: The gas limit for the transaction.
+        :param gas_price: The gas price in wei for the transaction.
+        :param *args: Constructor arguments
+        :param **kargs: Constructor keyword arguments
+        :returns: a transaction dict from Web3
+        """
 
         nonce = self.web3.eth.getTransactionCount(self.from_account)
 
@@ -144,8 +414,12 @@ class Contract(object):
 
         return deploy_tx
 
-    def _transact(self, tx):
-        """ Execute the deploy transaction """
+    def _transact(self, tx: MultiDict) -> str:
+        """ Execute the deploy transaction
+
+        :param tx: The transaction dict.
+        :returns: A transaction hash.
+        """
 
         if self.accounts.account_known(self.from_account):
 
@@ -164,8 +438,6 @@ class Contract(object):
                     log.error('TX ran out of gas when deploying {}.'.format(self.name))
                 elif 'cannot afford txn gas' in str_err:
                     log.error('Deployer account unable to afford network fees')
-                log.debug(tx)
-                log.debug({k: v for k, v in signed_tx.items()})
                 raise err
 
         else:
@@ -187,7 +459,7 @@ class Contract(object):
                 if self.web3.is_eth_tester:
                     deploy_txhash = self.web3.eth.sendTransaction(tx)
                 else:
-                    passphrase = Store.get(StoreKeys.DECRYPT_PASSPHRASE)
+                    passphrase = store.get(store.Keys.DECRYPT_PASSPHRASE)
                     if not passphrase:
                         passphrase = getpass("Enter password to unlock account ({}):".format(
                             self.from_account
@@ -200,19 +472,50 @@ class Contract(object):
                             self.from_account
                         ))
 
+        log.info("Deployment transaction hash for {}: {}".format(self.name, deploy_txhash))
+
         return deploy_txhash
 
-    def _deploy(self, *args, **kwargs):
-        """ Deploy the contract """
+    def _assemble_and_hash_bytecode(self, bytecode: str,
+                                    links: Optional[dict] = None) -> Tuple[str, str]:
+        """ Handle links and all that """
 
-        bytecode = self.source_bytecode
-        kwargs, links = pop_key_from_dict(kwargs, 'links')
-        if links is not None:
-            bytecode = link_library(self.source_bytecode, links)
+        bytecode_hash = hash_linked_bytecode(bytecode)  # Hash before linking
 
-        # TODO: The user needs to be able to adjust these
-        gas = int(6e6)
-        gas_price = self.web3.toWei('3', 'gwei')
+        if links:
+            bytecode = link_library(bytecode, links)
+
+        return (bytecode_hash, clean_bytecode(bytecode))
+
+    def _deploy(self, *args, **kwargs) -> Web3Contract:
+        """ Deploy the contract
+
+        :param *args: Any args to provide the constructor.
+        :param **kargs: Any kwargs to provide the constructor OR one of the following special
+            kwargs:
+            - gas: The gas limit for the deploy transaction.
+            - gasPrice: The gas price to use, in wei.
+            - links: This is a dict of {name,address} of library links for the contract.
+        :returns: A instantiated web3.eth.Contract object.
+        """
+
+        self.links = pop_key_from_dict(kwargs, 'links')
+        bytecode_hash, bytecode = self._assemble_and_hash_bytecode(self.source_bytecode, self.links)
+        assert len(bytecode_hash) == 66, "Invalid response from linker."  # Just in case. Got bit.
+
+        gas = pop_key_from_dict(kwargs, 'gas') or int(6e6)
+        gas_price = (
+            pop_key_from_dict(kwargs, 'gasPrice')
+            or pop_key_from_dict(kwargs, 'gas_price')
+            or self.web3.toWei('3', 'gwei')
+        )
+
+        assert type(gas) == int and type(gas_price) == int, (
+            "Invalid gas or gas_price type. Expected (<class 'int'>/<class 'int'>) "
+            "got ({}/{})".format(
+                type(gas), type(gas_price)
+            ))
+
         max_fee_wei = gas * gas_price
         deployer_balance = self.web3.eth.getBalance(self.from_account)
 
@@ -220,7 +523,7 @@ class Contract(object):
                 max_fee_wei,
                 self.web3.fromWei(max_fee_wei, 'ether')
             ))
-        log.debug("Deployer balance: {}".format(deployer_balance))
+        log.debug("Deployer balance: {} ({})".format(deployer_balance, self.from_account))
 
         if deployer_balance < max_fee_wei:
             raise DeploymentValidationError(
@@ -231,7 +534,7 @@ class Contract(object):
                     )
                 )
 
-        log.debug("Sending deploy transaction...")
+        log.debug("Creating deploy transaction...")
         deploy_tx = self._create_deploy_transaction(bytecode, gas, gas_price, *args, **kwargs)
 
         log.info("Sending deploy transaction.  This may take a moment...")
@@ -240,18 +543,20 @@ class Contract(object):
         # Wait for it to be mined
         deploy_receipt = self.web3.eth.waitForTransactionReceipt(deploy_txhash)
 
-        log.info("Successfully deployed contract. {}".format(deploy_txhash))
+        # Verify all the things
+        if deploy_receipt.status == 0:
+            log.info("Receipt: {}".format(deploy_receipt))
+            raise DeploymentError("Deploy transaction failed!")
+
         log.debug("Contract Deploy Receipt: {}".format(deploy_receipt))
 
-        # TODO: Should this take into account a library address changing? (using linked bytecode?)
-        bytecode_hash = None
-        try:
-            bytecode_hash = hash_hexstring(clean_bytecode(self.source_bytecode))
-        except binascii.Error as err:
-            log.exception("Invalid characters in hex string: {}".format(
-                clean_bytecode(self.source_bytecode))
-            )
-            raise err
+        code = self.web3.eth.getCode(deploy_receipt.contractAddress)
+        if not code or code == '0x':
+            raise DeploymentError("Bytecode not found at address. {}".format(
+                deploy_receipt.contractAddress
+            ))
+
+        log.info("Successfully deployed {}. {}".format(self.name, deploy_txhash.hex()))
 
         self.deployments.append(Deployment(
                 bytecode_hash=bytecode_hash,
@@ -269,22 +574,13 @@ class Contract(object):
 
         return self._get_web3_contract()
 
-    def _get_web3_contract(self):
-        """ Return the web3.py contract instance """
+    def _get_web3_contract(self) -> Web3Contract:
+        """ Instantiate a web3.eth.Contract instance with their factory and return.
+
+        :returns: A instantiated web3.eth.Contract object.
+        """
         assert self.abi is not None, "ABI appears to be missing for contract {}".format(self.name)
         assert self.address is not None, "Address appears to be missing for contract {}".format(
                 self.name
             )
         return self.web3.eth.contract(abi=self.abi, address=self.address)
-
-    def deployed(self, *args, **kwargs):
-        """ If necessary, deploy the new script """
-
-        if not self.check_needs_deployment(self.source_bytecode):
-            return self._get_web3_contract()
-
-        try:
-            return self._deploy(*args, **kwargs)
-        except Exception as e:
-            log.exception("Unknown error deploying contract")
-            raise e
