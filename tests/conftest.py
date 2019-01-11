@@ -5,7 +5,6 @@ from datetime import datetime
 from attrdict import AttrDict
 from contextlib import contextmanager
 from solidbyte.common.logging import setDebugLogging
-from solidbyte.common import store
 from .const import TMP_DIR
 from .utils import (
     create_mock_project,
