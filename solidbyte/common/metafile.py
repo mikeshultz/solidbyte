@@ -28,7 +28,7 @@ Example JSON structure:
     }
 """
 import json
-from typing import TypeVar, Optional, Callable, List, Tuple
+from typing import Union, Any, Optional, Callable, List, Tuple
 from pathlib import Path
 from datetime import datetime
 from shutil import copyfile
@@ -42,8 +42,8 @@ log = getLogger(__name__)
 METAFILE_FILENAME = 'metafile.json'
 NETWORK_ID_MAX_OFFICIAL = 100
 
-T = TypeVar('T')
-PS = TypeVar('PS', Path, str)
+T = Union[Any, None]
+PS = Union[Path, str]
 
 
 def autoload(f: Callable) -> Callable:
