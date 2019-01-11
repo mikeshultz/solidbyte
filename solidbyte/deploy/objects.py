@@ -1,4 +1,5 @@
 """ Contract deployer """
+import sys
 from typing import TYPE_CHECKING, TypeVar, Optional, Dict, List, Tuple, Set
 from datetime import datetime
 from attrdict import AttrDict
@@ -18,6 +19,7 @@ from ..common.web3 import (
 from ..common import store
 from ..common.exceptions import DeploymentError, DeploymentValidationError
 from ..common.logging import getLogger
+from ..common.utils import fromisoformat
 
 if TYPE_CHECKING:
     from ..common.metafile import MetaFile
@@ -37,6 +39,10 @@ DISABLED_REMOTE_NOTICE = (
 )
 ADDRESS_ZEROS = "0x0000000000000000000000000000000000000000"
 ROOT_LEAF_NAME = "__root__"
+
+if sys.version_info[0] == 3 and sys.version_info[1] < 7:
+    """ datetime.fromisoformat() isn't available until Python 3.7.  Monkeypatch! """
+    datetime.fromisoformat = fromisoformat
 
 
 def get_lineage(leaf: 'ContractLeaf') -> Set['ContractLeaf']:
