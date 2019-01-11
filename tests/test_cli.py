@@ -105,13 +105,17 @@ def test_cli_integration(mock_project):
 
         # test `sb deploy [network] -a [account]`
         # Disabled.  Need an account to test with
-        # execute_command_assert_no_error_success([
-        #     sb,
-        #     'deploy',
-        #     'test',
-        #     '-a',
-        #     '0xdeadbeef'
-        # ])
+        execute_command_assert_no_error_success([
+            sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'deploy',
+            'test',
+            '-a',
+            default_account,
+            '-p',
+            PASSWORD_1,
+        ])
 
         # test `sb show [network]`
         execute_command_assert_no_error_success([sb, 'show', 'test'])

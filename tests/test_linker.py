@@ -28,8 +28,9 @@ def test_contract_from_def():
 def test_bytecode_link_defs():
     defs = bytecode_link_defs(CONTRACT_DEF_1)
     assert len(defs) == 1
-    assert defs[0][0] == LIBRARY_NAME_1
-    assert defs[0][1] == CONTRACT_PLACEHOLDER_1
+    primary = defs.pop()
+    assert primary[0] == LIBRARY_NAME_1
+    assert primary[1] == CONTRACT_PLACEHOLDER_1
 
 
 def test_replace_placeholders():
