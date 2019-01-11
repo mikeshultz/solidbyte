@@ -1,12 +1,12 @@
 """ Tests for Store object """
-from solidbyte.common.store import Store, StoreKeys
+from solidbyte.common import store
 
 
 def test_store():
     """ test Store """
     PASSPHRASE = 'asdf1234'
-    Store.set(StoreKeys.DECRYPT_PASSPHRASE, PASSPHRASE)
-    assert PASSPHRASE == Store.get(StoreKeys.DECRYPT_PASSPHRASE)
+    store.set(store.Keys.DECRYPT_PASSPHRASE, PASSPHRASE)
+    assert PASSPHRASE == store.get(store.Keys.DECRYPT_PASSPHRASE)
 
 
 def test_store_module():
@@ -16,5 +16,5 @@ def test_store_module():
     from .storemodule import get_passphrase
 
     PASSPHRASE = 'asdf12345'
-    Store.set(StoreKeys.DECRYPT_PASSPHRASE, PASSPHRASE)
+    store.set(store.Keys.DECRYPT_PASSPHRASE, PASSPHRASE)
     assert PASSPHRASE == get_passphrase()

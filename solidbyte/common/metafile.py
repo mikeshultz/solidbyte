@@ -106,8 +106,7 @@ class MetaFile:
                 with open(self.file_name, 'r') as openFile:
                     self._file = openFile.read()
                     log.debug("Reloaded metafile.json from file.")
-
-            self._json = json.loads(self._file)
+                    self._json = json.loads(self._file)
 
     def _save(self):
         """ Save the metafile """
@@ -242,7 +241,7 @@ class MetaFile:
 
         address = normalize_address(address)
 
-        if self._json.get('seenAccounts') is None:
+        if not self._json.get('seenAccounts'):
             self._json['seenAccounts'] = []
 
         if self.account_known(address):

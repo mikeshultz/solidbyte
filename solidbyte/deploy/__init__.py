@@ -85,11 +85,7 @@ class Deployer:
         self.web3 = web3c.get_web3(network_name)
         self.network_id = self.web3.net.chainId or self.web3.net.version
 
-        yml = NetworksYML(project_dir=self.project_dir)
-        if yml.is_eth_tester(network_name):
-            self.metafile: MetaFile = MetaFile(project_dir=project_dir, read_only=True)
-        else:
-            self.metafile: MetaFile = MetaFile(project_dir=project_dir)
+        self.metafile: MetaFile = MetaFile(project_dir=project_dir)
 
         if account:
             self.account = self.web3.toChecksumAddress(account)

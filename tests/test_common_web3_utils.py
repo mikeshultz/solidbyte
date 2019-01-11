@@ -20,6 +20,8 @@ from .const import (
     ADDRESS_2,
     ADDRESS_2_HASH,
     ADDRESS_2_NOT_CHECKSUM,
+    LIBRARY_ABI_OBJ_4,
+    LIBRARY_BYTECODE_4,
 )
 
 HEX_WO_0X = 'abcdef0123456789'
@@ -63,6 +65,16 @@ def test_create_deploy_tx():
     """ Test deploy transaction creation function """
     web3 = web3c.get_web3(NETWORK_NAME)
     tx = create_deploy_tx(web3, ABI_OBJ_1, CONTRACT_BIN_1, {
+            'from': web3.eth.accounts[0],
+            'gasPrice': int(1e9),
+        })
+    assert tx.get('data') is not None
+
+
+def test_create_deploy_tx_without_constructor():
+    """ Test deploy transaction creation function """
+    web3 = web3c.get_web3(NETWORK_NAME)
+    tx = create_deploy_tx(web3, LIBRARY_ABI_OBJ_4, LIBRARY_BYTECODE_4, {
             'from': web3.eth.accounts[0],
             'gasPrice': int(1e9),
         })
