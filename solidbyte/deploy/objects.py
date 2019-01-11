@@ -6,7 +6,7 @@ from getpass import getpass
 from eth_utils.exceptions import ValidationError
 from web3.eth import Contract as Web3Contract
 from ..accounts import Accounts
-from ..compile import link_library, clean_bytecode, bytecode_link_defs
+from ..compile import link_library, clean_bytecode
 from ..compile.artifacts import contract_artifacts
 from ..compile.linker import hash_linked_bytecode
 from ..common import pop_key_from_dict
