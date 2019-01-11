@@ -4,10 +4,6 @@ from typing import Optional, Union, Any, List, Dict, Set
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from attrdict import AttrDict
-from assertpy import (
-    assert_that as _assert_that,
-    assert_warn as _assert_warn,
-)
 from ..compile.linker import bytecode_link_defs
 from ..compile.artifacts import artifacts
 from ..common import (
@@ -282,8 +278,6 @@ class Deployer:
         :returns: dict of the kwargs to provide to deployer scripts
         """
         return {
-            'assert_that': _assert_that,
-            'assert_warn': _assert_warn,
             'contracts': self.contracts,
             'web3': self.web3,
             'deployer_account': self.account,
