@@ -4,7 +4,7 @@ import sys
 from ..testing import run_tests
 from ..common import collapse_oel
 from ..common.exceptions import DeploymentValidationError
-from ..common.store import Store, StoreKeys
+from ..common import store
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -33,7 +33,7 @@ def main(parser_args):
 
     if parser_args.passphrase:
         # Set this for use later
-        Store.set(StoreKeys.DECRYPT_PASSPHRASE, parser_args.passphrase)
+        store.set(store.Keys.DECRYPT_PASSPHRASE, parser_args.passphrase)
 
     network_name = collapse_oel(parser_args.network)
     try:
