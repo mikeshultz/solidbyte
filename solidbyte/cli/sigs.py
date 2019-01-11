@@ -42,5 +42,4 @@ def main(parser_args):
                     sig = "{}({})".format(item.get('name'), ','.join(inputs))
                     sig_hash = web3.sha3(text=sig).hex()
                     table_output.append([sig, sig_hash[2:10], sig_hash])
-                    #print("  {}: 0x{} ({})".format(sig, sig_hash[2:10], sig_hash))
             print(tabulate(table_output, headers=['Signature', '4-byte', 'Full Signature']))

@@ -3,7 +3,7 @@
 Example placeholder: __$13811623e8434e588b8942cf9304d14b96$__
 """
 import re
-from typing import Optional, List, Tuple, Dict, Set
+from typing import Tuple, Dict, Set
 from ..common.utils import all_defs_in, defs_not_in
 from ..common.web3 import remove_0x, hash_string, hash_hexstring
 from ..common.exceptions import LinkError

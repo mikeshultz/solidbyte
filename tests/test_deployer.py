@@ -8,8 +8,7 @@ from solidbyte.deploy.objects import Contract, ContractDependencyTree, ContractL
 from solidbyte.compile.compiler import Compiler
 from .const import (
     NETWORK_NAME,
-    LIBRARY_SOURCE_FILE_2,
-    LIBRARY_SOURCE_FILE_3,
+    # LIBRARY_SOURCE_FILE_3,
     LIBRARY_SOURCE_FILE_4,
 )
 from .utils import write_temp_file
