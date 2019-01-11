@@ -176,6 +176,7 @@ class Deployer:
                 assert self.deptree, "Invalid dependency tree. This is probably a bug."
 
                 el, _ = self.deptree.search_tree(contract.name)
+
                 if el and el.has_dependencies():
                     needs_deploy.update({x.name for x in el.get_dependencies()})
 

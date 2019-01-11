@@ -60,11 +60,14 @@ class ContractLeaf:
     """ A leaf object in the dependency tree
 
     :Definitions:
-     - dependant: Leaves that this leaf depends on
+     - dependent: Leaves that this leaf depends on
      - dependency: A leaf that depends on this leaf
     """
-    def __init__(self, name: str, parent: 'ContractLeaf' = None) -> None:
+    def __init__(self, name: str, tree: 'ContractDependencyTree',
+                 parent: 'ContractLeaf' = None) -> None:
+
         self.name = name
+        self.tree = tree
         self.parent = parent
         self.dependents: Set['ContractLeaf'] = set()
 
@@ -72,9 +75,22 @@ class ContractLeaf:
         return self.name
 
     def add_dependent(self, name: str) -> 'ContractLeaf':
-        new_leaf = ContractLeaf(name, self)
+        """ Add a dependent leaf """
+
+        # If this element already exists, move it to be our dependent
+        el, _ = self.tree.search_tree(name)
+        if el is not None:
+            self.tree.move(name, self)
+            return el
+
+        # Otherwise, create a new elemenet
+        new_leaf = ContractLeaf(name, self.tree, self)
         self.dependents.add(new_leaf)
         return new_leaf
+
+    def attach_dependent(self, el: 'ContractLeaf') -> None:
+        """ Attach an element to this Leaf as an element """
+        self.dependents.add(el)
 
     def get_parent(self) -> Optional['ContractLeaf']:
         """ Return the parent ContractLeaf """
@@ -86,7 +102,7 @@ class ContractLeaf:
 
     def has_dependencies(self) -> bool:
         """ Does this leaf have dependencies? """
-        return self.parent is not None
+        return self.parent is not None and self.parent.name != ROOT_LEAF_NAME
 
     def has_dependents(self) -> bool:
         """ Does this leaf have dependeants """
@@ -113,12 +129,16 @@ class ContractDependencyTree:
     >>> deptree = ContractDependencyTree()
     """
     def __init__(self):
-        self.root = ContractLeaf(ROOT_LEAF_NAME)
+        self.root = ContractLeaf(ROOT_LEAF_NAME, self)
 
     def __repr__(self):
         strong = '[root]\n'
         for el in self.root.dependents:
-            strong += '- {} (Dependants: {})\n'.format(el, el.get_dependents())
+            strong += '- {} (Dependants: {}, Has Dependencies: {})\n'.format(
+                el,
+                el.get_dependents(),
+                el.has_dependencies()
+            )
         return strong
 
     def search_tree(self, name: str, el: ContractLeaf = None,
@@ -138,26 +158,36 @@ class ContractDependencyTree:
             return (None, depth)
 
     def has_dependents(self, name: str):
-        """ Check of name has dependencies """
+        """ Check of name has dependents """
         el, _ = self.search_tree(name)
         if el and len(el.dependents) > 0:
             return True
         return False
 
     def has_dependencies(self, name: str):
-        """ Check of name has dependents """
+        """ Check of name has dependencies """
         el, depth = self.search_tree(name)
         if el and depth > 0:
             return True
         return False
 
-    def add_dependent(self, name: str, parent: str = None) -> 'ContractLeaf':
+    def add_dependent(self, name: str, parent: str = None) -> ContractLeaf:
         """ Add a child dependent """
         if parent:
             el, _ = self.search_tree(parent)
         if el is None:
             el = self.root
         return el.add_dependent(name)
+
+    def move(self, name: str, new_parent: ContractLeaf) -> ContractLeaf:
+        """ Move an element to be a child of another """
+        el, _ = self.search_tree(name)
+        if el is None or el.parent is None:
+            raise Exception('Element to move was not found')
+        el.parent.dependents.remove(el)
+        new_parent.attach_dependent(el)
+        el.parent = new_parent
+        return el
 
 
 class Deployment:
