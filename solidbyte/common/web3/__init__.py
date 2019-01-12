@@ -54,13 +54,14 @@ def clean_bytecode(bytecode):
     return remove_0x(normalize_hexstring(bytecode))
 
 
-def abi_has_constructor(abi):
+def abi_has_constructor(abi) -> bool:
     """ See if the ABI has a definition for a constructor """
     if not abi or len(abi) < 1:
         return False
     for _def in abi:
-        if _def.get('name') == 'constructor':
+        if _def.get('type') == 'constructor':
             return True
+    return False
 
 
 def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
