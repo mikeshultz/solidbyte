@@ -50,7 +50,7 @@ class CompiledContract:
             abi_str = _file.read()
             self.abi = json.loads(abi_str)
 
-        return self.abi or (self.abi and self.bytecode)
+        return self.abi or self.bytecode
 
 
 def available_contract_names(project_dir: PS) -> Set[str]:

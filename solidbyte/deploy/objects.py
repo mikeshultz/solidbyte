@@ -368,7 +368,7 @@ class Contract:
         try:
             return self._deploy(*args, **kwargs)
         except Exception as e:
-            log.exception("Unknown error deploying contract")
+            log.exception("Unknown error deploying {}".format(self.name))
             raise e
 
     def _process_instances(self, metafile_instances: List[Dict[str, T]]) -> None:

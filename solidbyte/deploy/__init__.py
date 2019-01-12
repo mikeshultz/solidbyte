@@ -159,17 +159,22 @@ class Deployer:
         way, if a library changes, anything that has it as a dependent will be deployed as well.
         """
         for name, contract in self.contracts.items():
-            newest_bytecode = self.source_contracts[name].bytecode
-            if contract.check_needs_deployment(newest_bytecode):
+            newest_bytecode = self.artifacts[name].bytecode
 
-                needs_deploy.add(name)
+            if not newest_bytecode:
+                log.warning("Contract {} bytecode artifact not found. This is normal for an "
+                            "interface.".format(name))
+            else:
+                if contract.check_needs_deployment(newest_bytecode):
 
-                assert self.deptree, "Invalid dependency tree. This is probably a bug."
+                    needs_deploy.add(name)
 
-                el, _ = self.deptree.search_tree(contract.name)
+                    assert self.deptree, "Invalid dependency tree. This is probably a bug."
 
-                if el and el.has_dependencies():
-                    needs_deploy.update({x.name for x in el.get_dependencies()})
+                    el, _ = self.deptree.search_tree(contract.name)
+
+                    if el and el.has_dependencies():
+                        needs_deploy.update({x.name for x in el.get_dependencies()})
 
         log.debug("Contracts that need to be re-deployed: {}".format(needs_deploy))
 
@@ -189,7 +194,7 @@ class Deployer:
         if name is not None and not self.contracts.get(name):
             return True
         elif name is not None:
-            newest_bytecode = self.source_contracts[name].bytecode
+            newest_bytecode = self.artifacts[name].bytecode
             return self.contracts[name].check_needs_deployment(newest_bytecode)
 
         log.debug("Deployment is not needed")
