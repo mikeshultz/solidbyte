@@ -1,3 +1,4 @@
+from datetime import datetime
 from eth_tester import PyEVMBackend, EthereumTester
 from web3 import (
     Web3,
@@ -6,6 +7,7 @@ from web3 import (
     WebsocketProvider,
     EthereumTesterProvider,
 )
+from web3.middleware.fixture import construct_fixture_middleware
 from web3.gas_strategies.time_based import medium_gas_price_strategy
 from .. import store
 from ..exceptions import SolidbyteException
@@ -57,15 +59,58 @@ class Web3ConfiguredConnection(object):
         elif config['type'] == 'http':
             return HTTPProvider(config.get('url'))
         elif config['type'] in ETH_TESTER_TYPES:
+
+            # Get genesis params with our non-default block gas limit
             params = PyEVMBackend._generate_genesis_params(overrides={
                 'gas_limit': TEST_BLOCK_GAS_LIMIT,
             })
+
+            # Init EthereumTester with the py-evm backend
             tester = EthereumTester(backend=PyEVMBackend(
                     genesis_parameters=params
                 ),
                 auto_mine_transactions=True
             )
-            return EthereumTesterProvider(ethereum_tester=tester)
+
+            # Init the web3.py provider
+            provider = EthereumTesterProvider(ethereum_tester=tester)
+
+            """ We need to mess with the provider middleware to set the chain_id/net_version.
+            EthereumTesterProvider currently uses fixtures with default values to provide things
+            like responses to net_version or eth_syncing.
+
+            Ref: https://github.com/ethereum/web3.py/blob/master/web3/providers/eth_tester/middleware.py#L262-L273 # noqa: E501
+            """
+
+            # These definitions are taken from the ref above and cannot be imported
+            fixture_middleware = construct_fixture_middleware({
+                # Eth
+                'eth_protocolVersion': '63',
+                'eth_hashrate': 0,
+                'eth_gasPrice': 1,
+                'eth_syncing': False,
+                'eth_mining': False,
+                # Net
+                'net_version': str(int(datetime.now().timestamp())),
+                'net_listening': False,
+                'net_peerCount': 0,
+            })
+
+            # It's a setter/getter property that returns a tuple. Use a list so we can replace.
+            middlewares = list(provider.middlewares)
+
+            i = 0
+            for m in middlewares:
+                log.debug(m.__name__)
+                if m.__name__ == 'fixture_middleware':
+                    middlewares[i] = fixture_middleware  # Replace with our own
+                    break
+                i += 1
+
+            # Set the new middlewars for the provider
+            provider.middlewares = middlewares
+
+            return provider
         else:
             raise SolidbyteException("Invalid configuration.  Unknown type")
 
