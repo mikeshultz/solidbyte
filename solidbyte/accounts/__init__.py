@@ -195,6 +195,8 @@ class Accounts(object):
                 password = getpass("Enter password to decrypt account ({}):".format(
                     account_address
                 ))
+                if password:
+                    store.set(store.Keys.DECRYPT_PASSPHRASE, password)
 
         jason = self._read_json_file(account.filename)
         privkey = self.eth_account.decrypt(jason, password)
