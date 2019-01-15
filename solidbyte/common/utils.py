@@ -143,3 +143,10 @@ def keys_with(thedict, term):
         if term in v:
             keys.append(k)
     return keys
+
+
+def unescape_newlines(s):
+    """ Unescape newlines in a text string """
+    if type(s) == bytes:
+        s = s.decode('utf-8')
+    return s.replace('\\n', '\n')
