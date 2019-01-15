@@ -368,7 +368,7 @@ class Contract:
         try:
             return self._deploy(*args, **kwargs)
         except Exception as e:
-            log.exception("Unknown error deploying contract")
+            log.exception("Unknown error deploying {}".format(self.name))
             raise e
 
     def _process_instances(self, metafile_instances: List[Dict[str, T]]) -> None:
@@ -591,9 +591,13 @@ class Contract:
 
         code = self.web3.eth.getCode(deploy_receipt.contractAddress)
         if not code or code == '0x':
-            raise DeploymentError("Bytecode not found at address. {}".format(
-                deploy_receipt.contractAddress
-            ))
+            raise DeploymentError(
+                "Bytecode for {} not found at address {}.  This could mean the node is out "
+                "of sync or that deployment failed for an unknown reason.".format(
+                    self.name,
+                    deploy_receipt.contractAddress,
+                )
+            )
 
         log.info("Successfully deployed {}. {}".format(self.name, deploy_txhash.hex()))
 

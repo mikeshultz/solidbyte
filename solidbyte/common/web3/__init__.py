@@ -1,6 +1,7 @@
 from web3 import Web3
 from hexbytes import HexBytes
-from ...common.logging import getLogger
+from ..logging import getLogger
+from ..exceptions import DeploymentValidationError
 from .connection import Web3ConfiguredConnection
 
 log = getLogger(__name__)
@@ -54,26 +55,39 @@ def clean_bytecode(bytecode):
     return remove_0x(normalize_hexstring(bytecode))
 
 
-def abi_has_constructor(abi):
+def abi_has_constructor(abi) -> bool:
     """ See if the ABI has a definition for a constructor """
     if not abi or len(abi) < 1:
         return False
     for _def in abi:
-        if _def.get('name') == 'constructor':
+        if _def.get('type') == 'constructor':
             return True
+    return False
 
 
 def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
-    assert w3inst is not None
-    assert abi is not None
-    assert bytecode is not None
+    # Verify
+    try:
+        assert w3inst is not None, "Invalid web3 instance"
+        assert abi is not None, "Invalid contract ABI"
+        assert bytecode is not None and bytecode != '0x', "Missing bytecode!"
+    except AssertionError:
+        log.error("Invalid input to create_deploy_tx.")
+        log.debug("create_deploy_tx(web3inst={}, abi={}, bytecode={}, tx={}".format(
+                w3inst,
+                abi,
+                bytecode,
+                tx
+            ))
+        raise DeploymentValidationError("Deployment parameter validation failed.")
     try:
         inst = w3inst.eth.contract(abi=abi, bytecode=clean_bytecode(bytecode))
         if abi_has_constructor(abi):
-            return inst.constructor(*args, **kwargs).buildTransaction(tx)
+            deploy_tx = inst.constructor(*args, **kwargs).buildTransaction(tx)
         else:
             # web3.py still uses constructor() even if the contract does not have a constructor
-            return inst.constructor().buildTransaction(tx)
+            deploy_tx = inst.constructor().buildTransaction(tx)
+        return deploy_tx
     except Exception as e:
         log.exception("Error creating deploy transaction")
         log.debug("create_deploy_tx args:\n{}\n{}\n{}".format(abi, bytecode, tx))

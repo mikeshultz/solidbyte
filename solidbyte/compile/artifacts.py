@@ -36,7 +36,7 @@ class CompiledContract:
             raise KeyError("Key {} not found".format(key))
         return getattr(self, key)
 
-    def _load_artifacts(self):
+    def _load_artifacts(self) -> bool:
         """ Load the artifact files """
 
         # Load the bytecode
@@ -50,7 +50,7 @@ class CompiledContract:
             abi_str = _file.read()
             self.abi = json.loads(abi_str)
 
-        return self.abi or (self.abi and self.bytecode)
+        return bool(self.abi or self.bytecode)
 
 
 def available_contract_names(project_dir: PS) -> Set[str]:

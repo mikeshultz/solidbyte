@@ -24,6 +24,8 @@ def add_parser_arguments(parser):
         dest='passphrase',
         help='The passphrase to use to decrypt the account.'
     )
+    parser.add_argument('FILE', type=str, nargs='*',
+                        help='Explicit test files to run')
     return parser
 
 
@@ -36,8 +38,13 @@ def main(parser_args):
         store.set(store.Keys.DECRYPT_PASSPHRASE, parser_args.passphrase)
 
     network_name = collapse_oel(parser_args.network)
+    if len(parser_args.FILE) > 0:
+        log.debug("Running tests in {}".format(', '.join(parser_args.FILE)))
+        args = parser_args.FILE
+    else:
+        args = list()
     try:
-        run_tests(network_name=network_name, account_address=parser_args.address)
+        run_tests(network_name, args=args, account_address=parser_args.address)
     except DeploymentValidationError as err:
         if 'autodeployment' in str(err):
             log.error("The -a/--address option or --default must be provided for autodeployment")
