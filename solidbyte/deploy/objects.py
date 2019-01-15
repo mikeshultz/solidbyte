@@ -591,9 +591,13 @@ class Contract:
 
         code = self.web3.eth.getCode(deploy_receipt.contractAddress)
         if not code or code == '0x':
-            raise DeploymentError("Bytecode not found at address. {}".format(
-                deploy_receipt.contractAddress
-            ))
+            raise DeploymentError(
+                "Bytecode for {} not found at address {}.  This could mean the node is out "
+                "of sync or that deployment failed for an unknown reason.".format(
+                    self.name,
+                    deploy_receipt.contractAddress,
+                )
+            )
 
         log.info("Successfully deployed {}. {}".format(self.name, deploy_txhash.hex()))
 
