@@ -21,6 +21,7 @@ provide some pre-configured connections.
 
     test:
       type: eth_tester
+      autodeploy_allowed: true
 
 Each root-level node is the network name you will use to reference the
 configuration.  For instance using the above file, if you want to connect to
@@ -35,3 +36,10 @@ The available connection types are:
  - `http` - Connect to a plain HTTP(or HTTPS) JSON-RPC provider
  - `ipc` - Use the local IPC socket to connect to a local node
  - `eth_tester` - A virtual ephemeral chain to test against.  Very useful for running unit tests. **NOTE**: eth_tester is in alpha and has been known to show bugs.
+
+ ## `autodeploy_allowed`
+
+ This is a per-network setting that allows Solidbyte to automatically deploy your contracts if it
+ needs to use this network.  This is great for test backends, but use at your own risk on public
+ networks.  This defaults to `false`.
+ 
