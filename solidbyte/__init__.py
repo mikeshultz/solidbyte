@@ -1,4 +1,4 @@
-__version__ = '0.7.1b1'
+__version__ = '0.7.2b1'
 __author__ = 'Mike Shultz'
 __copyright__ = "Copyright 2018, GoInto, LLC"
 __license__ = 'GPLv3'
