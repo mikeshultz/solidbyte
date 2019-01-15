@@ -26,7 +26,7 @@ class NetworksYML:
     ---
     dev:
       type: auto
-      allow_test_deployment: true
+      autodeploy_allowed: true
 
     infura-mainnet:
       type: websocket
@@ -38,7 +38,7 @@ class NetworksYML:
 
     test:
       type: eth_tester
-      allow_test_deployment: true
+      autodeploy_allowed: true
 
     """
 
