@@ -83,13 +83,10 @@ def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):
     try:
         inst = w3inst.eth.contract(abi=abi, bytecode=clean_bytecode(bytecode))
         if abi_has_constructor(abi):
-            log.debug("create_deploy_tx: has constructor: args: {}  kwargs{}".format(args, kwargs))
             deploy_tx = inst.constructor(*args, **kwargs).buildTransaction(tx)
         else:
             # web3.py still uses constructor() even if the contract does not have a constructor
-            log.debug("create_deploy_tx: does not have constructor")
             deploy_tx = inst.constructor().buildTransaction(tx)
-        log.debug("Created deploy transaction: {}".format(deploy_tx))
         return deploy_tx
     except Exception as e:
         log.exception("Error creating deploy transaction")
