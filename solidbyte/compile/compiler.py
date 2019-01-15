@@ -1,20 +1,43 @@
 """ Solidity compiling functionality """
-from subprocess import Popen, PIPE
+import sys
+from subprocess import Popen, PIPE, STDOUT
 from pathlib import Path
-from ..common import (
+from typing import Set
+from ..common.utils import (
     builddir,
     get_filename_and_ext,
     supported_extension,
     find_vyper,
     to_path_or_cwd,
+    unescape_newlines,
 )
 from ..common.exceptions import CompileError
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
-SOLC_PATH = str(Path(__file__).parent.joinpath('..', 'bin', 'solc'))
+SOLC_PATH = str(Path(__file__).parent.joinpath('..', 'bin', 'solc').resolve())
 VYPER_PATH = find_vyper()
+
+
+def get_all_source_files(contracts_dir: Path) -> Set[Path]:
+    """ Return a Path for every contract source file in the provided directory and any sub-
+    directories.
+
+    :param contracts_dir: The Path of the directory to start at.
+    :returns: List of Paths to every source file in the directory.
+    """
+    source_files: Set[Path] = set()
+    for node in contracts_dir.iterdir():
+        if node.is_dir():
+            source_files.update(get_all_source_files(node))
+        elif node.is_file():
+            if supported_extension(node):
+                source_files.add(node)
+        else:
+            log.error("{} is not a known fs type.".format(str(node)))
+            raise Exception("Path is an unknown.")
+    return source_files
 
 
 class Compiler(object):
@@ -76,6 +99,8 @@ class Compiler(object):
                 '--bin',
                 '--optimize',
                 '--overwrite',
+                '--allow-paths',
+                str(self.dir),
                 '-o',
                 str(bin_outfile.parent),
                 str(source_file)
@@ -86,6 +111,8 @@ class Compiler(object):
                 SOLC_PATH,
                 '--abi',
                 '--overwrite',
+                '--allow-paths',
+                str(self.dir),
                 '-o',
                 str(abi_outfile.parent),
                 str(source_file)
@@ -93,18 +120,40 @@ class Compiler(object):
             log.debug("Executing compiler with: {}".format(' '.join(abi_cmd)))
 
             # Do the needful
-            p_bin = Popen(compile_cmd)
-            p_abi = Popen(abi_cmd)
+            p_bin = Popen(compile_cmd, stdout=PIPE, stderr=STDOUT)
+            p_abi = Popen(abi_cmd, stdout=PIPE, stderr=STDOUT)
 
             # Twiddle our thumbs
             p_bin.wait()
             p_abi.wait()
+
+            # Check the output
+            p_bin_out = p_bin.stdout.read()
+            p_abi_out = p_abi.stdout.read()
+            if (
+                b'Compiler run successful' not in p_bin_out
+                and b'Compiler run successful' not in p_abi_out
+                    ):
+                log.error("Compiler shows an error:")
+                print(unescape_newlines(p_bin_out), file=sys.stderr)
+                print(unescape_newlines(p_abi_out), file=sys.stderr)
+                raise CompileError("solc did not indicate success.")
 
             # Check the return codes
             compile_retval = p_bin.returncode
             abi_retval = p_abi.returncode
             if compile_retval != 0 or abi_retval != 0:
                 raise CompileError("Solidity compiler returned non-zero exit code")
+
+            if bin_outfile.stat().st_size == 0:
+                """ So far this has been seen with contracts that inherit  an interface.  Perhaps
+                missing some implementations or conflicts, but solc doesn't complain.  Not sure why
+                solc doesn't throw an error, but here we are.
+                """
+                log.warning("Zero length bytecode output from compiler. This is fine for "
+                            "interfaces but may indicate a silent error with {}.".format(name))
+                # raise CompileError("Zero length bytecode output from compiler. Check your "
+                #                    "interface implementations.")
 
         elif ext == 'vy':
 
@@ -173,9 +222,8 @@ class Compiler(object):
         log.debug("Build directory: {}".format(self.builddir))
 
         source_dir = Path(self.dir)
+        contract_files = get_all_source_files(source_dir)
 
-        contract_files = [f for f in source_dir.iterdir() if (source_dir.joinpath(f).is_file()
-                                                              and supported_extension(f))]
         log.debug("contract files: {}".format(contract_files))
 
         for contract in contract_files:
