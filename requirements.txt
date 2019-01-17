@@ -8,7 +8,7 @@ eth-account>=0.2.3,<0.3.0
 web3<5,>=4.7
 pyyaml>=4.2b1
 # EthPM stuff.  Needs to be pinned until release fixed and deps don't contradict
-#ethpm==0.1.4a8
+ethpm==0.1.4a8
 eth-abi==1.2.2
 # Until web3[tester] can be removed from py-ethpm, we need these
 py-geth<3.0.0,>=2.0.1
