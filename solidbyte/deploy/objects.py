@@ -255,6 +255,7 @@ class Contract:
                                                                  from_account, metafile, web3))
 
         self.name = name
+        self.new_deployment = False
         self.deployedHash = None
         self.source_bytecode = None
         self.source_abi = None
@@ -612,6 +613,8 @@ class Contract:
         self.metafile.add(self.name, self.network_id,
                           deploy_receipt.contractAddress, self.source_abi,
                           bytecode_hash)
+
+        self.new_deployment = True
 
         log.info("Updated metadata for new deployment.")
 
