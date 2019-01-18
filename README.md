@@ -20,7 +20,7 @@ Development tools for creating Ethereum smart contracts
 
 Here's a brief demo (as of 2019-01-17) creating a new ERC20 token named MyToken:
 
-<img src="docs/images/sb-demo-20190117-full-min.gif?raw=true" width="900px">
+<img src="https://github.com/mikeshultz/solidbyte/raw/develop/docs/images/sb-demo-20190117-full-min.gif?raw=true" width="900px">
 
 ## Contents
 
