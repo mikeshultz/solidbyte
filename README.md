@@ -16,6 +16,12 @@ Development tools for creating Ethereum smart contracts
 
 **NOTE**: Solidbyte has **only been tested on Linux**.  If you use another OS, please consider testing and [submit an issue](https://github.com/mikeshultz/solidbyte/issues/new) for any bugs you find.
 
+## Demo
+
+Here's a brief demo (as of 2019-01-17) creating a new ERC20 token named MyToken:
+
+[![Solidbyte demo](https://i.imgur.com/cpDzLno.gifv)](https://i.imgur.com/cpDzLno.gifv)
+
 ## Contents
 
  - [Documentation](https://github.com/mikeshultz/solidbyte/blob/master/docs/index.md)
