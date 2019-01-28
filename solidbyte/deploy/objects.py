@@ -507,7 +507,7 @@ class Contract:
                             self.from_account
                         ))
 
-        log.info("Deployment transaction hash for {}: {}".format(self.name, deploy_txhash))
+        log.debug("Deployment transaction hash for {}: {}".format(self.name, deploy_txhash.hex()))
 
         return deploy_txhash
 
