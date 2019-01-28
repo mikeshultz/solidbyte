@@ -75,7 +75,7 @@ class Accounts(object):
     def _write_json_file(self, json_object: dict, filename: str = None) -> None:
         """ Write a JSON file from a python dict """
 
-        filePath: Path
+        filePath: Optional[Path] = None
         if filename is not None and type(filename) == str:
             filePath = Path(filename).expanduser().resolve()
         if not filePath:
