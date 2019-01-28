@@ -63,7 +63,6 @@ def add_parser_arguments(parser):
 
 def main(parser_args):
     """ Execute test """
-    log.info("Account operations")
 
     if parser_args.network:
         network_name = parser_args.network
