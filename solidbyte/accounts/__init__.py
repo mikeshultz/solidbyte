@@ -84,7 +84,7 @@ class Accounts(object):
                     Web3.toChecksumAddress(json_object.get('address'))
                     )
                 )
-        with open(filename, 'w') as json_file:
+        with filename.open('w') as json_file:
             try:
                 jason = json.dumps(json_object)
                 json_file.write(jason)
