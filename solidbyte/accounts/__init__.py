@@ -10,7 +10,7 @@ from eth_account import Account
 from web3 import Web3
 from ..common import to_path
 from ..common import store
-from ..common.exceptions import ValidationError
+from ..common.exceptions import ValidationError, WrongPassword
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -200,7 +200,16 @@ class Accounts(object):
                     store.set(store.Keys.DECRYPT_PASSPHRASE, password)
 
         jason = self._read_json_file(account.filename)
-        privkey = self.eth_account.decrypt(jason, password)
+
+        try:
+            privkey = self.eth_account.decrypt(jason, password)
+        except ValueError as err:
+            if 'MAC' in str(err):
+                log.error("Invalid password")
+                raise WrongPassword("Invalid decryption password for {}!".format(account_address))
+            else:
+                raise err
+
         self.set_account_attribute(account_address, 'privkey', privkey)
         return privkey
 
