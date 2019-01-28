@@ -18,7 +18,7 @@ class ConsoleStyle:
     END = '\033[0m'  # Stop all styling
 
 
-class LogFormats:
+class DebugLogFormats:
     """ Log formats for use for different log levels """
     DEFAULT = '%(asctime)s [%(levelname)s] %(name)s - %(message)s'
     ERROR = '%(asctime)s [{}%(levelname)s{}] %(name)s - %(message)s'.format(ConsoleStyle.ERROR,
@@ -35,7 +35,20 @@ class LogFormats:
                                                                             ConsoleStyle.END)
 
 
-class ColoredStyle(object):
+class LogFormats:
+    """ Log formats for use for different log levels """
+    DEFAULT = '%(levelname)s \t %(message)s'
+    ERROR = '{}%(levelname)s{} \t %(message)s'.format(ConsoleStyle.ERROR, ConsoleStyle.END)
+    CRITICAL = '{}%(levelname)s{} \t %(message)s'.format(
+            ConsoleStyle.CRITICAL,
+            ConsoleStyle.END
+        )
+    WARNING = '{}%(levelname)s{} \t %(message)s'.format(ConsoleStyle.WARNING, ConsoleStyle.END)
+    INFO = '{}%(levelname)s{} \t\t %(message)s'.format(ConsoleStyle.OKGREEN, ConsoleStyle.END)
+    DEBUG = '{}%(levelname)s{} \t %(message)s'.format(ConsoleStyle.OKBLUE, ConsoleStyle.END)
+
+
+class ColoredStyle:
     """ Text styling for the ColoredFormatter.
 
         Based on: https://github.com/python/cpython/blob/master/Lib/logging/__init__.py#L426
@@ -46,7 +59,10 @@ class ColoredStyle(object):
     validation_pattern = re.compile(r'%\(\w+\)[#0+ -]*(\*|\d+)?(\.(\*|\d+))?[diouxefgcrsa%]', re.I)
 
     def __init__(self):
-        self._fmt = LogFormats.DEFAULT
+        if '-d' in sys.argv:
+            self._fmt = DebugLogFormats.DEFAULT
+        else:
+            self._fmt = LogFormats.DEFAULT
 
     def usesTime(self):
         return self._fmt.find(self.asctime_search) >= 0
@@ -58,16 +74,19 @@ class ColoredStyle(object):
                                                                          self.default_format[0]))
 
     def _format(self, record):
+        formats = LogFormats
+        if '-d' in sys.argv:
+            formats = DebugLogFormats
         if record.levelno == logging.ERROR:
-            return LogFormats.ERROR % record.__dict__
+            return formats.ERROR % record.__dict__
         elif record.levelno == logging.WARNING:
-            return LogFormats.WARNING % record.__dict__
+            return formats.WARNING % record.__dict__
         elif record.levelno == logging.INFO:
-            return LogFormats.INFO % record.__dict__
+            return formats.INFO % record.__dict__
         elif record.levelno == logging.CRITICAL:
-            return LogFormats.CRITICAL % record.__dict__
+            return formats.CRITICAL % record.__dict__
         elif record.levelno == logging.DEBUG:
-            return LogFormats.DEBUG % record.__dict__
+            return formats.DEBUG % record.__dict__
         return self._fmt % record.__dict__
 
     def format(self, record):
