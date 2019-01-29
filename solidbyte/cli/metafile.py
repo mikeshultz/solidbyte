@@ -32,8 +32,6 @@ def add_parser_arguments(parser):
 def main(parser_args):
     """ Open an interactive solidbyte console """
 
-    log.info("Starting interactive console...")
-
     if hasattr(parser_args, 'file') and parser_args.file:
         file_path = Path(parser_args.file)
     else:

@@ -340,7 +340,6 @@ class MetaFile:
 
         try:
             assert original_hash == backup_hash
-            log.info("Backup complete!")
             return True
         except AssertionError:
             log.error("Backup failed.  File mismatch!")

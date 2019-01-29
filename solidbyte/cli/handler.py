@@ -24,6 +24,7 @@ MODULES = [
 ]
 
 IMPORTED_MODULES = {}
+DEFAULT_KEYSTORE = '~/.ethereum/keystore'
 
 
 def parse_args(argv=None):
@@ -33,7 +34,7 @@ def parse_args(argv=None):
     parser.add_argument('-d', action='store_true',
                         help='Print debug level messages')
     parser.add_argument('-k', '--keystore', type=str, dest="keystore",
-                        default='~/.ethereum/keystore',
+                        default=DEFAULT_KEYSTORE,
                         help='Ethereum account keystore directory to use.')
 
     subparsers = parser.add_subparsers(title='Submcommands', dest='command',
@@ -74,7 +75,7 @@ def main(argv=None):
         log.error('Unknown command: {}'.format(args.command))
         sys.exit(2)
 
-    if args.keystore:
+    if args.keystore != DEFAULT_KEYSTORE:
         log.info("Using keystore at {}".format(args.keystore))
         store.set(store.Keys.KEYSTORE_DIR, args.keystore)
 

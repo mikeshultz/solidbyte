@@ -7,3 +7,4 @@ class LinkError(CompileError): pass
 class ConfigurationError(SolidbyteException): pass
 class AccountError(SolidbyteException): pass
 class ValidationError(SolidbyteException): pass
+class WrongPassword(ValidationError): pass

@@ -400,7 +400,7 @@ class Contract:
         metafile_contract = self.metafile.get_contract(self.name)
 
         if not metafile_contract:
-            log.warning('No metafile.json entry for contract {}.'.format(self.name))
+            log.debug('No metafile.json entry for contract {}.'.format(self.name))
             return
 
         if metafile_contract['networks'].get(self.network_id):
@@ -507,7 +507,7 @@ class Contract:
                             self.from_account
                         ))
 
-        log.info("Deployment transaction hash for {}: {}".format(self.name, deploy_txhash))
+        log.debug("Deployment transaction hash for {}: {}".format(self.name, deploy_txhash.hex()))
 
         return deploy_txhash
 
@@ -577,7 +577,7 @@ class Contract:
         log.debug("Creating deploy transaction...")
         deploy_tx = self._create_deploy_transaction(bytecode, gas, gas_price, *args, **kwargs)
 
-        log.info("Sending deploy transaction.  This may take a moment...")
+        log.info("Sending deploy transaction for {}.  This may take a moment...".format(self.name))
         deploy_txhash = self._transact(deploy_tx)
 
         # Wait for it to be mined
@@ -616,7 +616,7 @@ class Contract:
 
         self.new_deployment = True
 
-        log.info("Updated metadata for new deployment.")
+        log.debug("Updated metadata for new deployment.")
 
         return self._get_web3_contract()
 

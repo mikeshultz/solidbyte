@@ -1,7 +1,7 @@
 """ Objects and utility functions for account operations """
 import os
 import json
-from typing import TypeVar, List, Callable
+from typing import TypeVar, List, Callable, Optional, Dict, Any
 from getpass import getpass
 from pathlib import Path
 from datetime import datetime
@@ -10,7 +10,7 @@ from eth_account import Account
 from web3 import Web3
 from ..common import to_path
 from ..common import store
-from ..common.exceptions import ValidationError
+from ..common.exceptions import ValidationError, WrongPassword
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -31,10 +31,10 @@ def autoload(f: Callable) -> Callable:
 class Accounts(object):
     def __init__(self, network_name: str = None,
                  keystore_dir: str = None,
-                 web3: object = None) -> None:
+                 web3: Web3 = None) -> None:
 
         self.eth_account = Account()
-        self.accounts = []
+        self.accounts: List = []
 
         if keystore_dir:
             self.keystore_dir = to_path(keystore_dir)
@@ -61,9 +61,9 @@ class Accounts(object):
             else:
                 self.keystore_dir.mkdir(mode=0o700, parents=True)
 
-    def _read_json_file(self, filename: str) -> object:
+    def _read_json_file(self, filename: str) -> Optional[Dict[str, Any]]:
         """ Read a JSON file and output a python dict """
-        jason = None
+        jason: Optional[Dict[str, Any]] = None
         with open(filename, 'r') as json_file:
             try:
                 file_string = json_file.read()
@@ -72,28 +72,29 @@ class Accounts(object):
                 log.error("Error reading JSON file {}: {}".format(filename, str(e)))
         return jason
 
-    def _write_json_file(self, json_object: object, filename: str = None) -> None:
+    def _write_json_file(self, json_object: dict, filename: str = None) -> None:
         """ Write a JSON file from a python dict """
 
-        if type(filename) == str:
-            filename = Path(filename).expanduser().resolve()
-        if not filename:
-            filename = self.keystore_dir.joinpath(
+        filePath: Optional[Path] = None
+        if filename is not None and type(filename) == str:
+            filePath = Path(filename).expanduser().resolve()
+        if not filePath:
+            filePath = self.keystore_dir.joinpath(
                 'UTC--{}--{}'.format(
                     datetime.now().isoformat(),
                     Web3.toChecksumAddress(json_object.get('address'))
                     )
                 )
-        with open(filename, 'w') as json_file:
+        with filePath.open('w') as json_file:
             try:
                 jason = json.dumps(json_object)
                 json_file.write(jason)
             except Exception as e:
-                log.error("Error writing JSON file {}: {}".format(filename, str(e)))
+                log.error("Error writing JSON file {}: {}".format(filePath, str(e)))
 
     def _get_keystore_files(self) -> list:
         """ Return all filenames of keystore files """
-        return self.keystore_dir.iterdir()
+        return list(self.keystore_dir.iterdir())
 
     def _load_accounts(self, force: bool = False) -> None:
         if len(self.accounts) > 1 and not force:
@@ -199,7 +200,16 @@ class Accounts(object):
                     store.set(store.Keys.DECRYPT_PASSPHRASE, password)
 
         jason = self._read_json_file(account.filename)
-        privkey = self.eth_account.decrypt(jason, password)
+
+        try:
+            privkey = self.eth_account.decrypt(jason, password)
+        except ValueError as err:
+            if 'MAC' in str(err):
+                log.error("Invalid password")
+                raise WrongPassword("Invalid decryption password for {}!".format(account_address))
+            else:
+                raise err
+
         self.set_account_attribute(account_address, 'privkey', privkey)
         return privkey
 
