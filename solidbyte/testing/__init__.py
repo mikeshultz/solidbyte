@@ -63,7 +63,7 @@ class SolidbyteTestPlugin(object):
 
     @pytest.fixture
     def local_accounts(self):
-        a = Accounts(self.network, self._keystore_dir, self.web3)
+        a = Accounts(network_name=self.network, keystore_dir=self._keystore_dir, web3=self._web3)
         return a.get_accounts()
 
 
