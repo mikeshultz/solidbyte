@@ -1,7 +1,8 @@
 import pytest
 from attrdict import AttrDict
+from ..accounts import Accounts
 from ..deploy import Deployer, get_latest_from_deployed
-from ..common.utils import to_path_or_cwd
+from ..common.utils import to_path, to_path_or_cwd
 from ..common.web3 import web3c
 from ..common.metafile import MetaFile
 from ..common.networks import NetworksYML
@@ -13,7 +14,7 @@ log = getLogger(__name__)
 
 class SolidbyteTestPlugin(object):
 
-    def __init__(self, network_name, web3=None, project_dir=None):
+    def __init__(self, network_name, web3=None, project_dir=None, keystore_dir=None):
         self.network = network_name
         self._web3 = None
         if web3 is not None:
@@ -22,6 +23,7 @@ class SolidbyteTestPlugin(object):
         self._project_dir = to_path_or_cwd(project_dir)
         self._contract_dir = self._project_dir.joinpath('contracts')
         self._deploy_dir = self._project_dir.joinpath('deploy')
+        self._keystore_dir = to_path(keystore_dir)
 
     def pytest_sessionfinish(self):
         # TODO: There was something I wanted to do here...
@@ -59,8 +61,14 @@ class SolidbyteTestPlugin(object):
             self._web3 = web3c.get_web3(self.network)
         return self._web3
 
+    @pytest.fixture
+    def local_accounts(self):
+        a = Accounts(network_name=self.network, keystore_dir=self._keystore_dir, web3=self._web3)
+        return a.get_accounts()
 
-def run_tests(network_name, args=[], web3=None, project_dir=None, account_address=None):
+
+def run_tests(network_name, args=[], web3=None, project_dir=None, account_address=None,
+              keystore_dir=None):
     """ Run all tests on project """
 
     yml = NetworksYML(project_dir=project_dir)
@@ -104,5 +112,6 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, account_addres
                 network_name=network_name,
                 web3=web3,
                 project_dir=project_dir,
+                keystore_dir=keystore_dir,
             )
         ])

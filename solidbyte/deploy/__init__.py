@@ -266,7 +266,8 @@ class Deployer:
             spec = inspect.getfullargspec(script.main)
             script_kwargs = {k: available_kwargs.get(k) for k in spec.args}
             retval = script.main(**script_kwargs)
-            if retval is not True:
+            # If a deploy script choses to return False, they're signalling a failure
+            if retval is False:
                 raise DeploymentError("Deploy script did not complete properly!")
 
     def _get_script_kwargs(self) -> Dict[str, T]:

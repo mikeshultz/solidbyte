@@ -44,10 +44,15 @@ def main(parser_args):
     else:
         args = list()
     try:
-        run_tests(network_name, args=args, account_address=parser_args.address)
+        return_code = run_tests(network_name, args=args, account_address=parser_args.address,
+                                keystore_dir=parser_args.keystore)
     except DeploymentValidationError as err:
         if 'autodeployment' in str(err):
             log.error("The -a/--address option or --default must be provided for autodeployment")
             sys.exit(1)
         else:
             raise err
+    else:
+        if return_code != 0:
+            log.error("tests have failed")
+        sys.exit(return_code)

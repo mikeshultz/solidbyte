@@ -509,7 +509,7 @@ class Contract:
 
         log.debug("Deployment transaction hash for {}: {}".format(self.name, deploy_txhash.hex()))
 
-        return deploy_txhash
+        return deploy_txhash.hex()
 
     def _assemble_and_hash_bytecode(self, bytecode: str,
                                     links: Optional[dict] = None) -> Tuple[str, str]:
@@ -577,8 +577,12 @@ class Contract:
         log.debug("Creating deploy transaction...")
         deploy_tx = self._create_deploy_transaction(bytecode, gas, gas_price, *args, **kwargs)
 
-        log.info("Sending deploy transaction for {}.  This may take a moment...".format(self.name))
         deploy_txhash = self._transact(deploy_tx)
+
+        log.info("Sending deploy transaction {} for contract {}.  This may take a moment...".format(
+            deploy_txhash,
+            self.name,
+        ))
 
         # Wait for it to be mined
         deploy_receipt = self.web3.eth.waitForTransactionReceipt(deploy_txhash)
@@ -600,7 +604,7 @@ class Contract:
                 )
             )
 
-        log.info("Successfully deployed {}. {}".format(self.name, deploy_txhash.hex()))
+        log.info("Successfully deployed {}. Transaction has been mined.".format(self.name))
 
         self.deployments.append(Deployment(
                 bytecode_hash=bytecode_hash,

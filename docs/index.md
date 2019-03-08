@@ -5,6 +5,7 @@ compiling, and deploying your smart contracts easy.
 
 ## Contents
 
+ - [Road Map](roadmap.md).
  - [Commands Reference](commands.md)
  - [Deployment](deployment.md)
  - [Templates](templates.md)

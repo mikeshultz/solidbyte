@@ -8,6 +8,7 @@ from datetime import datetime
 from attrdict import AttrDict
 from eth_account import Account
 from web3 import Web3
+from web3.exceptions import UnhandledRequest
 from ..common import to_path
 from ..common import store
 from ..common.exceptions import ValidationError, WrongPassword
@@ -109,10 +110,13 @@ class Accounts(object):
                 addr = Web3.toChecksumAddress(jason.get('address'))
                 bal = -1
                 if self.web3:
-                    bal = self.web3.fromWei(
-                        self.web3.eth.getBalance(self.web3.toChecksumAddress(addr)),
-                        'ether'
-                    )
+                    try:
+                        bal = self.web3.fromWei(
+                            self.web3.eth.getBalance(self.web3.toChecksumAddress(addr)),
+                            'ether'
+                        )
+                    except UnhandledRequest:
+                        pass
                 self.accounts.append(AttrDict({
                     'address': addr,
                     'filename': file,
