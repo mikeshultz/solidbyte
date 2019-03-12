@@ -8,7 +8,7 @@ from ..common.metafile import MetaFile
 from ..common.networks import NetworksYML
 from ..common.exceptions import SolidbyteException, DeploymentValidationError
 from ..common.logging import getLogger
-from .gas import GasReportStorage, construct_gas_report_middleware
+from .gas import construct_gas_report_middleware
 
 log = getLogger(__name__)
 
@@ -75,7 +75,7 @@ class SolidbyteTestPlugin(object):
 
 
 def run_tests(network_name, args=[], web3=None, project_dir=None, account_address=None,
-              keystore_dir=None, gas_report=False):
+              keystore_dir=None, gas_report_storage=None):
     """ Run all tests on project """
 
     yml = NetworksYML(project_dir=project_dir)
@@ -117,10 +117,6 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, account_addres
     if not web3:
         web3 = web3c.get_web3(network_name)
 
-    report = None
-    if gas_report:
-        report = GasReportStorage()
-
     retval = None
     try:
         retval = pytest.main(args, plugins=[
@@ -129,16 +125,11 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, account_addres
                     web3=web3,
                     project_dir=project_dir,
                     keystore_dir=keystore_dir,
-                    gas_report_storage=report,
+                    gas_report_storage=gas_report_storage,
                 )
             ])
     except Exception:
         log.exception("Exception occurred while running tests.")
         return 255
-    else:
-        # TODO: Maybe this should be in pytest_sessionfinish in the plugin?
-        if gas_report:
-            report.update_gas_used_from_chain(web3)
-            report.log_report()
 
     return retval

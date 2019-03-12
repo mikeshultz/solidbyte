@@ -68,29 +68,12 @@ class GasReportStorage(object):
             self.transactions[idx].gas_used = receipt.gasUsed
             self.total_gas += receipt.gasUsed
 
-    def log_report(self, logger=None) -> None:
-        """ Log the report """
+    def get_report(self):
 
         if len(self.report) < 1:
             self._build_report()
 
-        if logger is None:
-            logger = log
-
-        for func in self.report.keys():
-            lo = min(self.report[func])
-            hi = max(self.report[func])
-            avg = sum(self.report[func]) / len(self.report[func])
-            if lo == hi:
-                logger.info("{}: {}".format(func, lo))
-            else:
-                logger.info("{}: Low: {}  High: {}  Avg: {}".format(func, lo, hi, avg))
-
-        logger.info("Total Transactions: {}".format(len(self.transactions)))
-        logger.info("Total Gas: {}".format(self.total_gas))
-        logger.info("Average Gas per Transaction: {}".format(
-            self.total_gas / len(self.transactions)
-        ))
+        return self.report
 
     def _build_report(self) -> None:
         self.report = {}
