@@ -1,5 +1,5 @@
 """ Gas report junk """
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict
 from ..common.web3 import func_sig_from_input, normalize_hexstring
 from ..common.logging import getLogger
 
@@ -63,7 +63,8 @@ class GasReportStorage(object):
             if receipt.status == 0:
                 log.warning("Gas reporter found a failed transaction")
                 continue
-            log.debug("Transaction {} used {} gas".format(self.transactions[idx].tx_hash, receipt.gasUsed))
+            log.debug("Transaction {} used {} gas".format(self.transactions[idx].tx_hash,
+                                                          receipt.gasUsed))
             self.transactions[idx].gas_used = receipt.gasUsed
             self.total_gas += receipt.gasUsed
 
