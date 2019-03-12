@@ -107,9 +107,10 @@ def main(parser_args):
 
                 print(tabulate(report_table, headers=['Function', 'Low', 'High', 'Avg']))
                 print("\nTotal transactions: {}".format(len(report.transactions)))
-                print("Total gas used: {}".format(report.total_gas))
-                print("Average gas per tx: {}".format(round(
-                    report.total_gas / len(report.transactions)
-                )))
+                if len(report.transactions) > 0:
+                    print("Total gas used: {}".format(report.total_gas))
+                    print("Average gas per tx: {}".format(round(
+                        report.total_gas / len(report.transactions)
+                    )))
 
         sys.exit(return_code)
