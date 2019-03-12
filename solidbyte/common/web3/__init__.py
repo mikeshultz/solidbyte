@@ -8,6 +8,9 @@ log = getLogger(__name__)
 web3c = Web3ConfiguredConnection()
 
 
+NO_FUNCTION_CALL_INPUTS = ['']
+
+
 def normalize_hexstring(hexstr):
     if isinstance(hexstr, HexBytes):
         hexstr = hexstr.hex()
@@ -63,6 +66,13 @@ def abi_has_constructor(abi) -> bool:
         if _def.get('type') == 'constructor':
             return True
     return False
+
+
+def func_sig_from_input(data):
+    """ Return the 4-byte function signature from a transaction input field """
+    if data in NO_FUNCTION_CALL_INPUTS:
+        return None
+    return remove_0x(data)[:8]
 
 
 def create_deploy_tx(w3inst, abi, bytecode, tx, *args, **kwargs):

@@ -16,6 +16,8 @@ def add_parser_arguments(parser):
                         help='Ethereum network to connect the console to')
     parser.add_argument('-a', '--address', type=str, required=False,
                         help='Address of the Ethereum account to use for deployment')
+    parser.add_argument('-g', '--gas', action='store_true', required=False,
+                        help='Finish with a gas report')
     parser.add_argument(
         '-p',
         '--passphrase',
@@ -43,9 +45,14 @@ def main(parser_args):
         args = parser_args.FILE
     else:
         args = list()
+
+    # If the user set debug, make sure pytest doesn't squash output
+    if '-d' in sys.argv:
+        args.append('-s')
+
     try:
         return_code = run_tests(network_name, args=args, account_address=parser_args.address,
-                                keystore_dir=parser_args.keystore)
+                                keystore_dir=parser_args.keystore, gas_report=parser_args.gas)
     except DeploymentValidationError as err:
         if 'autodeployment' in str(err):
             log.error("The -a/--address option or --default must be provided for autodeployment")
