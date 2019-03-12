@@ -9,10 +9,41 @@ from ..common import collapse_oel
 from ..common.exceptions import DeploymentValidationError
 from ..common import store
 from ..common.web3 import web3c, remove_0x
-from ..common.logging import getLogger
+from ..common.logging import ConsoleStyle, getLogger
 from ..testing.gas import GasReportStorage
 
 log = getLogger(__name__)
+
+
+# TODO: Make these configurable?
+GAS_WARN = 1e5
+GAS_BAD = 1e6
+GAS_ERROR = 47e5  # Ropsten is at 4.7m
+
+
+def highlight_gas(gas):
+    """ Uses console color highlights to indicate high gas usage """
+
+    if gas >= GAS_ERROR:
+        return '{}{}{}'.format(
+            ConsoleStyle.CRITICAL,
+            gas,
+            ConsoleStyle.END
+        )
+    elif gas >= GAS_BAD:
+        return '{}{}{}'.format(
+            ConsoleStyle.ERROR,
+            gas,
+            ConsoleStyle.END
+        )
+    elif gas >= GAS_WARN:
+        return '{}{}{}'.format(
+            ConsoleStyle.WARNING,
+            gas,
+            ConsoleStyle.END
+        )
+
+    return gas
 
 
 def add_parser_arguments(parser):
@@ -100,9 +131,9 @@ def main(parser_args):
                     avg = round(sum(report_data[func]) / len(report_data[func]))
                     report_table.append([
                         sigs_resolver.get(func, 'Unknown'),
-                        lo,
-                        hi,
-                        avg,
+                        highlight_gas(lo),
+                        highlight_gas(hi),
+                        highlight_gas(avg),
                     ])
 
                 print(tabulate(report_table, headers=['Function', 'Low', 'High', 'Avg']))
