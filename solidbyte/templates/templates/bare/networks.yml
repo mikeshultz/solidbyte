@@ -4,8 +4,8 @@ dev:
   type: auto
 
 test:
-  type: http
-  url: http://localhost:8545
+  type: eth_tester
+  autodeploy_allowed: true
 
 infura-mainnet:
   type: websocket
