@@ -8,22 +8,33 @@ from ..common.metafile import MetaFile
 from ..common.networks import NetworksYML
 from ..common.exceptions import SolidbyteException, DeploymentValidationError
 from ..common.logging import getLogger
+from .gas import construct_gas_report_middleware
 
 log = getLogger(__name__)
 
 
 class SolidbyteTestPlugin(object):
 
-    def __init__(self, network_name, web3=None, project_dir=None, keystore_dir=None):
+    def __init__(self, network_name, web3=None, project_dir=None, keystore_dir=None,
+                 gas_report_storage=None):
+
         self.network = network_name
         self._web3 = None
         if web3 is not None:
             self._web3 = web3
+        else:
+            self._web3 = web3c.get_web3(self.network)
 
         self._project_dir = to_path_or_cwd(project_dir)
         self._contract_dir = self._project_dir.joinpath('contracts')
         self._deploy_dir = self._project_dir.joinpath('deploy')
         self._keystore_dir = to_path(keystore_dir)
+
+        if gas_report_storage is not None:
+            self._web3.middleware_stack.add(
+                construct_gas_report_middleware(gas_report_storage),
+                'gas_report_middleware',
+            )
 
     def pytest_sessionfinish(self):
         # TODO: There was something I wanted to do here...
@@ -31,8 +42,6 @@ class SolidbyteTestPlugin(object):
 
     @pytest.fixture
     def contracts(self):
-        if not self._web3:
-            self._web3 = web3c.get_web3(self.network)
         network_id = self._web3.net.chainId or self._web3.net.version
         d = Deployer(self.network, project_dir=self._project_dir)
         contracts_meta = d.deployed_contracts
@@ -57,8 +66,6 @@ class SolidbyteTestPlugin(object):
 
     @pytest.fixture
     def web3(self):
-        if not self._web3:
-            self._web3 = web3c.get_web3(self.network)
         return self._web3
 
     @pytest.fixture
@@ -68,7 +75,7 @@ class SolidbyteTestPlugin(object):
 
 
 def run_tests(network_name, args=[], web3=None, project_dir=None, account_address=None,
-              keystore_dir=None):
+              keystore_dir=None, gas_report_storage=None):
     """ Run all tests on project """
 
     yml = NetworksYML(project_dir=project_dir)
@@ -107,11 +114,22 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, account_addres
             "your contracts using the `sb deploy` command."
         )
 
-    return pytest.main(args, plugins=[
-            SolidbyteTestPlugin(
-                network_name=network_name,
-                web3=web3,
-                project_dir=project_dir,
-                keystore_dir=keystore_dir,
-            )
-        ])
+    if not web3:
+        web3 = web3c.get_web3(network_name)
+
+    retval = None
+    try:
+        retval = pytest.main(args, plugins=[
+                SolidbyteTestPlugin(
+                    network_name=network_name,
+                    web3=web3,
+                    project_dir=project_dir,
+                    keystore_dir=keystore_dir,
+                    gas_report_storage=gas_report_storage,
+                )
+            ])
+    except Exception:
+        log.exception("Exception occurred while running tests.")
+        return 255
+
+    return retval
