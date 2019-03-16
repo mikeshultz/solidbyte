@@ -60,7 +60,6 @@ def run_script(network: str, script: str) -> bool:
     spec.loader.exec_module(mod)
 
     if not hasattr(mod, 'main'):
-        print("MOD", dir(mod))
         raise InvalidScriptError("Function main() must be defined in script")
 
     func_spec = inspect.getfullargspec(mod.main)
