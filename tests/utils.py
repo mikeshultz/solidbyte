@@ -17,6 +17,7 @@ from .const import (
     LIBRARY_SOURCE_FILE_3,
     USER_SCRIPT_1,
     USER_SCRIPT_FAIL,
+    USER_SCRIPT_INVALID,
 )
 
 RECURSUION_MAX = 15
@@ -90,6 +91,7 @@ def create_mock_project(project_dir):
     write_temp_file(PYTEST_TEST_1, 'test_testing.py', test_dir)
     write_temp_file(USER_SCRIPT_1, 'test_success.py', scripts_dir)
     write_temp_file(USER_SCRIPT_FAIL, 'test_fail.py', scripts_dir)
+    write_temp_file(USER_SCRIPT_INVALID, 'test_invalid.py', scripts_dir)
 
 
 def create_mock_project_with_libraries(project_dir):

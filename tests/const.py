@@ -475,3 +475,11 @@ def main(contracts):
     return False
 
 """
+
+USER_SCRIPT_INVALID = """
+
+# This is invalid
+def main_func(contracts):
+    return False
+
+"""

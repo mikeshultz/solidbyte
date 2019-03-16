@@ -1,5 +1,6 @@
 """ Tests for script command """
 from solidbyte.common.web3 import web3c
+from solidbyte.common.exceptions import InvalidScriptError
 from solidbyte.deploy import Deployer
 from solidbyte.compile.compiler import Compiler
 from solidbyte.script import get_contracts, run_script, run_scripts
@@ -97,3 +98,27 @@ def test_script_failure(mock_project):
         assert run_scripts(NETWORK_NAME, [str(test_script)]) is False, (
             "Scripts unexpectedly succeeded"
         )
+
+
+def test_invalid_script(mock_project):
+    """ test that invalid scripts fail """
+
+    with mock_project() as mock:
+        test_script = mock.paths.scripts.joinpath('test_nothing.py')
+        assert not test_script.is_file()
+        invalid_script = mock.paths.scripts.joinpath('test_invalid.py')
+        assert invalid_script.is_file()
+
+        try:
+            run_script(NETWORK_NAME, test_script)
+            assert False, "Should have thrown an error"
+        except FileNotFoundError:
+            pass
+
+        try:
+            run_script(NETWORK_NAME, invalid_script)
+            assert False, "Should have thrown an error"
+        except InvalidScriptError:
+            pass
+
+        assert run_scripts(NETWORK_NAME, []) is False
