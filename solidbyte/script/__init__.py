@@ -4,7 +4,6 @@ from types import ModuleType
 from typing import Optional, Any, Dict, List
 from attrdict import AttrDict
 from importlib.util import spec_from_file_location, module_from_spec
-from web3.eth import Contract as Web3Contract
 from ..deploy import Deployer
 from ..deploy.objects import Contract
 from ..common.utils import Path, to_path

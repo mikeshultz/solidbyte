@@ -1,5 +1,4 @@
 """ Tests for script command """
-from web3.eth import Contract as Web3Contract
 from solidbyte.common.web3 import web3c
 from solidbyte.deploy import Deployer
 from solidbyte.compile.compiler import Compiler
@@ -95,4 +94,6 @@ def test_script_failure(mock_project):
         d.deploy()
 
         assert run_script(NETWORK_NAME, str(test_script)) is False, "Script unexpectedly succeeded"
-        assert run_scripts(NETWORK_NAME, [str(test_script)]) is False, "Scripts unexpectedly succeeded"
+        assert run_scripts(NETWORK_NAME, [str(test_script)]) is False, (
+            "Scripts unexpectedly succeeded"
+        )
