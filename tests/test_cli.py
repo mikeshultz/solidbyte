@@ -142,6 +142,25 @@ def test_cli_integration(mock_project):
         # test `sb metafile cleanup`
         execute_command_assert_no_error_success([sb, 'metafile', 'cleanup'])
 
+        # test `sb deploy -a ADDRESS NETWORK`
+        # execute_command_assert_no_error_success([
+        #     sb,
+        #     'deploy',
+        #     '-a',
+        #     default_account,
+        #     'test',
+        # ])
+
+        # test `sb script NETWORK FILE`
+        # TODO: There's currently no persistance between the deploy command and the following
+        #       commands.  Might need to use ganache to test with instead of eth_tester.
+        # execute_command_assert_no_error_success([
+        #     sb,
+        #     'script',
+        #     'test',
+        #     'scripts/test_success.py',
+        # ])
+
     # Create a new project without the mock
     project_dir = TMP_DIR.joinpath('test-cli-init')
     project_dir.mkdir()
