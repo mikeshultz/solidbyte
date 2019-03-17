@@ -68,3 +68,6 @@ And `tests` will contain your [contract unit tests](https://github.com/mikeshult
 
 The `build` directory probably doesn't exist yet.  This will be created by
 solidbyte when necessary.
+
+You can also create scripts to be run by Solidbyte in the `scripts` directory.
+They must be implemented [according to the documentation](https://github.com/mikeshultz/solidbyte/blob/master/docs/script.md).
