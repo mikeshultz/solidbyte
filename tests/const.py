@@ -459,3 +459,27 @@ def main(contracts, deployer_account, web3, network):
     assert test.functions.sub(6, 3).call() == 3
     return True
 """
+
+USER_SCRIPT_1 = """
+
+def main(contracts):
+    print(contracts)
+    test = contracts.get('Test')
+    return test is not None and test.address is not None
+
+"""
+
+USER_SCRIPT_FAIL = """
+
+def main(contracts):
+    return False
+
+"""
+
+USER_SCRIPT_INVALID = """
+
+# This is invalid
+def main_func(contracts):
+    return False
+
+"""

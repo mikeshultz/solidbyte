@@ -21,6 +21,7 @@ MODULES = [
     'install',
     'metafile',
     'sigs',
+    'script',
 ]
 
 IMPORTED_MODULES = {}

@@ -37,6 +37,7 @@ class Template(object):
         tests_dir = self.pwd.joinpath('tests')
         contracts_dir = self.pwd.joinpath('contracts')
         deploy_dir = self.pwd.joinpath('deploy')
+        scripts_dir = self.pwd.joinpath('scripts')
 
         if tests_dir.exists() \
                 or contracts_dir.exists() \
@@ -55,3 +56,6 @@ class Template(object):
 
         log.debug("Creating deploy directory...")
         deploy_dir.mkdir(mode=self.dir_mode)
+
+        log.debug("Creating scripts directory...")
+        scripts_dir.mkdir(mode=self.dir_mode)

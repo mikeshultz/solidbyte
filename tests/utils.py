@@ -15,6 +15,9 @@ from .const import (
     CONTRACT_SOURCE_FILE_2,
     LIBRARY_SOURCE_FILE_1,
     LIBRARY_SOURCE_FILE_3,
+    USER_SCRIPT_1,
+    USER_SCRIPT_FAIL,
+    USER_SCRIPT_INVALID,
 )
 
 RECURSUION_MAX = 15
@@ -75,15 +78,20 @@ def create_mock_project(project_dir):
     contract_dir = project_dir.joinpath('contracts')
     deploy_dir = project_dir.joinpath('deploy')
     test_dir = project_dir.joinpath('tests')
+    scripts_dir = project_dir.joinpath('scripts')
 
     project_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
     contract_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
     deploy_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
+    scripts_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
 
     write_temp_file(NETWORKS_YML_1, 'networks.yml', project_dir)
     write_temp_file(CONTRACT_SOURCE_FILE_1, 'Test.sol', contract_dir)
     write_temp_file(CONTRACT_DEPLOY_SCRIPT_1, 'deploy_main.py', deploy_dir)
     write_temp_file(PYTEST_TEST_1, 'test_testing.py', test_dir)
+    write_temp_file(USER_SCRIPT_1, 'test_success.py', scripts_dir)
+    write_temp_file(USER_SCRIPT_FAIL, 'test_fail.py', scripts_dir)
+    write_temp_file(USER_SCRIPT_INVALID, 'test_invalid.py', scripts_dir)
 
 
 def create_mock_project_with_libraries(project_dir):

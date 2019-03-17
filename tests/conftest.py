@@ -39,6 +39,7 @@ def mock_project():
                         'contracts': project_dir.joinpath('contracts'),
                         'deploy': project_dir.joinpath('deploy'),
                         'build': project_dir.joinpath('build'),
+                        'scripts': project_dir.joinpath('scripts'),
                         'networksyml': project_dir.joinpath('networks.yml'),
                     })
             })
