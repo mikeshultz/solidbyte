@@ -125,5 +125,4 @@ def test_invalid_script(mock_project):
 def test_no_scripts(mock_project):
     """ test that no scripts doesn't fail """
 
-    with mock_project() as mock:
-        assert run_scripts(NETWORK_NAME, [])
+    assert run_scripts(NETWORK_NAME, [])
