@@ -154,6 +154,9 @@ def test_cli_integration(mock_project, ganache):
             # test `sb metafile cleanup`
             execute_command_assert_no_error_success([sb, 'metafile', 'cleanup'])
 
+            # test `sb metafile cleanup` when there's nothing to cleanup
+            execute_command_assert_no_error_success([sb, 'metafile', 'cleanup'])
+
             # test `sb deploy -a ADDRESS NETWORK`
             execute_command_assert_no_error_success([
                 sb,
@@ -237,6 +240,9 @@ def test_cli_invalid(mock_project, ganache):
 
         # Test init with an invalid template
         execute_command_assert_error([sb, 'init', '-t', 'notatemplate'])
+
+        # Test `sb metafile` without the needed subcommand
+        execute_command_assert_error([sb, 'metafile'])
 
 
 @pytest.mark.skip("Test does not work")
