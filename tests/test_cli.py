@@ -129,7 +129,7 @@ def test_cli_integration(mock_project, ganache):
             ])
 
             # test `sb show [network]`
-            execute_command_assert_no_error_success([sb, 'show', 'test'])
+            execute_command_assert_no_error_success([sb, 'show', gopts.network_name])
 
             # test `sb test [network]`
             # TODO: Currently throwing an exception.  Look into it.
@@ -139,6 +139,7 @@ def test_cli_integration(mock_project, ganache):
                 str(TMP_KEY_DIR),
                 '-d',
                 'test',
+                '-g',
                 '-p',
                 PASSWORD_1,
                 gopts.network_name,
@@ -175,6 +176,12 @@ def test_cli_integration(mock_project, ganache):
                 gopts.network_name,
                 'scripts/test_success.py',
             ])
+
+            # test `sb sigs`
+            execute_command_assert_no_error_success([sb, 'sigs'])
+
+            # test `sb sigs [contract]`
+            execute_command_assert_no_error_success([sb, 'sigs', 'Test'])
 
             # Create a new project without the mock
             project_dir = TMP_DIR.joinpath('test-cli-init')
