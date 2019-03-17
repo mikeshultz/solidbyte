@@ -195,11 +195,16 @@ def test_web3_middleware(mock_project):
         })
         receipt2 = web3.eth.waitForTransactionReceipt(tx_hash2)
 
+        try:
+            storage.update_gas_used_from_chain(None)
+            assert False, "update_gas_used_from_chain should have failed without web3"
+        except Exception:
+            pass
+
         storage.update_gas_used_from_chain(web3)
 
         total_gas = receipt1.gasUsed + receipt2.gasUsed
 
         report = storage.get_report()
         assert report
-        print(report)
         assert sum([sum(x) for x in report.values()]) == total_gas
