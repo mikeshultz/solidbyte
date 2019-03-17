@@ -1,7 +1,6 @@
 """ Tests for the gas report module. """
-import pytest
 from solidbyte.testing.gas import GasTransaction, GasReportStorage
-from .const import NETWORK_NAME, TEST_HASH, ADDRESS_2_HASH, ADDRESS_1, ADDRESS_2
+from .const import TEST_HASH, ADDRESS_2_HASH, ADDRESS_1, ADDRESS_2
 
 
 def test_transaction(mock_project):
