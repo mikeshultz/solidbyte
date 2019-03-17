@@ -1,6 +1,14 @@
 """ Tests for the gas report module. """
-from solidbyte.testing.gas import GasTransaction, GasReportStorage
-from .const import TEST_HASH, ADDRESS_2_HASH, BYTECODE_HASH_1, ADDRESS_1, ADDRESS_2
+from solidbyte.common.web3 import web3c
+from solidbyte.testing.gas import GasTransaction, GasReportStorage, construct_gas_report_middleware
+from .const import (
+    NETWORK_NAME,
+    TEST_HASH,
+    ADDRESS_2_HASH,
+    BYTECODE_HASH_1,
+    ADDRESS_1,
+    ADDRESS_2,
+)
 
 
 def test_transaction(mock_project):
@@ -142,3 +150,56 @@ def test_gas_report_storage_wrong_transactions():
         assert False, "update_transaction_gas_used() should have failed"
     except ValueError:
         pass
+
+
+def test_web3_middleware(mock_project):
+    """ Test the gas report middleware for web3 """
+
+    with mock_project() as mock:
+
+        web3c._load_configuration(mock.paths.networksyml)
+        web3 = web3c.get_web3(NETWORK_NAME)
+
+        storage = GasReportStorage()
+
+        web3.middleware_stack.add(
+            construct_gas_report_middleware(storage),
+            'gas_report_middleware',
+        )
+
+        value = int(1e16)  # 0.01 Ether
+        gas = int(1e6)
+        gas_price = int(3e9)
+
+        assert web3.is_eth_tester
+        joe = web3.eth.accounts[1]
+        jak = web3.eth.accounts[2]
+
+        tx_hash1 = web3.eth.sendTransaction({
+            'from': joe,
+            'to': jak,
+            'value': value,
+            'gas': gas,
+            'gasPrice': gas_price,
+            'data': TEST_HASH,
+        })
+        receipt1 = web3.eth.waitForTransactionReceipt(tx_hash1)
+
+        tx_hash2 = web3.eth.sendTransaction({
+            'from': jak,
+            'to': joe,
+            'value': value,
+            'gas': gas,
+            'gasPrice': gas_price,
+            'data': TEST_HASH,
+        })
+        receipt2 = web3.eth.waitForTransactionReceipt(tx_hash2)
+
+        storage.update_gas_used_from_chain(web3)
+
+        total_gas = receipt1.gasUsed + receipt2.gasUsed
+
+        report = storage.get_report()
+        assert report
+        print(report)
+        assert sum([sum(x) for x in report.values()]) == total_gas
