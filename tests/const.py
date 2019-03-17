@@ -18,6 +18,8 @@ ADDRESS_2 = '0x2c21CE1cEe5B9b1C8aA71aB09a47a5361a36beAE'
 ADDRESS_2_HASH = '0x4ff6eacd66bd565ddc5e1d660414a8f15d2bb42314b9fc2019dadbf29eefa07a'
 ADDRESS_2_NOT_CHECKSUM = '0x2c21ce1cEe5B9B1C8aA71aB09a47a5361a36beAE'
 NETWORK_ID = 999
+GANACHE_PORT = 8576  # Testing port, not to conflict with standard
+GANACHE_NETWORK_NAME = 'testganache'
 ABI_OBJ_1 = [{
   "inputs": [],
   "payable": False,
@@ -103,7 +105,10 @@ test:
 dev:
   type: auto
   autodeploy_allowed: true
-"""
+{}:
+  type: http
+  url: http://localhost:{}/
+""".format(GANACHE_NETWORK_NAME, GANACHE_PORT)
 NETWORKS_YML_2 = """# networks.yml
 ---
 test:

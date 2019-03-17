@@ -166,3 +166,7 @@ def setup_venv_with_solidbyte(loc=None):
     assert setuppy.is_file(), "unable to find Solidbyte's setup.py"
     assert pip_install(python), "Install of solidbyte failed"
     return python
+
+
+def dict_to_cli_option_list(opt_dict):
+    return ['-{} {}'.format(opt, opt_dict[opt]).strip() for opt in opt_dict.keys()]
