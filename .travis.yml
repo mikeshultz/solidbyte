@@ -4,7 +4,7 @@ python:
   - 3.6-dev
   - 3.7-dev
 env:
-  - TESTING=1 SCRIPT='pytest -s --cov solidbyte --cov-report term-missing'
+  - TESTING=1 SCRIPT='pytest -v --cov solidbyte --cov-report term-missing'
 install:
   - pip install -r requirements.dev.txt
   - pip install -r requirements.test.txt
