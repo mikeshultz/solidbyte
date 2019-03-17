@@ -1,16 +1,19 @@
 import os
+import shutil
 import pytest
 from pathlib import Path
+from subprocess import Popen
 from datetime import datetime
 from attrdict import AttrDict
 from contextlib import contextmanager
 from solidbyte.common.logging import setDebugLogging
-from .const import TMP_DIR
+from .const import TMP_DIR, GANACHE_PORT, GANACHE_NETWORK_NAME
 from .utils import (
     create_mock_project,
     create_mock_project_with_libraries,
     delete_path_recursively,
     setup_venv_with_solidbyte,
+    dict_to_cli_option_list,
 )
 
 
@@ -79,3 +82,29 @@ def virtualenv():
             })
         delete_path_recursively(venv_dir)
     return yield_venv
+
+
+@pytest.fixture
+def ganache():
+    """ Provide a ganache instance to test against. A little slower than eth_tester, but useful
+    for when persistence is necessary.
+    """
+    @contextmanager
+    def yield_ganache(options={'a': 10, 'p': GANACHE_PORT}):  # uses a non-standard port
+
+        ganache_command = shutil.which('ganache-cli')
+        opt_list = dict_to_cli_option_list(options)
+        command = [ganache_command, *opt_list]
+
+        with Popen(command) as proc:
+            if proc.poll() is not None:
+                raise Exception("Unable to launch ganache-cli.  Return code: {}".format(
+                    proc.returncode
+                ))
+            yield AttrDict({
+                'command': ' '.join(command),
+                'proc': proc,
+                'network_name': GANACHE_NETWORK_NAME,
+            })
+            proc.terminate()
+    return yield_ganache
