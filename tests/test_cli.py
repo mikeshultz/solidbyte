@@ -8,7 +8,7 @@ import time
 import pytest
 from pathlib import Path
 from subprocess import Popen, PIPE
-from .const import TMP_DIR, PASSWORD_1, SOLIDBYTE_COMMAND, CONSOLE_TEST_ASSERT_LOCALS
+from .const import NETWORK_NAME, TMP_DIR, PASSWORD_1, SOLIDBYTE_COMMAND, CONSOLE_TEST_ASSERT_LOCALS
 
 ACCOUNT_MATCH_PATTERN = r'^(0x[A-Fa-f0-9]{40})'
 
@@ -176,27 +176,40 @@ def test_cli_integration(mock_project, ganache):
                 'scripts/test_success.py',
             ])
 
-    # Create a new project without the mock
-    project_dir = TMP_DIR.joinpath('test-cli-init')
-    project_dir.mkdir()
-    os.chdir(project_dir)
+            # Create a new project without the mock
+            project_dir = TMP_DIR.joinpath('test-cli-init')
+            project_dir.mkdir()
+            os.chdir(project_dir)
 
-    # test `sb init --list-templates`
-    execute_command_assert_no_error_success([sb, 'init', '--list-templates'])
+            # test `sb init --list-templates`
+            execute_command_assert_no_error_success([sb, 'init', '--list-templates'])
 
-    # test `sb init -t [template]`
-    execute_command_assert_no_error_success([sb, 'init', '-t', 'erc20'])
+            # test `sb init -t [template]`
+            execute_command_assert_no_error_success([sb, 'init', '-t', 'erc20'])
 
-    # Create a new project without the mock
-    project_dir2 = TMP_DIR.joinpath('test-cli-init2')
-    project_dir2.mkdir()
-    os.chdir(project_dir2)
+            execute_command_assert_no_error_success([sb, 'compile'])
+            execute_command_assert_no_error_success([
+                sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'test',
+                NETWORK_NAME,
+                '-a',
+                default_account,
+                '-p',
+                PASSWORD_1
+            ])
 
-    # test `sb init -t [template]`
-    execute_command_assert_no_error_success([sb, '-d', 'init', '--dir-mode', '750'])
+            # Create a new project without the mock
+            project_dir2 = TMP_DIR.joinpath('test-cli-init2')
+            project_dir2.mkdir()
+            os.chdir(project_dir2)
 
-    stat = project_dir2.joinpath('contracts').stat()
-    assert stat.st_mode == 0o750 + 0o40000  # 0o40000 means 'directory'
+            # test `sb init -t [template]`
+            execute_command_assert_no_error_success([sb, '-d', 'init', '--dir-mode', '750'])
+
+            stat = project_dir2.joinpath('contracts').stat()
+            assert stat.st_mode == 0o750 + 0o40000  # 0o40000 means 'directory'
 
     os.chdir(orig_pwd)
 
