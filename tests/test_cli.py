@@ -32,6 +32,14 @@ def execute_command_assert_no_error_success(cmd):
     return list_output
 
 
+def execute_command_assert_error(cmd):
+    """ Test that a command errors with a return code > 0 """
+    assert type(cmd) == list
+    proc = Popen(cmd)
+    proc.wait()
+    assert proc.returncode > 0, "Invalid return code from command"
+
+
 def test_cli_integration(mock_project, ganache):
     """ Test valid CLI `accounts` commands """
 
@@ -47,6 +55,9 @@ def test_cli_integration(mock_project, ganache):
 
             # test `sb version`
             execute_command_assert_no_error_success([sb, 'version'])
+
+            # test `sb help`
+            execute_command_assert_no_error_success([sb, 'help'])
 
             # test `sb accounts create`
             # Need to deal with stdin for the account encryption passphrase
@@ -177,6 +188,21 @@ def test_cli_integration(mock_project, ganache):
     execute_command_assert_no_error_success([sb, 'init', '-t', 'erc20'])
 
     os.chdir(orig_pwd)
+
+
+def test_cli_invalid(mock_project, ganache):
+    """ Test valid CLI `accounts` commands """
+
+    # Our command
+    sb = SOLIDBYTE_COMMAND
+
+    with mock_project():
+
+        # test `sb` (noop)
+        execute_command_assert_error([sb])
+
+        # Test a command that doesn't exist
+        execute_command_assert_error([sb, 'notacommand'])
 
 
 @pytest.mark.skip("Test does not work")
