@@ -228,6 +228,9 @@ def test_cli_invalid(mock_project, ganache):
         # Test a command that doesn't exist
         execute_command_assert_error([sb, 'notacommand'])
 
+        # Test init with an invalid template
+        execute_command_assert_error([sb, 'init', '-t', 'notatemplate'])
+
 
 @pytest.mark.skip("Test does not work")
 def test_cli_console(mock_project):
