@@ -187,6 +187,17 @@ def test_cli_integration(mock_project, ganache):
     # test `sb init -t [template]`
     execute_command_assert_no_error_success([sb, 'init', '-t', 'erc20'])
 
+    # Create a new project without the mock
+    project_dir2 = TMP_DIR.joinpath('test-cli-init2')
+    project_dir2.mkdir()
+    os.chdir(project_dir2)
+
+    # test `sb init -t [template]`
+    execute_command_assert_no_error_success([sb, '-d', 'init', '--dir-mode', '750'])
+
+    stat = project_dir2.joinpath('contracts').stat()
+    assert stat.st_mode == 0o750 + 0o40000  # 0o40000 means 'directory'
+
     os.chdir(orig_pwd)
 
 
