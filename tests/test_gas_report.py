@@ -102,10 +102,7 @@ def test_gas_report_storage_invalid_transactions():
 
     gas_limit = int(1e6)
     gas_price = int(3e9)
-    gas_used = int(75000)
-    tx_hash = ADDRESS_2_HASH
     data = TEST_HASH
-    expected_sig = data[2:10]
 
     # No `gas` prop
     try:
