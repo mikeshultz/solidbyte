@@ -149,6 +149,11 @@ CONSOLE_TEST_ASSERT_LOCALS = [
     "exit(1337)\n",
 ]
 
+CONSOLE_TEST_ASSERT_CONTRACTS = [
+    "assert 'Test' in locals(), 'Test contract missing'\n",
+    "exit(1337)\n",
+]
+
 ####
 # Source files for a test project with a library
 ####
