@@ -132,10 +132,11 @@ infura-mainnet-http:
   url: https://mainnet.infura.io/asdfkey
 """
 PYTEST_TEST_1 = """
-def test_fixtures(web3, contracts):
+def test_fixtures(web3, contracts, local_accounts):
     assert web3 is not None
     assert contracts is not None
     assert contracts.get('Test') is not None
+    assert local_accounts is not None
 """
 
 # Console test commands
