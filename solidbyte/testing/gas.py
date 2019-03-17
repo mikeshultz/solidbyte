@@ -68,9 +68,9 @@ class GasReportStorage(object):
             self.transactions[idx].gas_used = receipt.gasUsed
             self.total_gas += receipt.gasUsed
 
-    def get_report(self):
+    def get_report(self, force=False):
 
-        if len(self.report) < 1:
+        if len(self.report) < 1 or force:
             self._build_report()
 
         return self.report
