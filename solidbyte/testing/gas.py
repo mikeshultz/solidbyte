@@ -106,8 +106,10 @@ def construct_gas_report_middleware(gas_report_storage):
         def middleware(method, params):
 
             if method == 'eth_sendTransaction':
+                log.debug("gas_report_middleware eth_sendTransaction: {}".format(params))
                 gas_report_storage.add_transaction(params)
             elif method == 'eth_sendRawTransaction':
+                log.debug("gas_report_middleware eth_sendRawTransaction: {}".format(params))
                 log.warning("Raw transactions will be excluded from the gas report.")
 
             response = make_request(method, params)
