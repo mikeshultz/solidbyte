@@ -22,6 +22,7 @@ class GasReportStorage(object):
         self.transactions: List[GasTransaction] = list()
         self.total_gas: int = 0
         self.report: Dict[str, List[int]] = dict()
+        self.skip_last = False
 
     def add_transaction(self, params: List) -> None:
 
@@ -29,20 +30,28 @@ class GasReportStorage(object):
 
         for tx in params:
 
-            if 'gas' not in tx or 'data' not in tx:
+            if 'gas' not in tx:
                 log.debug("TX: {}".format(tx))
                 raise ValueError("Malformed transaction")
+
+            # We only want to track transactions with contract calls
+            if 'data' not in tx:
+                skip_last = True
+                continue
 
             self.transactions.append(GasTransaction(tx['gas'], tx['data']))
 
     def update_last_transaction_set_hash(self, tx_hash):
-        assert len(self.transactions) > 0, "No transactions to update"
+        if len(self.transactions) < 1 or self.skip_last:
+            self.skip_last = False
+            return
         self.transactions[-1].tx_hash = tx_hash
 
     def update_transaction_gas_used(self, tx_hash, gas_used):
         tx_idx = self._get_tx_idx(tx_hash)
         if tx_idx < 0:
-            raise ValueError("Can not update gas used for transaction because it does not exist.")
+            log.debug("Can not update gas used for transaction because it does not exist.")
+            return
         self.transactions[tx_idx].gas_used = gas_used
         self.total_gas += gas_used
 
