@@ -45,10 +45,26 @@ def execute_command_assert_no_error_success(cmd):
     return list_output
 
 
-def execute_command_assert_error(cmd):
+def execute_command_assert_error(cmd, expected_error_contains=None):
     """ Test that a command errors with a return code > 0 """
     assert type(cmd) == list
-    proc = Popen(cmd)
+    stdout = None
+    stderr = None
+    if expected_error_contains:
+        stdout = PIPE
+        stderr = PIPE
+    proc = Popen(cmd, stdout=stdout, stderr=stderr)
+    if expected_error_contains:
+        output = proc.stdout.read()
+        error = proc.stderr.read()
+        if type(expected_error_contains) == str:
+            expected_error_contains = expected_error_contains.encode('utf-8')
+        assert (
+            expected_error_contains in output
+            or expected_error_contains in error
+        ), (
+            "Expected {} in error output.".format(expected_error_contains)
+        )
     proc.wait()
     if proc.returncode is None:
         proc.terminate()
@@ -174,6 +190,20 @@ def test_cli_integration(mock_project, ganache):
                 str(mock.paths.tests.joinpath('test_testing.py'))
             ])
 
+            # test `sb test [network]` on a network with autodeploy not allowed
+            execute_command_assert_error([
+                sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                '-d',
+                'test',
+                'nodeploy',
+                '-a',
+                default_account,
+                '-p',
+                PASSWORD_1,
+            ], 'autodpeloy is not allowed')
+
             # test `sb metafile backup metafile.json.bak`
             execute_command_assert_no_error_success([sb, 'metafile', 'backup', 'metafile.json.bak'])
 
@@ -275,18 +305,6 @@ def test_cli_invalid(mock_project, temp_dir):
 
         # Test `sb metafile` without the needed subcommand
         execute_command_assert_error([sb, 'metafile'])
-
-        # test `sb test [network]`
-        execute_command_assert_error([
-            sb,
-            '-k',
-            str(tmp_key_dir),
-            '-d',
-            'test',
-            '-p',
-            PASSWORD_1,
-            'geth',
-        ])
 
         # test `sb script NETWORK FILE`
         execute_command_assert_error([

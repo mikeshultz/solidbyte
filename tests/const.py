@@ -112,12 +112,18 @@ NETWORKS_YML_1 = """# networks.yml
 test:
   type: eth_tester
   autodeploy_allowed: true
+
 dev:
   type: auto
   autodeploy_allowed: true
+
 {}:
   type: http
   url: http://localhost:{}/
+
+nodeploy:
+  type: eth_tester
+
 """.format(GANACHE_NETWORK_NAME, GANACHE_PORT)
 NETWORKS_YML_2 = """# networks.yml
 ---
