@@ -89,6 +89,8 @@ class GasReportStorage(object):
             else:
                 log.warn("No function signature")
 
+        log.debug("Report finished.")
+
     def _get_tx_idx(self, tx_hash) -> int:
         """ Get the index for a transaction with tx_hash """
         for idx in range(0, len(self.transactions)):
