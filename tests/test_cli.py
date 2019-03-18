@@ -289,8 +289,6 @@ def test_cli_invalid(mock_project, temp_dir):
 
     with mock_project():
 
-        tmp_key_dir = TMP_DIR.joinpath('test-keys')
-
         # test `sb` (noop)
         execute_command_assert_error([sb])
 
