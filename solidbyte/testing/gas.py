@@ -36,7 +36,7 @@ class GasReportStorage(object):
 
             # We only want to track transactions with contract calls
             if 'data' not in tx:
-                skip_last = True
+                self.skip_last = True
                 continue
 
             self.transactions.append(GasTransaction(tx['gas'], tx['data']))
