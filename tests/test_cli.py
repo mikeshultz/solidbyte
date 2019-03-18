@@ -6,11 +6,11 @@ import os
 import re
 import sys
 import time
+import pytest
 from pathlib import Path
 from subprocess import Popen, PIPE
 from .const import (
     NETWORK_NAME,
-    TMP_DIR,
     PASSWORD_1,
     SOLIDBYTE_COMMAND,
     CONSOLE_TEST_ASSERT_LOCALS,
@@ -73,29 +73,30 @@ def execute_command_assert_error(cmd, expected_error_contains=None):
     )
 
 
-def test_cli_integration(mock_project, ganache):
+@pytest.mark.parametrize("sb", [
+    [SOLIDBYTE_COMMAND],
+    ['python', '-m', 'solidbyte'],
+])
+def test_cli_integration(sb, mock_project, ganache):
     """ Test valid CLI `accounts` commands """
 
     orig_pwd = Path.cwd()
 
-    # Our command
-    sb = SOLIDBYTE_COMMAND
-
     with mock_project() as mock:
         with ganache() as gopts:
 
-            TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
+            TMP_KEY_DIR = mock.paths.project.joinpath('test-keys')
 
             # test `sb version`
-            execute_command_assert_no_error_success([sb, 'version'])
+            execute_command_assert_no_error_success([*sb, 'version'])
 
             # test `sb help`
-            execute_command_assert_no_error_success([sb, 'help'])
+            execute_command_assert_no_error_success([*sb, 'help'])
 
             # test `sb accounts create`
             # Need to deal with stdin for the account encryption passphrase
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 'accounts',
@@ -105,11 +106,11 @@ def test_cli_integration(mock_project, ganache):
             ])
 
             # test `sb accounts list`
-            # execute_command_assert_no_error_success([sb, 'accounts', 'list'])
+            # execute_command_assert_no_error_success([*sb, 'accounts', 'list'])
 
             # test `sb accounts [network] list`
             accounts_output = execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 'accounts',
@@ -131,7 +132,7 @@ def test_cli_integration(mock_project, ganache):
 
             # test `sb accounts default -a [account]`
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 'accounts',
@@ -141,16 +142,16 @@ def test_cli_integration(mock_project, ganache):
             ])
 
             # test `sb compile`
-            execute_command_assert_no_error_success([sb, 'compile'])
+            execute_command_assert_no_error_success([*sb, 'compile'])
 
             # test `sb console [network]`
             # Disabled for now.  It's interactive and no idea how to deal with that
-            # execute_command_assert_no_error_success([sb, 'console', 'test'])
+            # execute_command_assert_no_error_success([*sb, 'console', 'test'])
 
             # test `sb deploy [network] -a [account]`
             # Disabled.  Need an account to test with
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 'deploy',
@@ -162,11 +163,11 @@ def test_cli_integration(mock_project, ganache):
             ])
 
             # test `sb show [network]`
-            execute_command_assert_no_error_success([sb, 'show', gopts.network_name])
+            execute_command_assert_no_error_success([*sb, 'show', gopts.network_name])
 
             # test `sb test [network]`
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 '-d',
@@ -179,7 +180,7 @@ def test_cli_integration(mock_project, ganache):
 
             # test `sb test [network] [file]`
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 '-d',
@@ -192,7 +193,7 @@ def test_cli_integration(mock_project, ganache):
 
             # test `sb test [network]` on a network with autodeploy not allowed
             execute_command_assert_error([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 '-d',
@@ -205,20 +206,20 @@ def test_cli_integration(mock_project, ganache):
             ], 'autodpeloy is not allowed')
 
             # test `sb metafile backup metafile.json.bak`
-            execute_command_assert_no_error_success([sb, 'metafile', 'backup', 'metafile.json.bak'])
+            execute_command_assert_no_error_success([*sb, 'metafile', 'backup', 'metafile.json.bak'])
 
             # test `sb metafile cleanup --dry-run`
-            execute_command_assert_no_error_success([sb, 'metafile', 'cleanup', '--dry-run'])
+            execute_command_assert_no_error_success([*sb, 'metafile', 'cleanup', '--dry-run'])
 
             # test `sb metafile cleanup`
-            execute_command_assert_no_error_success([sb, 'metafile', 'cleanup'])
+            execute_command_assert_no_error_success([*sb, 'metafile', 'cleanup'])
 
             # test `sb metafile cleanup` when there's nothing to cleanup
-            execute_command_assert_no_error_success([sb, 'metafile', 'cleanup'])
+            execute_command_assert_no_error_success([*sb, 'metafile', 'cleanup'])
 
             # test `sb deploy -a ADDRESS NETWORK`
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 'deploy',
@@ -231,32 +232,32 @@ def test_cli_integration(mock_project, ganache):
 
             # test `sb script NETWORK FILE`
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 'script',
                 gopts.network_name,
                 'scripts/test_success.py',
             ])
 
             # test `sb sigs`
-            execute_command_assert_no_error_success([sb, 'sigs'])
+            execute_command_assert_no_error_success([*sb, 'sigs'])
 
             # test `sb sigs [contract]`
-            execute_command_assert_no_error_success([sb, 'sigs', 'Test'])
+            execute_command_assert_no_error_success([*sb, 'sigs', 'Test'])
 
             # Create a new project without the mock
-            project_dir = TMP_DIR.joinpath('test-cli-init')
+            project_dir = mock.paths.project.joinpath('test-cli-init')
             project_dir.mkdir()
             os.chdir(project_dir)
 
             # test `sb init --list-templates`
-            execute_command_assert_no_error_success([sb, 'init', '--list-templates'])
+            execute_command_assert_no_error_success([*sb, 'init', '--list-templates'])
 
             # test `sb init -t [template]`
-            execute_command_assert_no_error_success([sb, 'init', '-t', 'erc20'])
+            execute_command_assert_no_error_success([*sb, 'init', '-t', 'erc20'])
 
-            execute_command_assert_no_error_success([sb, 'compile'])
+            execute_command_assert_no_error_success([*sb, 'compile'])
             execute_command_assert_no_error_success([
-                sb,
+                *sb,
                 '-k',
                 str(TMP_KEY_DIR),
                 'test',
@@ -268,12 +269,12 @@ def test_cli_integration(mock_project, ganache):
             ])
 
             # Create a new project without the mock
-            project_dir2 = TMP_DIR.joinpath('test-cli-init2')
+            project_dir2 = mock.paths.project.joinpath('test-cli-init2')
             project_dir2.mkdir()
             os.chdir(project_dir2)
 
             # test `sb init -t [template]`
-            execute_command_assert_no_error_success([sb, '-d', 'init', '--dir-mode', '750'])
+            execute_command_assert_no_error_success([*sb, '-d', 'init', '--dir-mode', '750'])
 
             stat = project_dir2.joinpath('contracts').stat()
             assert stat.st_mode == 0o750 + 0o40000  # 0o40000 means 'directory'
@@ -281,32 +282,33 @@ def test_cli_integration(mock_project, ganache):
     os.chdir(orig_pwd)
 
 
-def test_cli_invalid(mock_project, temp_dir):
+@pytest.mark.parametrize("sb", [
+    [SOLIDBYTE_COMMAND],
+    ['python', '-m', 'solidbyte'],
+])
+def test_cli_invalid(sb, mock_project, temp_dir):
     """ Test valid CLI `accounts` commands """
-
-    # Our command
-    sb = SOLIDBYTE_COMMAND
 
     with mock_project():
 
         # test `sb` (noop)
-        execute_command_assert_error([sb])
+        execute_command_assert_error([*sb])
 
         # Test a command that doesn't exist
-        execute_command_assert_error([sb, 'notacommand'])
+        execute_command_assert_error([*sb, 'notacommand'])
 
         # Test init with an invalid template
-        execute_command_assert_error([sb, 'init', '-t', 'notatemplate'])
+        execute_command_assert_error([*sb, 'init', '-t', 'notatemplate'])
 
         # Test init with an invalid dir-mode
-        execute_command_assert_error([sb, 'init', '--dir-mode', 'roflmao'])
+        execute_command_assert_error([*sb, 'init', '--dir-mode', 'roflmao'])
 
         # Test `sb metafile` without the needed subcommand
-        execute_command_assert_error([sb, 'metafile'])
+        execute_command_assert_error([*sb, 'metafile'])
 
         # test `sb script NETWORK FILE`
         execute_command_assert_error([
-            sb,
+            *sb,
             'script',
             NETWORK_NAME,
             'scripts/test_fail.py',
@@ -317,7 +319,7 @@ def test_cli_invalid(mock_project, temp_dir):
         contractsfile.touch()
 
         # init should fail with a conflicting file in the project dir
-        execute_command_assert_error([sb, 'init', '-t', 'erc20'])
+        execute_command_assert_error([*sb, 'init', '-t', 'erc20'])
 
 
 def test_cli_console(mock_project):
