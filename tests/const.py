@@ -137,6 +137,12 @@ infura-mainnet-http:
 NETWORKS_YML_NOCONFIG = """# networks.yml
 ---
 """
+NETWORKS_YML_INVALID_TYPE = """# networks.yml
+---
+test:
+    type: notatype
+    file: /tmp/nothing.yml
+"""
 PYTEST_TEST_1 = """
 def test_fixtures(web3, contracts, local_accounts):
     assert web3 is not None
