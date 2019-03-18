@@ -4,7 +4,7 @@ import yaml
 from typing import Union, Any, Dict, List
 from pathlib import Path
 from .logging import getLogger
-from .exceptions import ConfigurationError
+from .exceptions import ConfigurationError, ValidationError
 from .utils import to_path_or_cwd
 
 log = getLogger(__name__)
@@ -76,15 +76,11 @@ class NetworksYML:
 
         log.debug("Loading networks configuration from {}...".format(self.config_file))
 
-        try:
-            with open(self.config_file, 'r') as cfile:
-                self.config = yaml.load(cfile)
-                if not self.config:
-                    raise ConfigurationError("Unable to load networks.yml!")
-                self.networks = list(self.config.keys())
-        except Exception as e:
-            log.exception("Failed to load networks.yml")
-            raise e
+        with open(self.config_file, 'r') as cfile:
+            self.config = yaml.load(cfile)
+            if not self.config:
+                raise ConfigurationError("Unable to load networks.yml!")
+            self.networks = list(self.config.keys())
 
     def network_config_exists(self, name: str) -> bool:
         """ Check and see if we have configuration for name """
