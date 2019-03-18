@@ -132,6 +132,9 @@ infura-mainnet-http:
   type: http
   url: https://mainnet.infura.io/asdfkey
 """
+NETWORKS_YML_NOCONFIG = """# networks.yml
+---
+"""
 PYTEST_TEST_1 = """
 def test_fixtures(web3, contracts, local_accounts):
     assert web3 is not None
