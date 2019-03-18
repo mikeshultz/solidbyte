@@ -4,11 +4,18 @@
 """
 import os
 import re
+import sys
 import time
-import pytest
 from pathlib import Path
 from subprocess import Popen, PIPE
-from .const import NETWORK_NAME, TMP_DIR, PASSWORD_1, SOLIDBYTE_COMMAND, CONSOLE_TEST_ASSERT_LOCALS
+from .const import (
+    NETWORK_NAME,
+    TMP_DIR,
+    PASSWORD_1,
+    SOLIDBYTE_COMMAND,
+    CONSOLE_TEST_ASSERT_LOCALS,
+    OBVIOUS_RETURN_CODE,
+)
 
 ACCOUNT_MATCH_PATTERN = r'^(0x[A-Fa-f0-9]{40})'
 
@@ -245,40 +252,32 @@ def test_cli_invalid(mock_project, ganache):
         execute_command_assert_error([sb, 'metafile'])
 
 
-@pytest.mark.skip("Test does not work")
 def test_cli_console(mock_project):
     """ test the interactive console and some present commands """
 
     with mock_project():
         # Run the console command
-        console_proc = Popen([SOLIDBYTE_COMMAND, 'console', 'test'], universal_newlines=True,
-                             bufsize=1, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+        console_command = [SOLIDBYTE_COMMAND, 'console', 'test']
+        print('console_command: {}'.format(' '.join(console_command)))
+        console_proc = Popen(console_command, universal_newlines=True,
+                             bufsize=1, stdout=sys.stdout, stdin=PIPE, stderr=sys.stderr)
 
-        time.sleep(3)  # Arbitrary number that may fail randomly on loaded machines...
         # Pretend we're a user by typing randomly in the console
         commands = CONSOLE_TEST_ASSERT_LOCALS.copy()
-        seen_output = False
+
         while True:
-            out = console_proc.stdout.readline()
-            err = console_proc.stderr.readline()
+            cmd = commands.pop(0)
+            print(cmd)
+            console_proc.stdin.write(cmd)
+            console_proc.stdin.flush()
 
-            if seen_output:
-                cmd = commands.pop(0)
-                console_proc.stdin.write(cmd)
-                console_proc.stdin.flush()
-
-            # We're waiting for the console to make the first move
-            if (out or err) and not seen_output:
-                seen_output = True
-
-            if commands and len(commands) == 0:
+            if not commands or (commands and len(commands) == 0):
                 break
 
             time.sleep(0.5)
 
         console_proc.stdin.close()
-        out = console_proc.stdout.read()
-        err = console_proc.stderr.read()
-        console_proc.stdout.close()
-        console_proc.stderr.close()
-        assert False
+        console_proc.wait()
+        assert console_proc.returncode == OBVIOUS_RETURN_CODE, (
+            "Console closed in an unexpected manner"
+        )

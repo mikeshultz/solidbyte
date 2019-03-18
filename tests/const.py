@@ -27,6 +27,7 @@ ABI_OBJ_1 = [{
   "type": "constructor"
 }]
 BYTECODE_HASH_1 = '0x6385b18cc3f884baad806ee4508837d3a27c734268f9555f76cd12ec3ff38339'
+OBVIOUS_RETURN_CODE = 254
 
 CONTRACT_NAME_1 = "MyContract"
 LIBRARY_NAME_1 = "MyLibrary"
@@ -141,17 +142,19 @@ def test_fixtures(web3, contracts, local_accounts):
 
 # Console test commands
 CONSOLE_TEST_ASSERT_LOCALS = [
+    "import sys\n",
     "assert 'web3' in locals(), 'web3 missing'\n",
     "assert 'accounts' in locals(), 'accounts missing'\n",
     "assert 'network' in locals(), 'network missing'\n",
     "assert 'network_id' in locals(), 'network_id missing'\n",
     "assert 'nothing' not in locals(), 'nothing found'\n",
-    "exit(1337)\n",
+    "sys.exit({})\n".format(OBVIOUS_RETURN_CODE),
 ]
 
 CONSOLE_TEST_ASSERT_CONTRACTS = [
+    "import sys\n",
     "assert 'Test' in locals(), 'Test contract missing'\n",
-    "exit(1337)\n",
+    "sys.exit({})\n".format(OBVIOUS_RETURN_CODE),
 ]
 
 ####

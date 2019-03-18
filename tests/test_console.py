@@ -10,6 +10,7 @@ from .const import (
     NETWORK_NAME,
     CONSOLE_TEST_ASSERT_LOCALS,
     CONSOLE_TEST_ASSERT_CONTRACTS,
+    OBVIOUS_RETURN_CODE,
 )
 
 
@@ -44,7 +45,9 @@ def test_console(mock_project):
                     """ Since AssertionError exits with code 0 for some reason, our test exits
                         cleanly with code 1337.
                     """
-                    assert str(err) != b'1337', "Invalid exit code: {}".format(str(err))
+                    assert str(err) == str(OBVIOUS_RETURN_CODE), (
+                        "Invalid exit code: {}".format(str(err))
+                    )
 
 
 def test_console_contracts(mock_project):
@@ -84,4 +87,6 @@ def test_console_contracts(mock_project):
                     """ Since AssertionError exits with code 0 for some reason, our test exits
                         cleanly with code 1337.
                     """
-                    assert str(err) != b'1337', "Invalid exit code: {}".format(str(err))
+                    assert str(err) == str(OBVIOUS_RETURN_CODE), (
+                        "Invalid exit code: {}".format(str(err))
+                    )
