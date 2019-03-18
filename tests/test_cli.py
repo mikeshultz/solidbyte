@@ -55,7 +55,7 @@ def test_cli_integration(mock_project, ganache):
     # Our command
     sb = SOLIDBYTE_COMMAND
 
-    with mock_project():
+    with mock_project() as mock:
         with ganache() as gopts:
 
             TMP_KEY_DIR = TMP_DIR.joinpath('test-keys')
@@ -139,7 +139,6 @@ def test_cli_integration(mock_project, ganache):
             execute_command_assert_no_error_success([sb, 'show', gopts.network_name])
 
             # test `sb test [network]`
-            # TODO: Currently throwing an exception.  Look into it.
             execute_command_assert_no_error_success([
                 sb,
                 '-k',
@@ -150,6 +149,19 @@ def test_cli_integration(mock_project, ganache):
                 '-p',
                 PASSWORD_1,
                 gopts.network_name,
+            ])
+
+            # test `sb test [network] [file]`
+            execute_command_assert_no_error_success([
+                sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                '-d',
+                'test',
+                '-p',
+                PASSWORD_1,
+                gopts.network_name,
+                str(mock.paths.tests.joinpath('test_testing.py'))
             ])
 
             # test `sb metafile backup metafile.json.bak`
@@ -178,8 +190,6 @@ def test_cli_integration(mock_project, ganache):
             ])
 
             # test `sb script NETWORK FILE`
-            # TODO: There's currently no persistance between the deploy command and the following
-            #       commands.  Might need to use ganache to test with instead of eth_tester.
             execute_command_assert_no_error_success([
                 sb,
                 'script',
@@ -253,6 +263,14 @@ def test_cli_invalid(mock_project, temp_dir):
 
         # Test `sb metafile` without the needed subcommand
         execute_command_assert_error([sb, 'metafile'])
+
+        # test `sb script NETWORK FILE`
+        execute_command_assert_error([
+            sb,
+            'script',
+            NETWORK_NAME,
+            'scripts/test_failure.py',
+        ])
 
     with temp_dir() as workdir:
         contractsfile = workdir.joinpath('contracts')
