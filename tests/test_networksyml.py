@@ -1,6 +1,6 @@
 import copy
 from solidbyte.common.networks import NetworksYML
-from solidbyte.common.exceptions import ConfigurationError, ValidationError
+from solidbyte.common.exceptions import ConfigurationError
 from .const import NETWORK_NAME, NETWORKS_YML_2, NETWORKS_YML_NOCONFIG
 
 

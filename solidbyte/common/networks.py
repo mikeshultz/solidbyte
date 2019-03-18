@@ -4,7 +4,7 @@ import yaml
 from typing import Union, Any, Dict, List
 from pathlib import Path
 from .logging import getLogger
-from .exceptions import ConfigurationError, ValidationError
+from .exceptions import ConfigurationError
 from .utils import to_path_or_cwd
 
 log = getLogger(__name__)
