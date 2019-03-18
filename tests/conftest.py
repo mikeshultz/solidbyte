@@ -96,15 +96,25 @@ def ganache():
         opt_list = dict_to_cli_option_list(options)
         command = [ganache_command, *opt_list]
 
-        with Popen(command) as proc:
-            if proc.poll() is not None:
-                raise Exception("Unable to launch ganache-cli.  Return code: {}".format(
-                    proc.returncode
-                ))
+        proc = Popen(command)
+        if proc.poll() is not None:
+            raise Exception("Unable to launch ganache-cli.  Return code: {}".format(
+                proc.returncode
+            ))
+        try:
             yield AttrDict({
                 'command': ' '.join(command),
                 'proc': proc,
                 'network_name': GANACHE_NETWORK_NAME,
             })
+        except AssertionError as err:
             proc.terminate()
+            raise err
+        except Exception as err:
+            proc.kill()
+            raise err
+        if proc.returncode is None:
+            proc.terminate()
+        if proc.returncode != 0:
+            print('ganache-cli exited improperly')
     return yield_ganache
