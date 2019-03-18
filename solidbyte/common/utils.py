@@ -137,7 +137,7 @@ def to_path_or_cwd(v) -> Path:
 
 
 def keys_with(thedict, term):
-    """ Return any dict keys with key in """
+    """ Return any keys from `thedict` that have `term` in their value """
     keys = []
     for k, v in thedict.items():
         if term in v:
