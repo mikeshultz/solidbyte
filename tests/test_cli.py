@@ -35,7 +35,13 @@ def execute_command_assert_no_error_success(cmd):
     list_output = list_proc.stdout.read()
     assert no_error(list_output), list_output
     list_proc.wait()
-    assert list_proc.returncode == 0, "Invalid return code from command"
+    if list_proc.returncode is None:
+        list_proc.terminate()
+    if list_proc.returncode != 0:
+        print(list_output)
+    assert list_proc.returncode == 0, (
+        "Invalid return code from command. Expected 0 but saw {}".format(list_proc.returncode)
+    )
     return list_output
 
 
@@ -44,7 +50,11 @@ def execute_command_assert_error(cmd):
     assert type(cmd) == list
     proc = Popen(cmd)
     proc.wait()
-    assert proc.returncode > 0, "Invalid return code from command"
+    if proc.returncode is None:
+        proc.terminate()
+    assert proc.returncode > 0, (
+        "Invalid return code from command. Expected 0 but saw {}".format(proc.returncode)
+    )
 
 
 def test_cli_integration(mock_project, ganache):

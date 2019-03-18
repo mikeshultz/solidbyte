@@ -47,15 +47,22 @@ CONTRACT_SOURCE_FILE_1 = """pragma solidity ^0.5.2;
 contract Test {
 
     address public owner;
+    uint public testVar;
 
     constructor() public
     {
         owner = msg.sender;
+        testVar = 0;
     }
 
     function getOwner() public view returns (address)
     {
         return owner;
+    }
+
+    function setTestVar(uint newValue) public
+    {
+        testVar = newValue;
     }
 
 }
@@ -149,6 +156,25 @@ def test_fixtures(web3, contracts, local_accounts):
     assert contracts is not None
     assert contracts.get('Test') is not None
     assert local_accounts is not None
+    # Test that web3 works
+    tx_hash = web3.eth.sendTransaction({
+        'from': web3.eth.accounts[0],
+        'to': web3.eth.accounts[1],
+        'value': int(1e18),
+        'gasPrice': int(3e9),
+        'gas': 21000
+    })
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt.status == 1
+    # Test a contract call
+    test = contracts.get('Test')
+    tx_hash = test.functions.setTestVar(3).transact({
+        'from': web3.eth.accounts[0],
+        'gasPrice': int(3e9),
+        'gas': int(1e5),
+    })
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt.status == 1
 """
 
 # Console test commands

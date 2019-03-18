@@ -125,18 +125,16 @@ def test_gas_report_storage_invalid_transactions():
     except ValueError:
         pass
 
-    # No `data` prop
-    try:
-        storage.add_transaction([{
-            'from': ADDRESS_1,
-            'to': ADDRESS_2,
-            'value': 0,
-            'gas': gas_limit,
-            'gasPrice': gas_price,
-        }])
-        assert False, "add_transaction() should have failed"
-    except ValueError:
-        pass
+    # No `data` prop, gas should not be added
+    before_total_gas = storage.total_gas
+    storage.add_transaction([{
+        'from': ADDRESS_1,
+        'to': ADDRESS_2,
+        'value': 0,
+        'gas': gas_limit,
+        'gasPrice': gas_price,
+    }])
+    assert before_total_gas == storage.total_gas, "gas should not have updated without data prop"
 
 
 def test_gas_report_storage_wrong_transactions():
@@ -145,11 +143,9 @@ def test_gas_report_storage_wrong_transactions():
     storage = GasReportStorage()
 
     # This tx doesn't exist
-    try:
-        storage.update_transaction_gas_used(TEST_HASH, int(1e6))
-        assert False, "update_transaction_gas_used() should have failed"
-    except ValueError:
-        pass
+    before_total_gas = storage.total_gas
+    storage.update_transaction_gas_used(TEST_HASH, int(1e6))
+    assert before_total_gas == storage.total_gas, "gas should not have updated"
 
 
 def test_web3_middleware(mock_project):
