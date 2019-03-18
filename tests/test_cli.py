@@ -259,6 +259,8 @@ def test_cli_invalid(mock_project, temp_dir):
 
     with mock_project():
 
+        tmp_key_dir = TMP_DIR.joinpath('test-keys')
+
         # test `sb` (noop)
         execute_command_assert_error([sb])
 
@@ -273,6 +275,18 @@ def test_cli_invalid(mock_project, temp_dir):
 
         # Test `sb metafile` without the needed subcommand
         execute_command_assert_error([sb, 'metafile'])
+
+        # test `sb test [network]`
+        execute_command_assert_error([
+            sb,
+            '-k',
+            str(tmp_key_dir),
+            '-d',
+            'test',
+            '-p',
+            PASSWORD_1,
+            'geth',
+        ])
 
         # test `sb script NETWORK FILE`
         execute_command_assert_error([
