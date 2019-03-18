@@ -106,7 +106,7 @@ def main(parser_args):
             raise err
     else:
         if return_code != 0:
-            log.error("tests have failed")
+            log.error("Tests have failed. Return code: {}".format(return_code))
         else:
             if parser_args.gas:
 
