@@ -206,7 +206,12 @@ def test_cli_integration(sb, mock_project, ganache):
             ], 'autodpeloy is not allowed')
 
             # test `sb metafile backup metafile.json.bak`
-            execute_command_assert_no_error_success([*sb, 'metafile', 'backup', 'metafile.json.bak'])
+            execute_command_assert_no_error_success([
+                *sb,
+                'metafile',
+                'backup',
+                'metafile.json.bak'
+            ])
 
             # test `sb metafile cleanup --dry-run`
             execute_command_assert_no_error_success([*sb, 'metafile', 'cleanup', '--dry-run'])
