@@ -9,8 +9,11 @@ from solidbyte.common import (
     pop_key_from_dict,
     all_defs_in,
     defs_not_in,
+    hash_file,
+    keys_with,
+    unescape_newlines,
 )
-from .const import TMP_DIR
+from .const import TMP_DIR, HASHABLE_FILE, HASHABLE_FILE_HASH
 
 
 def test_builddir():
@@ -20,6 +23,21 @@ def test_builddir():
     assert ploc.exists() and ploc.is_dir()
     build_loc = TMP_DIR.joinpath('builddir-test', 'build')
     assert build_loc.exists() and build_loc.is_dir()
+
+
+def test_builddir_conflict():
+    """ Test that it throws when a file is in the way """
+    test_dirname = 'builddir-test-invalid'
+    workdir = TMP_DIR.joinpath(test_dirname)
+    workdir.mkdir(parents=True)
+    workdir.joinpath('build').touch()
+    loc = None
+    try:
+        loc = builddir(workdir)
+        assert False, "builddir() should have thrown an exception on conflict"
+    except FileExistsError:
+        pass
+    assert loc is None
 
 
 def test_get_filename_and_ext():
@@ -89,3 +107,45 @@ def test_defs_not_in():
         'two': 2,
     }
     assert defs_not_in([('one', '-'), ('two', '-'), ('three', '-')], tdict) == {'three'}
+
+
+def test_keys_with():
+    """ Test the keys_with func """
+    tdict = {
+        'one': 'ohhello',
+        'two': 'ohhellno',
+        'three': 'hello world',
+    }
+    keys = keys_with(tdict, 'hello')
+    assert 'one' in keys
+    assert 'two' not in keys
+    assert 'three' in keys
+
+
+def test_hash_file(temp_dir):
+    """ Test the hash_file func """
+
+    with temp_dir() as workdir:
+        test_file = workdir.joinpath('hashable.file')
+
+        # Fail if file doesn't exist
+        try:
+            hash_file(test_file)
+            assert False, "hash_file() should have failed on a non-existent file"
+        except ValueError as err:
+            assert 'Invalid' in str(err)
+
+        # Create the file
+        with test_file.open('w') as _file:
+            _file.write(HASHABLE_FILE)
+
+        # Verify expected hash
+        assert hash_file(test_file) == HASHABLE_FILE_HASH
+
+
+def test_unescape_newlines():
+    tstring = "hello\\nworld"
+    tstring_unescaped = """hello
+world"""
+
+    assert unescape_newlines(tstring) == tstring_unescaped

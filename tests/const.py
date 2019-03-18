@@ -497,3 +497,7 @@ def main_func(contracts):
     return False
 
 """
+
+HASHABLE_FILE = """Hello, world!
+"""
+HASHABLE_FILE_HASH = "09fac8dbfd27bd9b4d23a00eb648aa751789536d"
