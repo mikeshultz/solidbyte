@@ -269,7 +269,7 @@ def test_cli_invalid(mock_project, temp_dir):
             sb,
             'script',
             NETWORK_NAME,
-            'scripts/test_failure.py',
+            'scripts/test_fail.py',
         ])
 
     with temp_dir() as workdir:
