@@ -231,7 +231,7 @@ def test_cli_integration(mock_project, ganache):
     os.chdir(orig_pwd)
 
 
-def test_cli_invalid(mock_project, ganache):
+def test_cli_invalid(mock_project, temp_dir):
     """ Test valid CLI `accounts` commands """
 
     # Our command
@@ -248,8 +248,18 @@ def test_cli_invalid(mock_project, ganache):
         # Test init with an invalid template
         execute_command_assert_error([sb, 'init', '-t', 'notatemplate'])
 
+        # Test init with an invalid dir-mode
+        execute_command_assert_error([sb, 'init', '--dir-mode', 'roflmao'])
+
         # Test `sb metafile` without the needed subcommand
         execute_command_assert_error([sb, 'metafile'])
+
+    with temp_dir() as workdir:
+        contractsfile = workdir.joinpath('contracts')
+        contractsfile.touch()
+
+        # init should fail with a conflicting file in the project dir
+        execute_command_assert_error([sb, 'init', '-t', 'erc20'])
 
 
 def test_cli_console(mock_project):
