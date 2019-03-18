@@ -11,7 +11,7 @@ from web3 import Web3
 from web3.exceptions import UnhandledRequest
 from ..common import to_path
 from ..common import store
-from ..common.exceptions import ValidationError, WrongPassword
+from ..common.exceptions import SolidbyteException, ValidationError, WrongPassword
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -58,7 +58,7 @@ class Accounts(object):
         if not self.keystore_dir.is_dir():
             if self.keystore_dir.exists():
                 log.error("Provided keystore directory is not a directory")
-                raise Exception("Invalid keystore directory")
+                raise SolidbyteException("Invalid keystore directory")
             else:
                 self.keystore_dir.mkdir(mode=0o700, parents=True)
 
@@ -228,12 +228,15 @@ class Accounts(object):
 
         """ Do some tx verification and substitution if necessary
         """
-        if tx.get('gasPrice') is None:
-            gasPrice = self.web3.eth.generateGasPrice()
-            log.warning("Missing gasPrice for transaction. Using automatic price of {}".format(
-                    gasPrice
-                ))
-            tx['gasPrice'] = gasPrice
+        if not tx.get('gasPrice'):
+            # TODO: Allow a default gasPrice to be set in configuration?
+            raise ValidationError("gasPrice is a required field")
+            # This is currently broken in web3.py
+            # gasPrice = self.web3.eth.generateGasPrice()
+            # log.warning("Missing gasPrice for transaction. Using automatic price of {}".format(
+            #         gasPrice
+            #     ))
+            # tx['gasPrice'] = gasPrice
 
         if tx.get('nonce') is None:
             nonce = self.web3.eth.getTransactionCount(tx['from'])

@@ -1,6 +1,7 @@
 from pathlib import Path
 from solidbyte.accounts import Accounts
 from solidbyte.common.web3 import web3c
+from solidbyte.common.exceptions import SolidbyteException
 
 from .const import (
     TMP_DIR,
@@ -8,6 +9,7 @@ from .const import (
     PASSWORD_1,
     NETWORKS_YML_1,
     ADDRESS_1,
+    ADDRESS_2,
 )
 from .utils import write_temp_file, is_hex
 
@@ -65,3 +67,68 @@ def test_account_creation():
     receipt = web3.eth.waitForTransactionReceipt(tx_hash)
     assert receipt.status == 1
     assert web3.eth.getBalance(ADDRESS_1) == value
+
+    assert len(accounts.get_accounts()) == 1
+    accounts.refresh()
+    assert len(accounts.get_accounts()) == 1
+
+    # Sign without gasPrice and send a tx
+    # gas price strategy seems broken in web3.py
+    # value = int(1e18)  # 1 Ether
+    # raw_tx = accounts.sign_tx(new_acct_addr, {
+    #         'from': new_acct_addr,
+    #         'to': ADDRESS_1,
+    #         'value': value,
+    #         'gas': 22000,
+    #     }, PASSWORD_1)
+    # assert is_hex(raw_tx.rawTransaction)
+
+
+def test_accounts_conflict_file(mock_project):
+    with mock_project() as mock:
+
+        web3c._load_configuration(mock.paths.networksyml)
+        web3 = web3c.get_web3(NETWORK_NAME)
+
+        # Put a file where the keystore dir should be
+        keystore_path = mock.paths.project.joinpath('keystore')
+        keystore_path.touch()
+
+        try:
+            Accounts(
+                network_name=NETWORK_NAME,
+                web3=web3,
+                keystore_dir=keystore_path,
+            )
+            assert False, "Accounts.__init__() should fail on flie conflict"
+        except SolidbyteException as err:
+            assert 'Invalid keystore' in str(err)
+
+
+def test_accounts_account_noexist(mock_project):
+    with mock_project() as mock:
+
+        web3c._load_configuration(mock.paths.networksyml)
+        web3 = web3c.get_web3(NETWORK_NAME)
+
+        # Put a file where the keystore dir should be
+        keystore_path = mock.paths.project.joinpath('keystore')
+        keystore_path.mkdir()
+
+        accounts = Accounts(
+            network_name=NETWORK_NAME,
+            web3=web3,
+            keystore_dir=keystore_path,
+        )
+
+        try:
+            accounts.get_account(ADDRESS_2)
+            assert False, "get_account() on invalid address should fail"
+        except FileNotFoundError:
+            pass
+
+        try:
+            accounts.set_account_attribute(ADDRESS_2, 'what', 'ever')
+            assert False, "set_account_attribute() on invalid address should fail"
+        except IndexError:
+            pass
