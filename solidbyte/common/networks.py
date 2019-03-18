@@ -93,10 +93,10 @@ class NetworksYML:
     def get_network_config(self, name: str) -> NetworkConfig:
         """ Return the config for a specific network """
 
-        if not self.network_config_exists(name):
-            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
         if not self.config:
             raise ConfigurationError("Unable to load networks.yml!")
+        if not self.network_config_exists(name):
+            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
 
         return self.config[name]
 
