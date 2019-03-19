@@ -15,7 +15,6 @@ from .const import (
 from .utils import write_temp_file
 
 
-@pytest.mark.skip("TEMP")
 def test_deployer(mock_project):
     """ Test deploying a project """
 
@@ -48,11 +47,11 @@ def test_deployer(mock_project):
         )
 
         # Test initial state with the mock project
-        assert len(d.source_contracts) == 1
+        assert len(d.artifacts) == 1
         contract_key = list(d.source_contracts.keys())[0]
-        assert d.source_contracts[contract_key].get('name') == 'Test'
-        assert d.source_contracts[contract_key].get('abi') is not None
-        assert d.source_contracts[contract_key].get('bytecode') is not None
+        assert d.artifacts[contract_key].name == 'Test'
+        assert d.artifacts[contract_key].abi is not None
+        assert d.artifacts[contract_key].bytecode is not None
         assert len(d.deployed_contracts) == 0
 
         # Check that deployment needs to happen
