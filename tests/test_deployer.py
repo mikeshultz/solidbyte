@@ -1,5 +1,4 @@
 # import json
-import pytest
 from pathlib import Path
 # from attrdict import AttrDict
 from solidbyte.common.web3 import web3c
