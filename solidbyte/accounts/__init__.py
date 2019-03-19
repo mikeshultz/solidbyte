@@ -35,7 +35,7 @@ class Accounts(object):
                  web3: Web3 = None) -> None:
 
         self.eth_account = Account()
-        self.accounts: List = []
+        self._accounts: List = []
 
         if keystore_dir:
             self.keystore_dir = to_path(keystore_dir)
@@ -103,10 +103,10 @@ class Accounts(object):
         return list(self.keystore_dir.iterdir())
 
     def _load_accounts(self, force: bool = False) -> None:
-        if len(self.accounts) > 1 and not force:
+        if len(self._accounts) > 1 and not force:
             return
 
-        self.accounts = []
+        self._accounts = []
         for file in self._get_keystore_files():
             jason = self._read_json_file(file)
             if not jason:
@@ -122,7 +122,7 @@ class Accounts(object):
                         )
                     except UnhandledRequest:
                         pass
-                self.accounts.append(AttrDict({
+                self._accounts.append(AttrDict({
                     'address': addr,
                     'filename': file,
                     'balance': bal,
@@ -136,7 +136,7 @@ class Accounts(object):
     def _get_account_index(self, address: str) -> int:
         """ Return the list index for the account """
         idx = 0
-        for a in self.accounts:
+        for a in self._accounts:
             if Web3.toChecksumAddress(a.address) == Web3.toChecksumAddress(address):
                 return idx
             idx += 1
@@ -146,7 +146,7 @@ class Accounts(object):
     def get_account(self, address: str) -> AttrDict:
         """ Return all the known account addresses """
 
-        for a in self.accounts:
+        for a in self._accounts:
             if Web3.toChecksumAddress(a.address) == Web3.toChecksumAddress(address):
                 return a
 
@@ -169,12 +169,13 @@ class Accounts(object):
     @autoload
     def get_accounts(self) -> List[AttrDict]:
         """ Return all the known account addresses """
-        return self.accounts
+        return self._accounts
+    accounts = property(get_accounts)
 
     def set_account_attribute(self, address: str, key: str, val: T) -> None:
         """ Set an attribute of an account """
         idx = self._get_account_index(address)
-        return setattr(self.accounts[idx], key, val)
+        return setattr(self._accounts[idx], key, val)
 
     def create_account(self, password: str) -> str:
         """ Create a new account and encrypt it with password """
