@@ -169,8 +169,6 @@ class Accounts(object):
     def set_account_attribute(self, address: str, key: str, val: T) -> None:
         """ Set an attribute of an account """
         idx = self._get_account_index(address)
-        if idx < 0:
-            raise IndexError("{} not found.  Unable to set attribute.".format(address))
         return setattr(self.accounts[idx], key, val)
 
     def create_account(self, password: str) -> str:
