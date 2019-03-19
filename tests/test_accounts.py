@@ -88,6 +88,8 @@ def test_account_creation():
     assert len(accounts.get_accounts()) == 1
     accounts.refresh()
     assert len(accounts.get_accounts()) == 1
+    # Load from cache
+    accounts._load_accounts()
 
     # Sign without gasPrice and send a tx
     # gas price strategy seems broken in web3.py
