@@ -6,12 +6,14 @@ from solidbyte.compile.linker import (
     link_library,
 )
 from solidbyte.common.web3 import remove_0x
+from solidbyte.common.exceptions import LinkError
 from .const import (
     ADDRESS_1,
     CONTRACT_BIN_FILE_1,
     CONTRACT_PLACEHOLDER_1,
     LIBRARY_NAME_1,
     CONTRACT_DEF_1,
+    CONTRACT_BIN_1,
 )
 
 
@@ -19,10 +21,20 @@ def test_placeholder_from_def():
     pholder = placeholder_from_def(CONTRACT_DEF_1)
     assert pholder == CONTRACT_PLACEHOLDER_1
 
+    try:
+        placeholder_from_def(' ')
+    except LinkError:
+        pass
+
 
 def test_contract_from_def():
     name = contract_from_def(CONTRACT_DEF_1)
     assert name == LIBRARY_NAME_1
+
+    try:
+        contract_from_def(' ')
+    except LinkError:
+        pass
 
 
 def test_bytecode_link_defs():
@@ -50,3 +62,18 @@ def test_link_library():
     assert linked_bytecode != CONTRACT_BIN_FILE_1
     assert remove_0x(ADDRESS_1) in linked_bytecode
     assert CONTRACT_PLACEHOLDER_1 not in linked_bytecode
+
+    # Call with incorrect links, it should fail
+    try:
+        linked_bytecode = link_library(CONTRACT_BIN_FILE_1, {
+            'NotALibrary': ADDRESS_1,
+        })
+        assert False, "link_library should have thrown"
+    except LinkError:
+        pass
+
+    # Call with links without defs (should not fail)
+    linked_bytecode = link_library(CONTRACT_BIN_1, {
+        LIBRARY_NAME_1: ADDRESS_1,
+    })
+    assert linked_bytecode == CONTRACT_BIN_1
