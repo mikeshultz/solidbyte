@@ -69,8 +69,12 @@ class Accounts(object):
             try:
                 file_string = json_file.read()
                 jason = json.loads(file_string)
+            except json.decoder.JSONDecodeError as e:
+                log.exception("Invalid JSON in the account keystore file {}".format(filename))
+                raise ValidationError("Invalid or currupt account secret-store file")
             except Exception as e:
                 log.error("Error reading JSON file {}: {}".format(filename, str(e)))
+                raise e
         return jason
 
     def _write_json_file(self, json_object: dict, filename: str = None) -> None:
@@ -92,6 +96,7 @@ class Accounts(object):
                 json_file.write(jason)
             except Exception as e:
                 log.error("Error writing JSON file {}: {}".format(filePath, str(e)))
+                raise e
 
     def _get_keystore_files(self) -> list:
         """ Return all filenames of keystore files """
