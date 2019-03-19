@@ -1,6 +1,6 @@
-import json
+# import json
 import pytest
-from attrdict import AttrDict
+# from attrdict import AttrDict
 from solidbyte.common.web3 import web3c
 from solidbyte.common.metafile import MetaFile
 from solidbyte.deploy import Deployer
@@ -132,29 +132,29 @@ def test_contract_with_library(mock_project):
 
         # Get all the file contents from the compiler output
         unnecessary_bytecode = None
-        unnecessary_abi = None
+        # unnecessary_abi = None
         safemath_bytecode = None
-        safemath_abi = None
-        testmath_abi = None
+        # safemath_abi = None
+        # testmath_abi = None
         testmath_bytecode = None
 
         with mock.paths.build.joinpath('Unnecessary', 'Unnecessary.bin').open() as binfile:
             unnecessary_bytecode = binfile.read()
 
-        with mock.paths.build.joinpath('Unnecessary', 'Unnecessary.abi').open() as abifile:
-            unnecessary_abi = json.loads(abifile.read())
+        # with mock.paths.build.joinpath('Unnecessary', 'Unnecessary.abi').open() as abifile:
+        #     unnecessary_abi = json.loads(abifile.read())
 
         with mock.paths.build.joinpath('SafeMath', 'SafeMath.bin').open() as binfile:
             safemath_bytecode = binfile.read()
 
-        with mock.paths.build.joinpath('SafeMath', 'SafeMath.abi').open() as abifile:
-            safemath_abi = json.loads(abifile.read())
+        # with mock.paths.build.joinpath('SafeMath', 'SafeMath.abi').open() as abifile:
+        #     safemath_abi = json.loads(abifile.read())
 
         with mock.paths.build.joinpath('TestMath', 'TestMath.bin').open() as binfile:
             testmath_bytecode = binfile.read()
 
-        with mock.paths.build.joinpath('TestMath', 'TestMath.abi').open() as abifile:
-            testmath_abi = json.loads(abifile.read())
+        # with mock.paths.build.joinpath('TestMath', 'TestMath.abi').open() as abifile:
+        #     testmath_abi = json.loads(abifile.read())
 
         # Build the expected source objects
         # unnecessary_source_contract = AttrDict({
