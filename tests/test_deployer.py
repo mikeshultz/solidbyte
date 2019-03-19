@@ -83,8 +83,17 @@ def test_deptree(mock_project):
     assert el == lib
     assert depth == 1
 
-    lib2 = deptree.add_dependent('Library2', parent)
+    lib2 = deptree.add_dependent('Library2', str(parent))
     assert isinstance(lib2, ContractLeaf)
+    assert lib2.get_parent() == parent
+
+    parents_children = parent.get_dependents()
+    assert lib2 in parents_children
+
+    assert deptree.has_dependents('Parent')
+    assert not deptree.has_dependents('Library2')
+    assert deptree.has_dependencies('Library2')
+    assert not deptree.has_dependencies('Parent')
 
 
 def test_deployer_deptree(mock_project):
