@@ -1,5 +1,6 @@
 # import json
 import pytest
+from pathlib import Path
 # from attrdict import AttrDict
 from solidbyte.common.web3 import web3c
 from solidbyte.common.metafile import MetaFile
@@ -68,6 +69,12 @@ def test_deployer(mock_project):
         # assert not d.check_needs_deploy()
         # assert not d.check_needs_deploy('Test')
         # TODO: Disabled asserts due to a probable bug or bad test env.  Look into it.
+
+        try:
+            d.check_needs_deploy('Nothing')
+            assert False, "check_needs_deploy() should throw when a contract does not exist"
+        except FileNotFoundError as err:
+            assert 'Unknown contract' in str(err)
 
 
 def test_deptree(mock_project):
@@ -320,3 +327,27 @@ def test_deployer_contract_with_libraries(mock_project):
         to_deploy = d.contracts_to_deploy()
         assert 'Unnecessary' in to_deploy
         assert 'TestMath' in to_deploy
+
+
+def test_deployer_no_contracts(mock_project, temp_dir):
+    with mock_project() as mock:
+        with temp_dir() as workdir:
+
+            assert Path.cwd() == workdir
+
+            # Since we're not using the pwd, we need to use this undocumented API (I know...)
+            web3c._load_configuration(mock.paths.networksyml)
+            web3 = web3c.get_web3(NETWORK_NAME)
+
+            deployer_account = web3.eth.accounts[0]
+
+            # Init the Deployer
+            try:
+                Deployer(
+                    network_name=NETWORK_NAME,
+                    account=deployer_account,
+                    project_dir=workdir,
+                )
+                assert False, "Should fail init if missing contracts directory"
+            except FileNotFoundError as err:
+                assert 'contracts directory' in str(err)
