@@ -13,6 +13,7 @@ class Template(object):
     def __init__(self, *args, **kwargs):
 
         self.dir_mode = kwargs.get('dir_mode', 0o755)
+        log.debug('Template dir_mode: {}'.format(self.dir_mode))
         self.pwd = to_path(kwargs.get('pwd') or Path.cwd())
 
         # The path of the directory of the class that sublclasses this class.  Should be the

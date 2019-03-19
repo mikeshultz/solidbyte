@@ -1,5 +1,6 @@
 """ show version information
 """
+import sys
 from pathlib import Path
 from ..common import collapse_oel
 from ..common.logging import getLogger
@@ -71,3 +72,4 @@ def main(parser_args):
 
     else:
         log.warning("Command required")
+        sys.exit(1)

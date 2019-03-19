@@ -22,6 +22,7 @@ class GasReportStorage(object):
         self.transactions: List[GasTransaction] = list()
         self.total_gas: int = 0
         self.report: Dict[str, List[int]] = dict()
+        self.skip_last = False
 
     def add_transaction(self, params: List) -> None:
 
@@ -29,20 +30,28 @@ class GasReportStorage(object):
 
         for tx in params:
 
-            if 'gas' not in tx or 'data' not in tx:
+            if 'gas' not in tx:
                 log.debug("TX: {}".format(tx))
                 raise ValueError("Malformed transaction")
+
+            # We only want to track transactions with contract calls
+            if 'data' not in tx:
+                self.skip_last = True
+                continue
 
             self.transactions.append(GasTransaction(tx['gas'], tx['data']))
 
     def update_last_transaction_set_hash(self, tx_hash):
-        assert len(self.transactions) > 0, "No transactions to update"
+        if len(self.transactions) < 1 or self.skip_last:
+            self.skip_last = False
+            return
         self.transactions[-1].tx_hash = tx_hash
 
     def update_transaction_gas_used(self, tx_hash, gas_used):
         tx_idx = self._get_tx_idx(tx_hash)
         if tx_idx < 0:
-            raise ValueError("Can not update gas used for transaction because it does not exist.")
+            log.debug("Can not update gas used for transaction because it does not exist.")
+            return
         self.transactions[tx_idx].gas_used = gas_used
         self.total_gas += gas_used
 
@@ -68,9 +77,9 @@ class GasReportStorage(object):
             self.transactions[idx].gas_used = receipt.gasUsed
             self.total_gas += receipt.gasUsed
 
-    def get_report(self):
+    def get_report(self, force=False):
 
-        if len(self.report) < 1:
+        if len(self.report) < 1 or force:
             self._build_report()
 
         return self.report
@@ -89,6 +98,8 @@ class GasReportStorage(object):
             else:
                 log.warn("No function signature")
 
+        log.debug("Report finished.")
+
     def _get_tx_idx(self, tx_hash) -> int:
         """ Get the index for a transaction with tx_hash """
         for idx in range(0, len(self.transactions)):
@@ -106,8 +117,10 @@ def construct_gas_report_middleware(gas_report_storage):
         def middleware(method, params):
 
             if method == 'eth_sendTransaction':
+                log.debug("gas_report_middleware eth_sendTransaction: {}".format(params))
                 gas_report_storage.add_transaction(params)
             elif method == 'eth_sendRawTransaction':
+                log.debug("gas_report_middleware eth_sendRawTransaction: {}".format(params))
                 log.warning("Raw transactions will be excluded from the gas report.")
 
             response = make_request(method, params)

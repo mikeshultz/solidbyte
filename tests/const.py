@@ -27,6 +27,9 @@ ABI_OBJ_1 = [{
   "type": "constructor"
 }]
 BYTECODE_HASH_1 = '0x6385b18cc3f884baad806ee4508837d3a27c734268f9555f76cd12ec3ff38339'
+OBVIOUS_RETURN_CODE = 254
+TX_INPUT = '0x4ff6eacd66bd565ddc5e1d660414a8f15d2bb42314b9fc2019dadbf29eefa07a'
+TX_FUNC_SIG = '4ff6eacd'
 
 CONTRACT_NAME_1 = "MyContract"
 LIBRARY_NAME_1 = "MyLibrary"
@@ -44,15 +47,22 @@ CONTRACT_SOURCE_FILE_1 = """pragma solidity ^0.5.2;
 contract Test {
 
     address public owner;
+    uint public testVar;
 
     constructor() public
     {
         owner = msg.sender;
+        testVar = 0;
     }
 
     function getOwner() public view returns (address)
     {
         return owner;
+    }
+
+    function setTestVar(uint newValue) public
+    {
+        testVar = newValue;
     }
 
 }
@@ -102,12 +112,18 @@ NETWORKS_YML_1 = """# networks.yml
 test:
   type: eth_tester
   autodeploy_allowed: true
+
 dev:
   type: auto
   autodeploy_allowed: true
+
 {}:
   type: http
   url: http://localhost:{}/
+
+nodeploy:
+  type: eth_tester
+
 """.format(GANACHE_NETWORK_NAME, GANACHE_PORT)
 NETWORKS_YML_2 = """# networks.yml
 ---
@@ -131,21 +147,57 @@ infura-mainnet-http:
   type: http
   url: https://mainnet.infura.io/asdfkey
 """
+NETWORKS_YML_NOCONFIG = """# networks.yml
+---
+"""
+NETWORKS_YML_INVALID_TYPE = """# networks.yml
+---
+test:
+    type: notatype
+    file: /tmp/nothing.yml
+"""
 PYTEST_TEST_1 = """
-def test_fixtures(web3, contracts):
+def test_fixtures(web3, contracts, local_accounts):
     assert web3 is not None
     assert contracts is not None
     assert contracts.get('Test') is not None
+    assert local_accounts is not None
+    # Test that web3 works
+    tx_hash = web3.eth.sendTransaction({
+        'from': web3.eth.accounts[0],
+        'to': web3.eth.accounts[1],
+        'value': int(1e18),
+        'gasPrice': int(3e9),
+        'gas': 21000
+    })
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt.status == 1
+    # Test a contract call
+    test = contracts.get('Test')
+    tx_hash = test.functions.setTestVar(3).transact({
+        'from': web3.eth.accounts[0],
+        'gasPrice': int(3e9),
+        'gas': int(1e5),
+    })
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt.status == 1
 """
 
 # Console test commands
 CONSOLE_TEST_ASSERT_LOCALS = [
+    "import sys\n",
     "assert 'web3' in locals(), 'web3 missing'\n",
     "assert 'accounts' in locals(), 'accounts missing'\n",
     "assert 'network' in locals(), 'network missing'\n",
     "assert 'network_id' in locals(), 'network_id missing'\n",
     "assert 'nothing' not in locals(), 'nothing found'\n",
-    "exit(1337)\n",
+    "sys.exit({})\n".format(OBVIOUS_RETURN_CODE),
+]
+
+CONSOLE_TEST_ASSERT_CONTRACTS = [
+    "import sys\n",
+    "assert 'Test' in locals(), 'Test contract missing'\n",
+    "sys.exit({})\n".format(OBVIOUS_RETURN_CODE),
 ]
 
 ####
@@ -487,4 +539,11 @@ USER_SCRIPT_INVALID = """
 def main_func(contracts):
     return False
 
+"""
+
+HASHABLE_FILE = """Hello, world!
+"""
+HASHABLE_FILE_HASH = "09fac8dbfd27bd9b4d23a00eb648aa751789536d"
+
+INVALID_JSON = """{ 'huuuRRRR'; durrr
 """

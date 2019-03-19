@@ -31,7 +31,7 @@ def main(contracts, deployer_account, web3, network):
         assert deployer_balance < int(5e17), "deployer account needs to be funded"
 
     # Get the sb Contract instance
-    token = contracts.get('ERC20')
+    token = contracts.get('MyERC20')
 
     # Deploy (if necessary) and return the web3.eth.Contract instance
     initial_supply = int(1e21)

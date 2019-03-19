@@ -11,7 +11,7 @@ from web3 import Web3
 from web3.exceptions import UnhandledRequest
 from ..common import to_path
 from ..common import store
-from ..common.exceptions import ValidationError, WrongPassword
+from ..common.exceptions import SolidbyteException, ValidationError, WrongPassword
 from ..common.logging import getLogger
 
 log = getLogger(__name__)
@@ -35,7 +35,7 @@ class Accounts(object):
                  web3: Web3 = None) -> None:
 
         self.eth_account = Account()
-        self.accounts: List = []
+        self._accounts: List = []
 
         if keystore_dir:
             self.keystore_dir = to_path(keystore_dir)
@@ -58,7 +58,7 @@ class Accounts(object):
         if not self.keystore_dir.is_dir():
             if self.keystore_dir.exists():
                 log.error("Provided keystore directory is not a directory")
-                raise Exception("Invalid keystore directory")
+                raise SolidbyteException("Invalid keystore directory")
             else:
                 self.keystore_dir.mkdir(mode=0o700, parents=True)
 
@@ -69,8 +69,12 @@ class Accounts(object):
             try:
                 file_string = json_file.read()
                 jason = json.loads(file_string)
+            except json.decoder.JSONDecodeError:
+                log.exception("Invalid JSON in the account keystore file {}".format(filename))
+                raise ValidationError("Invalid or currupt account secret-store file")
             except Exception as e:
                 log.error("Error reading JSON file {}: {}".format(filename, str(e)))
+                raise e
         return jason
 
     def _write_json_file(self, json_object: dict, filename: str = None) -> None:
@@ -92,16 +96,17 @@ class Accounts(object):
                 json_file.write(jason)
             except Exception as e:
                 log.error("Error writing JSON file {}: {}".format(filePath, str(e)))
+                raise e
 
     def _get_keystore_files(self) -> list:
         """ Return all filenames of keystore files """
         return list(self.keystore_dir.iterdir())
 
     def _load_accounts(self, force: bool = False) -> None:
-        if len(self.accounts) > 1 and not force:
+        if len(self._accounts) > 1 and not force:
             return
 
-        self.accounts = []
+        self._accounts = []
         for file in self._get_keystore_files():
             jason = self._read_json_file(file)
             if not jason:
@@ -117,7 +122,7 @@ class Accounts(object):
                         )
                     except UnhandledRequest:
                         pass
-                self.accounts.append(AttrDict({
+                self._accounts.append(AttrDict({
                     'address': addr,
                     'filename': file,
                     'balance': bal,
@@ -131,7 +136,7 @@ class Accounts(object):
     def _get_account_index(self, address: str) -> int:
         """ Return the list index for the account """
         idx = 0
-        for a in self.accounts:
+        for a in self._accounts:
             if Web3.toChecksumAddress(a.address) == Web3.toChecksumAddress(address):
                 return idx
             idx += 1
@@ -141,7 +146,7 @@ class Accounts(object):
     def get_account(self, address: str) -> AttrDict:
         """ Return all the known account addresses """
 
-        for a in self.accounts:
+        for a in self._accounts:
             if Web3.toChecksumAddress(a.address) == Web3.toChecksumAddress(address):
                 return a
 
@@ -164,14 +169,13 @@ class Accounts(object):
     @autoload
     def get_accounts(self) -> List[AttrDict]:
         """ Return all the known account addresses """
-        return self.accounts
+        return self._accounts
+    accounts = property(get_accounts)
 
     def set_account_attribute(self, address: str, key: str, val: T) -> None:
         """ Set an attribute of an account """
         idx = self._get_account_index(address)
-        if idx < 0:
-            raise IndexError("{} not found.  Unable to set attribute.".format(address))
-        return setattr(self.accounts[idx], key, val)
+        return setattr(self._accounts[idx], key, val)
 
     def create_account(self, password: str) -> str:
         """ Create a new account and encrypt it with password """
@@ -228,12 +232,15 @@ class Accounts(object):
 
         """ Do some tx verification and substitution if necessary
         """
-        if tx.get('gasPrice') is None:
-            gasPrice = self.web3.eth.generateGasPrice()
-            log.warning("Missing gasPrice for transaction. Using automatic price of {}".format(
-                    gasPrice
-                ))
-            tx['gasPrice'] = gasPrice
+        if not tx.get('gasPrice'):
+            # TODO: Allow a default gasPrice to be set in configuration?
+            raise ValidationError("gasPrice is a required field")
+            # This is currently broken in web3.py
+            # gasPrice = self.web3.eth.generateGasPrice()
+            # log.warning("Missing gasPrice for transaction. Using automatic price of {}".format(
+            #         gasPrice
+            #     ))
+            # tx['gasPrice'] = gasPrice
 
         if tx.get('nonce') is None:
             nonce = self.web3.eth.getTransactionCount(tx['from'])

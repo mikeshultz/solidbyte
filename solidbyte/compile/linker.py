@@ -3,7 +3,7 @@
 Example placeholder: __$13811623e8434e588b8942cf9304d14b96$__
 """
 import re
-from typing import Tuple, Dict, Set
+from typing import Tuple, Dict, Set, Pattern
 from ..common.utils import all_defs_in, defs_not_in
 from ..common.web3 import remove_0x, hash_string, hash_hexstring
 from ..common.exceptions import LinkError
@@ -19,7 +19,7 @@ LINK_PLACEHOLDER_REGEX = r'\$[A-Za-z0-9]{34}\$'
 BYTECODE_PLACEHOLDER_REGEX = '__({})__'
 
 
-def make_placeholder_regex(placeholder: str) -> str:
+def make_placeholder_regex(placeholder: str) -> Pattern[str]:
     """ Return a regex pattern for a placeholder """
     placeholder = re.escape(placeholder)
     return re.compile(BYTECODE_PLACEHOLDER_REGEX.format(placeholder))
@@ -30,10 +30,7 @@ def placeholder_from_def(s: str) -> str:
     placeholder = re.search(LINK_PLACEHOLDER_REGEX, s)
     if not placeholder:
         raise LinkError("Unable to find placeholder")
-    try:
-        return placeholder.group(0)
-    except IndexError:
-        raise LinkError("Could not get placeholder from def")
+    return placeholder.group(0)
 
 
 def contract_from_def(s: str) -> str:

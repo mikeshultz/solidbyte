@@ -76,15 +76,11 @@ class NetworksYML:
 
         log.debug("Loading networks configuration from {}...".format(self.config_file))
 
-        try:
-            with open(self.config_file, 'r') as cfile:
-                self.config = yaml.load(cfile)
-                if not self.config:
-                    raise ConfigurationError("Unable to load networks.yml!")
-                self.networks = list(self.config.keys())
-        except Exception as e:
-            log.exception("Failed to load networks.yml")
-            raise e
+        with open(self.config_file, 'r') as cfile:
+            self.config = yaml.load(cfile)
+            if not self.config:
+                raise ConfigurationError("Unable to load networks.yml!")
+            self.networks = list(self.config.keys())
 
     def network_config_exists(self, name: str) -> bool:
         """ Check and see if we have configuration for name """
@@ -97,10 +93,10 @@ class NetworksYML:
     def get_network_config(self, name: str) -> NetworkConfig:
         """ Return the config for a specific network """
 
-        if not self.network_config_exists(name):
-            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
         if not self.config:
             raise ConfigurationError("Unable to load networks.yml!")
+        if not self.network_config_exists(name):
+            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
 
         return self.config[name]
 

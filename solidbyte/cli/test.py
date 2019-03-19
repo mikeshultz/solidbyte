@@ -71,6 +71,8 @@ def main(parser_args):
     """ Execute test """
     log.info("Executing project tests...")
 
+    return_code = 0
+
     if parser_args.passphrase:
         # Set this for use later
         store.set(store.Keys.DECRYPT_PASSPHRASE, parser_args.passphrase)
@@ -104,7 +106,7 @@ def main(parser_args):
             raise err
     else:
         if return_code != 0:
-            log.error("tests have failed")
+            log.error("Tests have failed. Return code: {}".format(return_code))
         else:
             if parser_args.gas:
 
@@ -136,6 +138,8 @@ def main(parser_args):
                         highlight_gas(avg),
                     ])
 
+                log.debug("Rendering report...")
+
                 print(tabulate(report_table, headers=['Function', 'Low', 'High', 'Avg']))
                 print("\nTotal transactions: {}".format(len(report.transactions)))
                 if len(report.transactions) > 0:
@@ -143,5 +147,7 @@ def main(parser_args):
                     print("Average gas per tx: {}".format(round(
                         report.total_gas / len(report.transactions)
                     )))
+
+                log.debug("Report rendering complete.")
 
         sys.exit(return_code)

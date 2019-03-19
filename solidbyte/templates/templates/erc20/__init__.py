@@ -27,6 +27,7 @@ class ERC20Template(Template):
 
         log.info("Creating contract templates...")
 
+        self.copy_template_file(self.pwd, 'contracts', 'MyERC20.sol')
         self.copy_template_file(self.pwd, 'contracts', 'ERC20.sol')
         self.copy_template_file(self.pwd, 'contracts', 'IERC20.sol')
         self.copy_template_file(self.pwd, 'contracts', 'SafeMath.sol')
