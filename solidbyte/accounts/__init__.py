@@ -69,7 +69,7 @@ class Accounts(object):
             try:
                 file_string = json_file.read()
                 jason = json.loads(file_string)
-            except json.decoder.JSONDecodeError as e:
+            except json.decoder.JSONDecodeError:
                 log.exception("Invalid JSON in the account keystore file {}".format(filename))
                 raise ValidationError("Invalid or currupt account secret-store file")
             except Exception as e:
