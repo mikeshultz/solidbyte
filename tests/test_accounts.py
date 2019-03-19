@@ -1,7 +1,7 @@
 from pathlib import Path
 from solidbyte.accounts import Accounts
 from solidbyte.common.web3 import web3c
-from solidbyte.common.exceptions import SolidbyteException
+from solidbyte.common.exceptions import SolidbyteException, ValidationError
 
 from .const import (
     TMP_DIR,
@@ -39,6 +39,10 @@ def test_account_creation():
     privkey = accounts.unlock(new_acct_addr, PASSWORD_1)
     assert len(privkey) == 32
 
+    # Duplicate
+    privkey_check = accounts.unlock(new_acct_addr, PASSWORD_1)
+    assert privkey == privkey_check
+
     # Fund the new account
     funding_txhash = web3.eth.sendTransaction({
             'from': web3.eth.accounts[0],
@@ -52,6 +56,18 @@ def test_account_creation():
 
     # Sign and send a tx
     value = int(1e18)  # 1 Ether
+
+    # Should fail without gasPrice
+    try:
+        accounts.sign_tx(new_acct_addr, {
+            'from': new_acct_addr,
+            'to': ADDRESS_1,
+            'value': value,
+            'gas': 22000,
+        }, PASSWORD_1)
+    except ValidationError as err:
+        assert 'gasPrice' in str(err)
+
     raw_tx = accounts.sign_tx(new_acct_addr, {
             'from': new_acct_addr,
             'to': ADDRESS_1,
@@ -82,6 +98,33 @@ def test_account_creation():
     #         'gas': 22000,
     #     }, PASSWORD_1)
     # assert is_hex(raw_tx.rawTransaction)
+
+
+def test_accounts_without_web3(temp_dir):
+    with temp_dir() as tmpdir:
+
+        # Mock up
+        tmpdir.joinpath('keystore').mkdir(0o700, parents=True)
+        write_temp_file(NETWORKS_YML_1, 'networks.yml', tmpdir, overwrite=True)
+
+        accounts = Accounts(
+            network_name=NETWORK_NAME,
+            keystore_dir=tmpdir.joinpath('keystore'),
+        )
+        assert len(accounts.accounts) == 0
+        accts = accounts.get_accounts()
+        assert len(accts) == 0
+
+        new_acct_addr = accounts.create_account(PASSWORD_1)
+        new_acct = accounts.get_account(new_acct_addr)
+        keyfile = Path(new_acct.filename)
+        assert keyfile.exists()
+
+        try:
+            accounts.sign_tx(new_acct_addr, {'gasPrice': int(1e6)})
+            assert False, "signing should fail without web3"
+        except ValidationError as err:
+            assert 'Web3' in str(err)
 
 
 def test_accounts_conflict_file(mock_project):
