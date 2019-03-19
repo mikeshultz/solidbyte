@@ -115,7 +115,6 @@ def test_deployer_deptree(mock_project):
         assert deptree.root.has_dependents()
 
 
-@pytest.mark.skip("'using' deps are unknowable from a Contract perspective")
 def test_contract_with_library(mock_project):
     """ Test the Contract object """
 
@@ -158,23 +157,25 @@ def test_contract_with_library(mock_project):
             testmath_abi = json.loads(abifile.read())
 
         # Build the expected source objects
-        unnecessary_source_contract = AttrDict({
-            'name': 'Unnecessary',
-            'abi': unnecessary_abi,
-            'bytecode': unnecessary_bytecode,
-        })
+        # unnecessary_source_contract = AttrDict({
+        #     'name': 'Unnecessary',
+        #     'abi': unnecessary_abi,
+        #     'bytecode': unnecessary_bytecode,
+        # })
+        # net_id = web3.net.chainId
+        # meta.add('Unnecessary', net_id, -address, -abi, -bytecode-hash)
 
-        safemath_source_contract = AttrDict({
-            'name': 'SafeMath',
-            'abi': safemath_abi,
-            'bytecode': safemath_bytecode,
-        })
+        # safemath_source_contract = AttrDict({
+        #     'name': 'SafeMath',
+        #     'abi': safemath_abi,
+        #     'bytecode': safemath_bytecode,
+        # })
 
-        testmath_source_contract = AttrDict({
-            'name': 'TestMath',
-            'abi': testmath_abi,
-            'bytecode': testmath_bytecode,
-        })
+        # testmath_source_contract = AttrDict({
+        #     'name': 'TestMath',
+        #     'abi': testmath_abi,
+        #     'bytecode': testmath_bytecode,
+        # })
 
         # Create the Contract instances to mess around with
         unnecessary_contract = Contract(
@@ -182,16 +183,21 @@ def test_contract_with_library(mock_project):
             network_name=NETWORK_NAME,
             from_account=web3.eth.accounts[0],
             metafile=meta,
-            source_contract=unnecessary_source_contract,
             web3=web3,
         )
+
+        # Make sure contract with no deployments has no expected attrs
+        assert repr(unnecessary_contract) == 'Unnecessary'
+        assert unnecessary_contract.is_deployed() is False
+        assert unnecessary_contract.address is None
+        assert unnecessary_contract.abi is None
+        assert unnecessary_contract.bytecode_hash is None
 
         safemath_contract = Contract(
             name='SafeMath',
             network_name=NETWORK_NAME,
             from_account=web3.eth.accounts[0],
             metafile=meta,
-            source_contract=safemath_source_contract,
             web3=web3,
         )
 
@@ -200,19 +206,24 @@ def test_contract_with_library(mock_project):
             network_name=NETWORK_NAME,
             from_account=web3.eth.accounts[0],
             metafile=meta,
-            source_contract=testmath_source_contract,
             web3=web3,
         )
 
         # Verify things look as expected
-        assert unnecessary_contract.check_needs_deployment(unnecessary_source_contract.bytecode)
-        assert safemath_contract.check_needs_deployment(safemath_source_contract.bytecode)
-        assert testmath_contract.check_needs_deployment(testmath_source_contract.bytecode)
+        assert unnecessary_contract.check_needs_deployment(unnecessary_bytecode)
+        assert safemath_contract.check_needs_deployment(safemath_bytecode)
+        assert testmath_contract.check_needs_deployment(testmath_bytecode)
 
         # Deploy our contracts
+        unnecessary = unnecessary_contract.deployed()
         safeMath = safemath_contract.deployed(gas=int(5e6))
+        safeMath_again = safemath_contract.deployed(gas=int(5e6))
+        assert safeMath.bytecode == safeMath_again.bytecode
+        assert safeMath.address == safeMath_again.address
+        assert safeMath.address is not None
         testMath = testmath_contract.deployed(gas=int(5e6), links={
-                'SafeMath': safeMath.address
+                'SafeMath': safeMath.address,
+                'Unnecessary': unnecessary.address,
             })
 
         # Test that everything is working
@@ -235,7 +246,9 @@ def test_contract_with_library(mock_project):
 
         # Make sure the Contract instances know they need to be deployed
         assert unnecessary_contract.check_needs_deployment(new_bytecode)
-        assert testmath_contract.check_needs_deployment(testmath_source_contract.bytecode)
+        # TODO: This is currently not supported, only Deployer can get an overview to check against
+        # dependencies.
+        # assert testmath_contract.check_needs_deployment(testmath_bytecode)
 
 
 def test_deployer_contract_with_libraries(mock_project):
