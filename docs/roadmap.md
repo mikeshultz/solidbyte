@@ -12,13 +12,13 @@ For more information, see the [project's milestones](https://github.com/mikeshul
 
 ## 1.1
 
-- EthPM 2.0 Support
-- Vyper and Solidity co-mingling (Allow Vyper to use Solidity libraries and vice-versa)
+- [ ] EthPM 2.0 Support
+- [ ] Vyper and Solidity co-mingling (Allow Vyper to use Solidity libraries and vice-versa)
 
 ## 1.2
 
-- Coverage integration
+- [ ] Coverage integration
 
 ## 1.3
 
-- Hardware Wallet Support
+- [ ] Hardware Wallet Support
