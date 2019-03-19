@@ -13,7 +13,7 @@ For more information, see the [project's milestones](https://github.com/mikeshul
 ## 1.1
 
 - [ ] EthPM 2.0 Support
-- [ ] Vyper and Solidity co-mingling (Allow Vyper to use Solidity libraries and vice-versa)
+- [ ] Vyper and Solidity co-mingling (Vyper can not use any libraries, however)
 
 ## 1.2
 
