@@ -4,11 +4,11 @@ For more information, see the [project's milestones](https://github.com/mikeshul
 
 ## 1.0
 
-- Gas usage reports
-- Improved documentation hosted on Read The Docs
-- More commonly used helper functions for contract unit tests
-- Reasonable unit test completion
-- All around bug fixes
+- [x] Gas usage reports
+- [ ] Improved documentation hosted on Read The Docs
+- [ ] More commonly used helper functions for contract unit tests
+- [x] Reasonable unit test completion
+- [ ] All around bug fixes
 
 ## 1.1
 
