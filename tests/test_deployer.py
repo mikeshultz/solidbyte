@@ -95,6 +95,12 @@ def test_deptree(mock_project):
     assert deptree.has_dependencies('Library2')
     assert not deptree.has_dependencies('Parent')
 
+    try:
+        deptree.move('NotFound', ContractLeaf('Fallen', deptree))
+        assert False, 'move() should throw if it does not exist in the tree'
+    except Exception as err:
+        assert 'not found' in str(err)
+
 
 def test_deployer_deptree(mock_project):
     """ Test the Deployer dep tree """
