@@ -10,6 +10,7 @@ from .const import (
     NETWORKS_YML_1,
     ADDRESS_1,
     ADDRESS_2,
+    INVALID_JSON,
 )
 from .utils import write_temp_file, is_hex
 
@@ -174,4 +175,35 @@ def test_accounts_account_noexist(mock_project):
             accounts.set_account_attribute(ADDRESS_2, 'what', 'ever')
             assert False, "set_account_attribute() on invalid address should fail"
         except IndexError:
+            pass
+
+
+def test_accounts_invalid_json(temp_dir):
+    with temp_dir() as tmpdir:
+
+        # Mock up
+        keystore_dir = tmpdir.joinpath('keystore')
+        keystore_dir.mkdir(0o700, parents=True)
+        invalid_json_file = tmpdir.joinpath('invalid.json')
+        inaccessible_json_file = tmpdir.joinpath('inaccessible.json')
+        inaccessible_json_file.touch(mode=0o400)
+
+        with invalid_json_file.open('w') as _file:
+            _file.write(INVALID_JSON)
+
+        accounts = Accounts(
+            network_name=NETWORK_NAME,
+            keystore_dir=keystore_dir,
+        )
+
+        try:
+            accounts._read_json_file(str(invalid_json_file))
+            assert False, "_read_json_file() should have failed with invalid JSON"
+        except ValidationError as err:
+            assert 'currupt' in str(err)
+
+        try:
+            accounts._write_json_file({'one': 1}, str(inaccessible_json_file))
+            assert False, "_write_json_file() should have failed without rights"
+        except PermissionError:
             pass
