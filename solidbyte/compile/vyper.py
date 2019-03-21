@@ -4,7 +4,6 @@ from typing import List
 from vyper.parser.parser import parse_to_ast
 
 
-# BODYLESS_FUNCTION = r'(def [\w]+\(\)\:)[\s]+(constant|modifying)'
 # Function def regex, probably gonna be janky
 TYPE_BITS = r'(1|2|4|8|16|32|64|128|256)'
 VYPER_TYPES = r'(uint{}|int{})*'.format(TYPE_BITS, TYPE_BITS)
