@@ -53,8 +53,4 @@ def is_vyper_interface(source_text: str):
     if len(funcs) < 1:
         return False
 
-    for func in funcs:
-        if is_bodyless_func(func):
-            return True
-
-    return False
+    return any([is_bodyless_func(func) for func in funcs])
