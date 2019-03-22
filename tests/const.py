@@ -8,6 +8,8 @@ TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
 SOLIDBYTE_COMMAND = 'sb'
 SOLIDBYTE_MODULE = 'solidbyte'
 
+EXPECTED_VYPER_VERSION = '0.1.0b9'
+
 # Ethereum stuff
 NETWORK_ID = 999
 NETWORK_NAME = 'test'
@@ -106,6 +108,28 @@ def main(contracts, deployer_account, web3, network):
     test = Test.deployed()
     assert test.functions.getOwner().call() is not None
     return True
+"""
+CONTRACT_VYPER_SOURCE_FILE_2 = """
+import ITestInterface as ITestInterface
+
+implements: ITestInterface
+
+counter: uint256
+
+@public
+def add_one():
+    self.counter += 1
+
+@public
+def get_one() -> uint256:
+    return self.counter
+"""
+CONTRACT_VYPER_INTERFACE_FILE_2 = """
+@public
+def add_one(): modifying
+
+@public
+def get_one() -> uint256: constant
 """
 NETWORKS_YML_1 = """# networks.yml
 ---
