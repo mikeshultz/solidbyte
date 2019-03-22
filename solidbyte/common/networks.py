@@ -1,8 +1,9 @@
 """ Handle operations around networks.yml
 """
 import yaml
-from typing import Union, Any, Dict, List
+from typing import Callable, Union, Any, Dict, List
 from pathlib import Path
+from functools import wraps
 from .logging import getLogger
 from .exceptions import ConfigurationError
 from .utils import to_path_or_cwd
@@ -17,6 +18,29 @@ NetworkConfig = Dict[str, Dict[str, Any]]
 ETH_TESTER_TYPES = ('eth_tester', 'eth-tester', 'ethereum-tester')
 
 
+def config_exists_check(f: Callable) -> Callable:
+    """ Decorator to check if a config exists
+
+    methods must have `name` as first argument after `self`.
+
+        @config_exists_check
+        def method(self, name):
+            pass
+    """
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+
+        if not args[0].config:
+            raise ConfigurationError("networks.yml not loaded!")
+        if not args[0].network_config_exists(args[1]):
+            raise ConfigurationError("Network config for '{}' does not exist.".format(args[1]))
+
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
 class NetworksYML:
     """ Object representation of the networks.yml file
 
@@ -27,6 +51,7 @@ class NetworksYML:
     dev:
       type: auto
       autodeploy_allowed: true
+      use_default_account: true
 
     infura-mainnet:
       type: websocket
@@ -39,6 +64,7 @@ class NetworksYML:
     test:
       type: eth_tester
       autodeploy_allowed: true
+      use_default_account: true
 
     """
 
@@ -90,28 +116,26 @@ class NetworksYML:
         except ValueError:
             return False
 
+    @config_exists_check
     def get_network_config(self, name: str) -> NetworkConfig:
         """ Return the config for a specific network """
 
-        if not self.config:
-            raise ConfigurationError("Unable to load networks.yml!")
-        if not self.network_config_exists(name):
-            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
-
         return self.config[name]
 
+    @config_exists_check
     def autodeploy_allowed(self, name: str) -> bool:
         """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
 
-        if not self.network_config_exists(name):
-            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
-
         return self.get_network_config(name).get('autodeploy_allowed', False)
 
-    def is_eth_tester(self, name: str) -> bool:
+    @config_exists_check
+    def use_default_account(self, name: str) -> bool:
         """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
 
-        if not self.network_config_exists(name):
-            raise ConfigurationError("Network config for '{}' does not exist.".format(name))
+        return self.get_network_config(name).get('use_default_account', False)
+
+    @config_exists_check
+    def is_eth_tester(self, name: str) -> bool:
+        """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
 
         return self.get_network_config(name).get('type') in ETH_TESTER_TYPES

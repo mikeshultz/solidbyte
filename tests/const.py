@@ -136,10 +136,12 @@ NETWORKS_YML_1 = """# networks.yml
 test:
   type: eth_tester
   autodeploy_allowed: true
+  use_default_account: true
 
 dev:
   type: auto
   autodeploy_allowed: true
+  use_default_account: true
 
 {}:
   type: http
@@ -154,6 +156,7 @@ NETWORKS_YML_2 = """# networks.yml
 test:
   type: eth_tester
   autodeploy_allowed: true
+  use_default_account: true
 
 dev:
   type: auto
