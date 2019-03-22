@@ -1,8 +1,12 @@
 """ Solidity compiling functionality """
 import sys
+import json
+import vyper
 from subprocess import Popen, PIPE, STDOUT
 from pathlib import Path
 from typing import Set
+from vyper.signatures.interface import extract_file_interface_imports
+from .vyper import is_vyper_interface, vyper_import_to_file_paths
 from ..common.utils import (
     builddir,
     get_filename_and_ext,
@@ -66,14 +70,7 @@ class Compiler(object):
     @property
     def vyper_version(self):
         """ Get the version of the vyper copmiler """
-        compile_cmd = [
-            VYPER_PATH,
-            '--version',
-        ]
-        p = Popen(compile_cmd, stdout=PIPE)
-        version_out = p.stdout.read().decode('utf-8').strip('\n')
-        p.wait()
-        return version_out
+        return vyper.__version__
 
     @property
     def version(self):
@@ -135,8 +132,6 @@ class Compiler(object):
                 and b'Compiler run successful' not in p_abi_out
                     ):
                 log.error("Compiler shows an error:")
-                print(unescape_newlines(p_bin_out), file=sys.stderr)
-                print(unescape_newlines(p_abi_out), file=sys.stderr)
                 raise CompileError("solc did not indicate success.")
 
             # Check the return codes
@@ -157,59 +152,58 @@ class Compiler(object):
 
         elif ext == 'vy':
 
-            # Create the output file and open for writing of bytecode
-            with bin_outfile.open(mode='wb') as out:
-                compile_cmd = [
-                    VYPER_PATH,
-                    '-f',
-                    'bytecode',
-                    str(source_file)
-                ]
-                log.debug("Executing compiler with: {}".format(' '.join(compile_cmd)))
+            source_text = ''
 
-                # Execute and write output to outfile
-                p = Popen(compile_cmd, bufsize=1, stdout=PIPE)
-                for ln in p.stdout:
-                    out.write(ln)
-                p.wait()
+            with source_file.open() as _file:
+                source_text = _file.read()
 
-                # Make sure it exited cleanly
-                try:
-                    assert p.returncode == 0
-                except AssertionError:
-                    log.error("Error compiling bytecode with Vyper compiler on contract {}".format(
-                        filename
-                    ))
-                    raise CompileError("Vyper compiler returned non-zero exit code: {}".format(
-                        p.returncode
-                    ))
+            if not source_text:
+                # TODO: Do we want to die in a fire here?
+                log.warning("Source file for {} appears to be empty!".format(name))
+                return
+
+            if is_vyper_interface(source_text):
+                log.warning("{} appears to be a vyper interface.  Skipping.".format(name))
+                return
+
+            # Read in the source for the interface(s)
+            interface_imports = extract_file_interface_imports(source_text)
+            interface_codes = dict()
+
+            for interface_name, interface_path in interface_imports.items():
+                interface_filepath = vyper_import_to_file_paths(self.dir, interface_path)
+                with interface_filepath.open() as _file:
+                    interface_codes[interface_name] = {
+                        'type': 'vyper',
+                        'code': _file.read()
+                    }
+
+            compiler_out = vyper.compile_code(
+                source_text,
+                ['bytecode', 'abi'],
+                interface_codes=interface_codes,
+            )
+
+            if not compiler_out.get('bytecode') and not compiler_out.get('abi'):
+                log.error("Nothing returned by vyper compiler for {}".format(name))
+                return
+
+            if not compiler_out.get('bytecode'):
+                log.warning("No bytecode returned by vyper compiler for contract {}".format(name))
+            else:
+
+                # Create the output file and open for writing of bytecode
+                with bin_outfile.open(mode='w') as out:
+                    out.write(compiler_out['bytecode'])
 
             # ABI
-            with abi_outfile.open(mode='wb') as out:
-                abi_cmd = [
-                    VYPER_PATH,
-                    '-f',
-                    'abi',
-                    str(source_file)
-                ]
-                log.debug("Executing compiler with: {}".format(' '.join(abi_cmd)))
+            if not compiler_out.get('abi'):
+                log.warning("No ABI returned by vyper compiler for contract {}".format(name))
+            else:
 
-                # Execute and write output to outfile
-                p = Popen(abi_cmd, bufsize=1, stdout=PIPE)
-                for ln in p.stdout:
-                    out.write(ln)
-                p.wait()
-
-                # Make sure it exited cleanly
-                try:
-                    assert p.returncode == 0
-                except AssertionError:
-                    log.error("Error building ABI with Vyper compiler on contract {}".format(
-                        filename
-                    ))
-                    raise CompileError("Vyper compiler returned non-zero exit code: {}".format(
-                        p.returncode
-                    ))
+                # Create the output file and open for writing of bytecode
+                with abi_outfile.open(mode='w') as out:
+                    out.write(json.dumps(compiler_out['abi']))
 
         else:
             raise CompileError("Unsupported source file type")

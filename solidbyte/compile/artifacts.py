@@ -64,7 +64,10 @@ def available_contract_names(project_dir: PS) -> Set[str]:
     c_names = set()
 
     for d in builddir.iterdir():
-        if d.is_dir():
+        if d.is_dir() and (
+                d.joinpath('{}.abi'.format(d.name)).is_file()
+                or d.joinpath('{}.bin'.format(d.name)).is_file()
+                ):
             c_names.add(d.name)
 
     return c_names
