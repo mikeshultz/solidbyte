@@ -1,5 +1,4 @@
 """ Solidity compiling functionality """
-import sys
 import json
 import vyper
 from subprocess import Popen, PIPE, STDOUT
@@ -13,7 +12,6 @@ from ..common.utils import (
     supported_extension,
     find_vyper,
     to_path_or_cwd,
-    unescape_newlines,
 )
 from ..common.exceptions import CompileError
 from ..common.logging import getLogger

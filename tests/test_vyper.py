@@ -3,7 +3,6 @@
 import json
 from solidbyte.compile import Compiler
 from .const import (
-    NETWORK_NAME,
     CONTRACT_VYPER_SOURCE_FILE_2,
     CONTRACT_VYPER_INTERFACE_FILE_2,
     EXPECTED_VYPER_VERSION,
