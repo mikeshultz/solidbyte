@@ -130,7 +130,7 @@ class NetworksYML:
 
     @config_exists_check
     def use_default_account(self, name: str) -> bool:
-        """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
+        """ Check if this network is allowed to use the default account for most operations. """
 
         return self.get_network_config(name).get('use_default_account', False)
 
