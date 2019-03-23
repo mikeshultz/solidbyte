@@ -18,12 +18,12 @@ NetworkConfig = Dict[str, Dict[str, Any]]
 ETH_TESTER_TYPES = ('eth_tester', 'eth-tester', 'ethereum-tester')
 
 
-def config_exists_check(f: Callable) -> Callable:
+def config_exists(f: Callable) -> Callable:
     """ Decorator to check if a config exists
 
     methods must have `name` as first argument after `self`.
 
-        @config_exists_check
+        @config_exists
         def method(self, name):
             pass
     """
@@ -116,25 +116,25 @@ class NetworksYML:
         except ValueError:
             return False
 
-    @config_exists_check
+    @config_exists
     def get_network_config(self, name: str) -> NetworkConfig:
         """ Return the config for a specific network """
 
         return self.config[name]
 
-    @config_exists_check
+    @config_exists
     def autodeploy_allowed(self, name: str) -> bool:
         """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
 
         return self.get_network_config(name).get('autodeploy_allowed', False)
 
-    @config_exists_check
+    @config_exists
     def use_default_account(self, name: str) -> bool:
         """ Check if this network is allowed to use the default account for most operations. """
 
         return self.get_network_config(name).get('use_default_account', False)
 
-    @config_exists_check
+    @config_exists
     def is_eth_tester(self, name: str) -> bool:
         """ Check if autodeploy is allowed on this network. It must be explicitly allowed. """
 
