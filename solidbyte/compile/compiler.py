@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Set
 from vyper.signatures.interface import extract_file_interface_imports
 from .vyper import is_vyper_interface, vyper_import_to_file_paths
+from .solidity import is_solidity_interface_only
 from ..common.utils import (
     builddir,
     get_filename_and_ext,
@@ -88,6 +89,10 @@ class Compiler(object):
 
         if ext == 'sol':
 
+            if is_solidity_interface_only(source_file):
+                log.warning("{} appears to be a Solidity interface.  Skipping.".format(name))
+                return
+
             # Compiler command to run
             compile_cmd = [
                 SOLC_PATH,
@@ -139,14 +144,10 @@ class Compiler(object):
                 raise CompileError("Solidity compiler returned non-zero exit code")
 
             if bin_outfile.stat().st_size == 0:
-                """ So far this has been seen with contracts that inherit  an interface.  Perhaps
-                missing some implementations or conflicts, but solc doesn't complain.  Not sure why
-                solc doesn't throw an error, but here we are.
-                """
-                log.warning("Zero length bytecode output from compiler. This is fine for "
-                            "interfaces but may indicate a silent error with {}.".format(name))
-                # raise CompileError("Zero length bytecode output from compiler. Check your "
-                #                    "interface implementations.")
+                raise CompileError(
+                    "Zero length bytecode output from compiler. This has only been seen to occur if"
+                    "  there was a silent error by the Solidity compileer"
+                )
 
         elif ext == 'vy':
 
@@ -161,7 +162,7 @@ class Compiler(object):
                 return
 
             if is_vyper_interface(source_text):
-                log.warning("{} appears to be a vyper interface.  Skipping.".format(name))
+                log.warning("{} appears to be a Vyper interface.  Skipping.".format(name))
                 return
 
             # Read in the source for the interface(s)
