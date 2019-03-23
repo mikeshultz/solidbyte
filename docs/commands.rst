@@ -9,6 +9,8 @@ Commands
 Create a project using a template or bare.  For instance, creating an ERC20 
 project from the template: 
 
+.. code-block:: bash
+
     sb init -t erc20
 
 ***************
@@ -16,6 +18,8 @@ project from the template:
 ***************
 
 Compile the contracts.
+
+.. code-block:: bash
 
     sb compile
 
@@ -25,13 +29,16 @@ Compile the contracts.
 
 Test the contracts using pytest(?)
 
+.. code-block:: bash
+
     sb test
 
 ***************
 :code:`console`
 ***************
 
-Start a pythonic console for testing contracts.  Provides web3 and contracts as local variables.
+Start a pythonic console for testing contracts.  Provides web3 and contracts as
+local variables.
 
 .. code-block:: bash
 
@@ -49,7 +56,7 @@ Start a pythonic console for testing contracts.  Provides web3 and contracts as 
 **************
 
 Deploy contracts using the user-written deploy scripts.  For more details, see
-the [deployment documentation](deployment.md).
+:doc:`deployment`.
 
 ************
 :code:`help`
@@ -79,7 +86,9 @@ Execute a python script within the context of soidbyte
 :code:`install` [Prototype]
 ***************************
 
-Ethereum package registry? https://www.ethpm.com/
+`Ethereum package manager`_ support.  Coming soon...
+
+.. _Ethereum package manager: https://www.ethpm.com/
 
 .. _metafile-command:
 
@@ -93,13 +102,14 @@ Commands to backup and cleanup the metafile.
 :code:`metafile cleanup`
 ========================
 
-Cleanup and compact `metafile.json` by removing deployed contract instances for test networks.
+Cleanup and compact :code:`metafile.json` by removing deployed contract
+instances for test networks.
 
 =======================
 :code:`metafile backup`
 =======================
 
-Make a copy of `metafile.json` to the given location and verify.
+Make a copy of :code:`metafile.json` to the given location and verify.
 
 ************
 :code:`sigs`

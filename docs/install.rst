@@ -42,11 +42,13 @@ REHL/CentOS
 Windows
 -------
 
-[TBD.  Please submit a pull request if you figure it out.]
+*TBD.  Please submit a pull request if you figure it out.*
 
 ---
 OSX
 ---
+
+*TBD. Please submit a pull request if you figure it out.*
 
 ********************
 Installing Solidbyte

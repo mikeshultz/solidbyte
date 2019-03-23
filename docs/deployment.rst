@@ -6,7 +6,7 @@ Deployment Scripts
 Overview
 ********
 
-SolidByte aims to make deployment easy.  For the most part, it will keep track
+Solidbyte aims to make deployment easy.  For the most part, it will keep track
 of contract deployments and will know when the source changed and a new version
 needs to go up.
 
@@ -16,7 +16,7 @@ need to be made after deployment is done.  For this, you need to create a
 deployment script.
 
 All scripts are in the :code:`deploy/` directory in your project root, and
-should be named starting with :code:`deploy_`.  And SolidByte will only call
+should be named starting with :code:`deploy_`.  And Solidbyte will only call
 :code:`main()` within your deploy scripts.  Any other functions you have will
 be ignored.
 
@@ -35,7 +35,7 @@ The important bit is this:
     :lines: 29
 
 The :code:`.deployed()` method on the :class:`solidbyte.deploy.objects.Contract`
-instance is where the magic happens.  This will trigger SolidByte to deploy the
+instance is where the magic happens.  This will trigger Solidbyte to deploy the
 contract if necessary.  The arguments to this function are the same arguments
 you would provide to your contract's construtor.  It will return a
 :class:`web3.contract.Contract` instance.
@@ -43,7 +43,7 @@ you would provide to your contract's construtor.  It will return a
 **NOTE**: Using :code:`Contract.deployed()` is not required.  It's there to
 help. Feel free not to use it.
 
-SolidByte expects all deploy functions to return True upon success.
+Solidbyte expects all deploy functions to return True upon success.
 
 =================
 Linking Libraries
@@ -74,7 +74,7 @@ more real-world example would be deploying both at the same time:
 Arguments
 =========
 
-SolidByte offers your deploy script's `main()` functions a few optional kwargs.
+Solidbyte offers your deploy script's `main()` functions a few optional kwargs.
 
  - :code:`contracts` - an AttrDict instance of your contract instances stored by name
  - :code:`web3` - An initialized instance of Web3

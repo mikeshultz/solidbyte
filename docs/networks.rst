@@ -7,28 +7,13 @@ connections to Ethereum JSON-RPC providers and nodes.  Some templates may
 provide some pre-configured connections.
 
 ************
-Example File
+Default File
 ************
 
-.. code-block:: yaml
+This is the default :code:`networks.yml` provided by the :code:`bare` template:
 
-    # networks.yml
-    ---
-    dev:
-      type: auto
-
-    infura-mainnet:
-      type: websocket
-      url: wss://mainnet.infura.io/ws
-
-    geth:
-      type: ipc
-      file: ~/.ethereum/geth.ipc
-
-    test:
-      type: eth_tester
-      autodeploy_allowed: true
-      use_default_account: true
+.. literalinclude:: ../solidbyte/templates/templates/bare/networks.yml
+    :language: yaml
 
 Each root-level node is the network name you will use to reference the
 configuration.  For instance using the above file, if you want to connect to

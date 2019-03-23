@@ -32,8 +32,6 @@ Development
    :maxdepth: 2
    :caption: Solidbyte development information
 
-   devel/roadmap
-   devel/development
    devel/index
 
 
