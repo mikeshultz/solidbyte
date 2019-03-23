@@ -544,6 +544,39 @@ def main(contracts, deployer_account, web3, network):
     return True
 """
 
+CONTRACT_SOLIDITY_INTERFACE_NAME = "ITest"
+CONTRACT_SOLIDITY_IMPLEMENTER_NAME = "Implementer"
+CONTRACT_SOLIDITY_IMPLEMENTER = """pragma solidity ^0.5.2;
+
+import './{}.sol';
+
+contract {} is {} {{
+    uint256 public count;
+
+    function addOne(uint256 val) external
+    {{
+        count += val;
+    }}
+
+    function getCount() external view returns (uint256)
+    {{
+        return count;
+    }}
+}}
+""".format(
+    CONTRACT_SOLIDITY_INTERFACE_NAME,
+    CONTRACT_SOLIDITY_IMPLEMENTER_NAME,
+    CONTRACT_SOLIDITY_INTERFACE_NAME
+)
+
+CONTRACT_SOLIDITY_INTERFACE = """pragma solidity ^0.5.2;
+
+interface {} {{
+    function addOne(uint256 val) external;
+    function getCount() external view returns (uint256);
+}}
+""".format(CONTRACT_SOLIDITY_INTERFACE_NAME)
+
 USER_SCRIPT_1 = """
 
 def main(contracts):
