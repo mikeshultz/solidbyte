@@ -31,6 +31,7 @@ import json
 from typing import Union, Any, Optional, Callable, List, Tuple
 from pathlib import Path
 from datetime import datetime
+from functools import wraps
 from shutil import copyfile
 from attrdict import AttrDict
 from .logging import getLogger
@@ -48,6 +49,7 @@ PS = Union[Path, str]
 
 def autoload(f: Callable) -> Callable:
     """ Automatically load the metafile before method execution """
+    @wraps(f)
     def wrapper(*args, **kwargs):
         # A bit defensive, but make sure this is a decorator of a MetaFile method
         if len(args) > 0 and isinstance(args[0], MetaFile):
@@ -58,6 +60,7 @@ def autoload(f: Callable) -> Callable:
 
 def autosave(f):
     """ Automatically save the metafile after method execution """
+    @wraps(f)
     def wrapper(*args, **kwargs):
         retval = f(*args, **kwargs)
         # A bit defensive, but make sure this is a decorator of a MetaFile method

@@ -10,11 +10,11 @@ from ..common import (
     builddir,
     to_path_or_cwd,
 )
-from ..common.exceptions import DeploymentError
+from ..common.exceptions import AccountError, DeploymentError
 from ..common.logging import getLogger
 from ..common.web3 import web3c
 from ..common.metafile import MetaFile
-# from ..common.networks import NetworksYML
+from ..common.networks import NetworksYML
 from .objects import Contract, ContractDependencyTree
 
 log = getLogger(__name__)
@@ -78,10 +78,8 @@ class Deployer:
         # else:
         self.metafile: MetaFile = MetaFile(project_dir=project_dir)
 
-        if account:
-            self.account = self.web3.toChecksumAddress(account)
-        else:
-            self.account = self.metafile.get_default_account()
+        self.account = None
+        self._init_account(account, fail_on_error=False)
 
         if not self.contracts_dir.is_dir():
             raise FileNotFoundError("contracts directory does not exist")
@@ -122,6 +120,9 @@ class Deployer:
         """
         if force is False and len(self._contracts) > 0:
             return self._contracts
+
+        if not self.account:
+            self._init_account(fail_on_error=False)
 
         self._contracts = AttrDict()
         for key in self.artifacts.keys():
@@ -208,9 +209,13 @@ class Deployer:
         """
 
         if not self.account:
-            raise DeploymentError("Account needs to be set for deployment")
+            self._init_account()
+            if not self.account:
+                raise DeploymentError("No account available.")
+
         if self.account and self.web3.eth.getBalance(self.account) == 0:
             log.warning("Account has zero balance ({})".format(self.account))
+
         if self.network_id != (self.web3.net.chainId or self.web3.net.version):
             raise DeploymentError("Connected node is does not match the provided chain ID")
 
@@ -218,6 +223,39 @@ class Deployer:
         self.refresh()
 
         return True
+
+    def _init_account(self, account=None, fail_on_error=True):
+        """ Try and figure out what account to use for deployment """
+
+        if account is not None:
+            account = self.web3.toChecksumAddress(account)
+            self.account = account
+            return
+
+        if self.account is not None:
+            return
+
+        yml = NetworksYML(project_dir=self.project_dir)
+
+        if yml.use_default_account(self.network_name):
+
+            self.account = self.metafile.get_default_account()
+
+            if self.account is not None:
+                return self.account
+            elif fail_on_error:
+                raise DeploymentError(
+                    "Account needs to be set for deployment. No default account found."
+                )
+
+            return None
+
+        elif fail_on_error:
+
+            raise AccountError(
+                "Use of default account on this network is not allowed and no account was"
+                "provided. You may want to set 'use_default_account: true' for this network."
+            )
 
     def _load_user_scripts(self) -> None:
         """ Load the user deploy scripts from deploy folder as python modules and stash 'em away for
@@ -275,6 +313,12 @@ class Deployer:
 
         :returns: dict of the kwargs to provide to deployer scripts
         """
+
+        if not self.account:
+            self._init_account()
+            if not self.account:
+                raise DeploymentError("Account not set.")
+
         return {
             'contracts': self.contracts,
             'web3': self.web3,

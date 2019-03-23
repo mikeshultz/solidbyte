@@ -14,6 +14,8 @@ def add_parser_arguments(parser):
                         help='Ethereum network to connect the console to')
     parser.add_argument('script', metavar="FILE", type=str, nargs='+',
                         help='Script to run')
+    parser.add_argument('-a', '--address', type=str, dest="address",
+                        help='Address of the Ethereum account used for deployment')
     return parser
 
 
@@ -27,7 +29,7 @@ def main(parser_args):
         ', '.join(parser_args.script))
     )
 
-    res = run_scripts(collapse_oel(parser_args.network), parser_args.script)
+    res = run_scripts(collapse_oel(parser_args.network), parser_args.script, parser_args.address)
 
     if not res:
         log.error("Script{} returned error".format(scripts_plural))

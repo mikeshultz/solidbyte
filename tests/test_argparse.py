@@ -28,6 +28,12 @@ def test_argparse_help():
     ('accounts create', [
         ('command', 'accounts'),
         ('account_command', 'create'),
+        ('create_default', False),
+    ]),
+    ('accounts create --default', [
+        ('command', 'accounts'),
+        ('account_command', 'create'),
+        ('create_default', True),
     ]),
     ('accounts default -a {}'.format(ADDRESS_1), [
         ('command', 'accounts'),
@@ -39,11 +45,17 @@ def test_argparse_help():
     ]),
     ('console test', [
         ('command', 'console'),
-        ('network', ['test']),  # TODO: Weirdness with argparse and nargs=1?
+        ('network', ['test']),
+    ]),
+    ('deploy test', [
+        ('command', 'deploy'),
+        ('network', ['test']),
+        ('address', None),
     ]),
     ('deploy test -a {}'.format(ADDRESS_1), [
         ('command', 'deploy'),
-        ('network', ['test']),  # TODO: Weirdness with argparse and nargs=1?
+        ('network', ['test']),
+        ('address', ADDRESS_1),
     ]),
     ('init', [
         ('command', 'init'),
@@ -139,7 +151,6 @@ def test_argparse_valid(argv, expected):
     'compile path/to/myfile.sol',  # TODO: This maybe should be implemented
     'console',
     'deploy',
-    'deploy test',
     # 'install',
     # 'install mypackage',  # TODO: This maybe should be implemented
     'show',

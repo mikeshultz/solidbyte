@@ -2,11 +2,12 @@
 """
 import sys
 from pathlib import Path
+from enum import IntEnum
 from tabulate import tabulate
 from ..testing import run_tests
 from ..compile.artifacts import artifacts
 from ..common import collapse_oel
-from ..common.exceptions import DeploymentValidationError
+from ..common.exceptions import AccountError, DeploymentValidationError
 from ..common import store
 from ..common.web3 import web3c, remove_0x
 from ..common.logging import ConsoleStyle, getLogger
@@ -19,6 +20,17 @@ log = getLogger(__name__)
 GAS_WARN = 1e5
 GAS_BAD = 1e6
 GAS_ERROR = 47e5  # Ropsten is at 4.7m
+
+
+class TestReturnCodes(IntEnum):
+    SUCCESS = 0  # Pytest "success"
+    TESTS_FAILED = 1  # pytest "some failed"
+    INTERRUPTED = 2  # pytest user interrupt
+    INTERNAL = 3  # pytest internal error
+    CLI_ERROR = 4  # pytest CLI usage error
+    NO_TESTS = 5  # pytest no tests found
+    ERROR = 10  # solidbyte error
+    NOT_ALLOWED = 11  # solidbyte not allowed
 
 
 def highlight_gas(gas):
@@ -98,14 +110,20 @@ def main(parser_args):
         return_code = run_tests(network_name, web3=web3, args=args,
                                 account_address=parser_args.address,
                                 keystore_dir=parser_args.keystore, gas_report_storage=report)
+    except AccountError as err:
+        if 'use_default_account' in str(err):
+            log.exception("Use of a default account dissallowed.")
+            sys.exit(TestReturnCodes.NOT_ALLOWED)
+        else:
+            raise err
     except DeploymentValidationError as err:
         if 'autodeployment' in str(err):
-            log.error("The -a/--address option or --default must be provided for autodeployment")
-            sys.exit(1)
+            log.error("The -a/--address option be provided for autodeployment")
+            sys.exit(TestReturnCodes.NOT_ALLOWED)
         else:
             raise err
     else:
-        if return_code != 0:
+        if return_code != TestReturnCodes.SUCCESS:
             log.error("Tests have failed. Return code: {}".format(return_code))
         else:
             if parser_args.gas:

@@ -40,6 +40,9 @@ def test_metafile():
     assert mfile.set_default_account(ADDRESS_2) is None
     assert mfile.get_default_account() == normalize_address(ADDRESS_2)
 
+    mfile2 = MetaFile(filename_override=str(mfilename))
+    assert mfile2.get_default_account() == mfile.get_default_account()
+
 
 def test_metafile_cleanup(mock_project):
     """ Test the cleanup method of MetaFile. """
