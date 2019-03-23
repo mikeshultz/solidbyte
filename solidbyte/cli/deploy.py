@@ -13,7 +13,7 @@ def add_parser_arguments(parser):
     """ Add additional subcommands onto this command """
     parser.add_argument('network', metavar="NETWORK", type=str, nargs=1,
                         help='Ethereum network to connect the console to')
-    parser.add_argument('-a', '--address', type=str, required=True,
+    parser.add_argument('-a', '--address', type=str, dest="address",
                         help='Address of the Ethereum account to use for deployment')
     parser.add_argument(
         '-p',
@@ -47,7 +47,7 @@ def main(parser_args):
     # Make sure we actually need to deploy
     if not deployer.check_needs_deploy():
         log.info("No changes, deployment unnecessary")
-        sys.exit()
+        sys.exit(0)
 
     deployer.deploy()
 
@@ -57,3 +57,5 @@ def main(parser_args):
         contract = deployer.contracts[name]
         log.info("{}: {}".format(contract.name, contract.address))
     log.info("--------------------------------------")
+
+    sys.exit(0)

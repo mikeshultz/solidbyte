@@ -37,11 +37,14 @@ def execute_command_assert_no_error_success(cmd):
     list_proc.wait()
     if list_proc.returncode is None:
         list_proc.terminate()
-    if list_proc.returncode != 0:
-        print(list_output)
-    assert list_proc.returncode == 0, (
-        "Invalid return code from command. Expected 0 but saw {}".format(list_proc.returncode)
-    )
+    try:
+        assert list_proc.returncode == 0, (
+            "Invalid return code from command. Expected 0 but saw {}".format(list_proc.returncode)
+        )
+    except AssertionError as err:
+        print('--------------------------------------------------------')
+        print("Command failed: {}".format(' '.join(cmd)))
+        raise err
     return list_output
 
 
@@ -119,16 +122,16 @@ def test_cli_integration(sb, mock_project, ganache):
             ]).decode('utf-8')
 
             # We're going to need the default account later
-            default_account = None
-            print("accounts_output: {}".format(accounts_output))
+            first_account = None
+            print("accounts_output: \n{}".format(accounts_output))
             for ln in accounts_output.split('\n'):
                 # 0xC4cf518bDeDe4bdbE3d98f2F8E3195c7d9DC080B
                 print("### matching {} against {}".format(ACCOUNT_MATCH_PATTERN, ln))
                 match = re.match(ACCOUNT_MATCH_PATTERN, ln)
                 if match:
-                    default_account = match.group(1)
+                    first_account = match.group(1)
                     break
-            assert default_account is not None, "Did not find an account to use"
+            assert first_account is not None, "Did not find an account to use"
 
             # test `sb accounts default -a [account]`
             execute_command_assert_no_error_success([
@@ -138,7 +141,7 @@ def test_cli_integration(sb, mock_project, ganache):
                 'accounts',
                 'default',
                 '-a',
-                default_account
+                first_account,
             ])
 
             # test `sb compile`
@@ -149,7 +152,6 @@ def test_cli_integration(sb, mock_project, ganache):
             # execute_command_assert_no_error_success([*sb, 'console', 'test'])
 
             # test `sb deploy [network] -a [account]`
-            # Disabled.  Need an account to test with
             execute_command_assert_no_error_success([
                 *sb,
                 '-k',
@@ -157,7 +159,7 @@ def test_cli_integration(sb, mock_project, ganache):
                 'deploy',
                 gopts.network_name,
                 '-a',
-                default_account,
+                first_account,
                 '-p',
                 PASSWORD_1,
             ])
@@ -165,7 +167,7 @@ def test_cli_integration(sb, mock_project, ganache):
             # test `sb show [network]`
             execute_command_assert_no_error_success([*sb, 'show', gopts.network_name])
 
-            # test `sb test [network]`
+            # test `sb test -g [network]`
             execute_command_assert_no_error_success([
                 *sb,
                 '-k',
@@ -200,7 +202,7 @@ def test_cli_integration(sb, mock_project, ganache):
                 'test',
                 'nodeploy',
                 '-a',
-                default_account,
+                first_account,
                 '-p',
                 PASSWORD_1,
             ], 'autodpeloy is not allowed')
@@ -229,7 +231,7 @@ def test_cli_integration(sb, mock_project, ganache):
                 str(TMP_KEY_DIR),
                 'deploy',
                 '-a',
-                default_account,
+                first_account,
                 '-p',
                 PASSWORD_1,
                 gopts.network_name,
@@ -239,6 +241,8 @@ def test_cli_integration(sb, mock_project, ganache):
             execute_command_assert_no_error_success([
                 *sb,
                 'script',
+                '-a',
+                first_account,
                 gopts.network_name,
                 'scripts/test_success.py',
             ])
@@ -248,6 +252,17 @@ def test_cli_integration(sb, mock_project, ganache):
 
             # test `sb sigs [contract]`
             execute_command_assert_no_error_success([*sb, 'sigs', 'Test'])
+
+            # test `sb test [network]`
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'test',
+                NETWORK_NAME,
+                '-p',
+                PASSWORD_1
+            ])
 
             # Create a new project without the mock
             project_dir = mock.paths.project.joinpath('test-cli-init')
@@ -261,6 +276,8 @@ def test_cli_integration(sb, mock_project, ganache):
             execute_command_assert_no_error_success([*sb, 'init', '-t', 'erc20'])
 
             execute_command_assert_no_error_success([*sb, 'compile'])
+
+            # test `sb test [network] -a [account]`
             execute_command_assert_no_error_success([
                 *sb,
                 '-k',
@@ -268,7 +285,7 @@ def test_cli_integration(sb, mock_project, ganache):
                 'test',
                 NETWORK_NAME,
                 '-a',
-                default_account,
+                first_account,
                 '-p',
                 PASSWORD_1
             ])
@@ -285,6 +302,118 @@ def test_cli_integration(sb, mock_project, ganache):
             assert stat.st_mode == 0o750 + 0o40000  # 0o40000 means 'directory'
 
     os.chdir(orig_pwd)
+
+
+@pytest.mark.parametrize("sb", [
+    [SOLIDBYTE_COMMAND],
+    ['python', '-m', 'solidbyte'],
+])
+def test_cli_stateless_deploy(sb, mock_project):
+
+    with mock_project() as mock:
+
+            TMP_KEY_DIR = mock.paths.project.joinpath('test-keys')
+
+            # test `sb accounts create --default
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'accounts',
+                'create',
+                '--default',
+                '-p',
+                PASSWORD_1,
+            ])
+
+            # test `sb deploy [network]`
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'deploy',
+                NETWORK_NAME,
+                '-p',
+                PASSWORD_1,
+            ])
+
+
+@pytest.mark.parametrize("sb", [
+    [SOLIDBYTE_COMMAND],
+    ['python', '-m', 'solidbyte'],
+])
+def test_cli_stateless_test(sb, mock_project):
+
+    with mock_project() as mock:
+
+            TMP_KEY_DIR = mock.paths.project.joinpath('test-keys')
+
+            # test `sb accounts create --default
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'accounts',
+                'create',
+                '--default',
+                '-p',
+                PASSWORD_1,
+            ])
+
+            # test `sb deploy [network]`
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'test',
+                NETWORK_NAME,
+                '-p',
+                PASSWORD_1,
+            ])
+
+
+@pytest.mark.parametrize("sb", [
+    [SOLIDBYTE_COMMAND],
+    ['python', '-m', 'solidbyte'],
+])
+def test_cli_stateless_erc20(sb, temp_dir):
+
+    with temp_dir() as workdir:
+
+            TMP_KEY_DIR = workdir.joinpath('test-keys')
+
+            # test `sb accounts create --default
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'accounts',
+                'create',
+                '--default',
+                '-p',
+                PASSWORD_1,
+            ])
+
+            # test `sb init -t [template]`
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'init',
+                '-t',
+                'erc20'
+            ])
+
+            # test `sb test [network]`
+            execute_command_assert_no_error_success([
+                *sb,
+                '-k',
+                str(TMP_KEY_DIR),
+                'test',
+                NETWORK_NAME,
+                '-p',
+                PASSWORD_1,
+            ])
 
 
 @pytest.mark.parametrize("sb", [

@@ -22,6 +22,7 @@ provide some pre-configured connections.
     test:
       type: eth_tester
       autodeploy_allowed: true
+      use_default_account: true
 
 Each root-level node is the network name you will use to reference the
 configuration.  For instance using the above file, if you want to connect to
@@ -43,3 +44,7 @@ The available connection types are:
  needs to use this network.  This is great for test backends, but use at your own risk on public
  networks.  This defaults to `false`.
  
+ ## `use_default_account`
+
+ This allows the network to use the account set as default for deployment and testing. This defaults
+ to `false` for safety.

@@ -15,12 +15,12 @@ log = getLogger(__name__)
 deployer: Optional[Deployer] = None
 
 
-def get_contracts(network: str) -> AttrDict:
+def get_contracts(network: str, account: str = None) -> AttrDict:
     """ Get a list of web3 contract instances. """
     global deployer
 
     if not deployer:
-        deployer = Deployer(network_name=network)
+        deployer = Deployer(network_name=network, account=account)
 
     contracts: AttrDict = AttrDict({})
 
@@ -36,20 +36,20 @@ def get_contracts(network: str) -> AttrDict:
     return contracts
 
 
-def get_availble_script_kwargs(network) -> Dict[str, Any]:
+def get_availble_script_kwargs(network, account: str = None) -> Dict[str, Any]:
     """ Get a dict of the kwargs available for user scripts """
     return {
         'web3': web3c.get_web3(network),
-        'contracts': get_contracts(network),
+        'contracts': get_contracts(network, account),
         'network': network,
     }
 
 
-def run_script(network: str, script: str) -> bool:
+def run_script(network: str, script: str, account: str = None) -> bool:
     """ Runs a user script """
 
     scriptPath: Path = to_path(script)
-    availible_script_kwargs: Dict[str, Any] = get_availble_script_kwargs(network)
+    availible_script_kwargs: Dict[str, Any] = get_availble_script_kwargs(network, account)
 
     spec = spec_from_file_location(scriptPath.name[:-3], str(scriptPath))
     mod: Optional[ModuleType] = module_from_spec(spec)
@@ -74,11 +74,11 @@ def run_script(network: str, script: str) -> bool:
     return True
 
 
-def run_scripts(network: str, scripts: List[str]) -> bool:
+def run_scripts(network: str, scripts: List[str], account: str = None) -> bool:
     """ Run multiple user scripts """
 
     if len(scripts) < 1:
         log.warning("No scripts provided")
         return True
 
-    return all([run_script(network, script) for script in scripts])
+    return all([run_script(network, script, account) for script in scripts])

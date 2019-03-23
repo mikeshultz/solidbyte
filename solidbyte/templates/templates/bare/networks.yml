@@ -6,6 +6,7 @@ dev:
 test:
   type: eth_tester
   autodeploy_allowed: true
+  use_default_account: true
 
 infura-mainnet:
   type: websocket

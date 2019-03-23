@@ -51,6 +51,9 @@ def add_parser_arguments(parser):
         dest='passphrase',
         help='The passphrase to use to encrypt the keyfile. Leave empty for prompt.'
     )
+    create_parser.add_argument('-e', '--default', action='store_true',
+                               dest="create_default", default=False,
+                               help='Set the newly created account as default')
 
     # Set default account
     default_parser = subparsers.add_parser('default', help="Set the default account")
@@ -68,26 +71,37 @@ def main(parser_args):
         network_name = parser_args.network
     else:
         network_name = None
+
     web3 = web3c.get_web3(network_name)
     accts = Accounts(network_name=network_name,
                      keystore_dir=parser_args.keystore, web3=web3)
+    mfile = MetaFile()
 
     if parser_args.account_command == 'create':
-        print("creating account...")
+
+        log.debug("creating account...")
+
         if parser_args.passphrase:
             password = parser_args.passphrase
         else:
             password = getpass('Encryption password:')
-        addr = accts.create_account(password)
-        print("Created new account: {}".format(addr))
-    elif parser_args.account_command == 'default':
-        print("Setting default account to: {}".format(parser_args.default_address))
 
-        metafile = MetaFile()
-        metafile.set_default_account(parser_args.default_address)
+        addr = accts.create_account(password)
+
+        log.info("Created new account: {}".format(addr))
+
+        if parser_args.create_default is True:
+            mfile.set_default_account(addr)
+            log.info("New account set as default.")
+
+    elif parser_args.account_command == 'default':
+
+        log.info("Setting default account to: {}".format(parser_args.default_address))
+
+        mfile.set_default_account(parser_args.default_address)
+
     else:
-        metafile = MetaFile()
-        default_account = metafile.get_default_account()
+        default_account = mfile.get_default_account()
         default_string = lambda a: "*" if a.address == default_account else ""  # noqa: E731
         print("Accounts")
         print("========")

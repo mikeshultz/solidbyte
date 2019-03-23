@@ -18,8 +18,9 @@ def test_networksyml(mock_project):
         assert test_config.get('type') == 'eth_tester'
         assert test_config.get('autodeploy_allowed') is True
 
-        # Check the autodeploy_allowed method
+        # Check the autodeploy_allowed and use_default_account methods
         assert yml.autodeploy_allowed(NETWORK_NAME) is True
+        assert yml.use_default_account(NETWORK_NAME) is True
 
 
 def test_networksyml_noload(mock_project):
@@ -55,6 +56,13 @@ def test_networksyml_noload(mock_project):
         assert not yml.autodeploy_allowed('geth')
         assert not yml.autodeploy_allowed('infura-mainnet')
         assert not yml.autodeploy_allowed('infura-mainnet-http')
+
+        # Check use_default_account
+        assert yml.use_default_account('test')
+        assert not yml.use_default_account('dev')
+        assert not yml.use_default_account('geth')
+        assert not yml.use_default_account('infura-mainnet')
+        assert not yml.use_default_account('infura-mainnet-http')
 
 
 def test_networksyml_bytesname(mock_project):
@@ -126,6 +134,12 @@ def test_networksyml_network_config_noexist(mock_project):
         try:
             yml.autodeploy_allowed('nowayiexist')
             assert False, "autodeploy_allowed() should fail on non-existant network"
+        except ConfigurationError:
+            pass
+
+        try:
+            yml.use_default_account('nowayiexist')
+            assert False, "use_default_account() should fail on non-existant network"
         except ConfigurationError:
             pass
 

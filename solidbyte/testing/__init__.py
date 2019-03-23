@@ -1,6 +1,7 @@
 import pytest
 from attrdict import AttrDict
 from ..accounts import Accounts
+from ..compile import compile_all
 from ..deploy import Deployer, get_latest_from_deployed
 from ..common.utils import to_path, to_path_or_cwd
 from ..common.web3 import web3c
@@ -89,6 +90,11 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, account_addres
 
     log.debug("Using account {} for deployer.".format(account_address))
 
+    log.info("Compiling contracts for testing...")
+    compile_all()
+
+    log.info("Checking if deployment is necessary...")
+
     # First, see if we're allowed to deploy, and whether we need to
     deployer = Deployer(
         network_name=network_name,
@@ -102,6 +108,8 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, account_addres
 
         if not account_address:
             raise DeploymentValidationError("Account needs to be provided for autodeployment")
+
+        log.info("Deploying contracts...")
 
         deployer.deploy()
 
