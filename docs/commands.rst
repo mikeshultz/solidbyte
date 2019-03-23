@@ -1,27 +1,39 @@
-# Commands 
+########
+Commands 
+########
 
-## `init`
+************
+:code:`init`
+************
 
 Create a project using a template or bare.  For instance, creating an ERC20 
 project from the template: 
 
     sb init -t erc20
 
-## `compile`
+***************
+:code:`compile`
+***************
 
 Compile the contracts.
 
     sb compile
 
-## `test`
+************
+:code:`test`
+************
 
 Test the contracts using pytest(?)
 
     sb test
 
-## `console` 
+***************
+:code:`console`
+***************
 
 Start a pythonic console for testing contracts.  Provides web3 and contracts as local variables.
+
+.. code-block:: bash
 
     $ sb console dev
     2018-10-28 17:42:38,022 [INFO] solidbyte.cli.console - Starting interactive console...
@@ -32,43 +44,65 @@ Start a pythonic console for testing contracts.  Provides web3 and contracts as 
     Available locals: web3
     >>>
 
-## `deploy`
+**************
+:code:`deploy`
+**************
 
 Deploy contracts using the user-written deploy scripts.  For more details, see
 the [deployment documentation](deployment.md).
 
-## `help`
+************
+:code:`help`
+************
 
 Show usage
 
-## `show`
+************
+:code:`show`
+************
 
 Show details about the deployed contracts
 
-## `version`
+***************
+:code:`version`
+***************
 
 Show versions of solidbyte, the compiler, and associated tools
 
-## `script` [Planning]
+**************
+:code:`script`
+**************
 
 Execute a python script within the context of soidbyte
 
-## `install` [Planning]
+***************************
+:code:`install` [Prototype]
+***************************
 
 Ethereum package registry? https://www.ethpm.com/
 
-## `metafile`
+.. _metafile-command:
+
+****************
+:code:`metafile`
+****************
 
 Commands to backup and cleanup the metafile.
 
-### `metafile cleanup`
+========================
+:code:`metafile cleanup`
+========================
 
 Cleanup and compact `metafile.json` by removing deployed contract instances for test networks.
 
-### `metafile backup`
+=======================
+:code:`metafile backup`
+=======================
 
 Make a copy of `metafile.json` to the given location and verify.
 
-## `sigs`
+************
+:code:`sigs`
+************
 
 Show all event and function signatures for the compiled contracts.
