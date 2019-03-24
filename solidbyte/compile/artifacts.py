@@ -16,6 +16,16 @@ ARTIFACT_CACHE: Set[Any] = set()
 
 
 class CompiledContract:
+    """ A representation of a compiled contract.
+
+    Attributes:
+        - :py:attr:`name` (:code:`str`) - The name of the contract
+        - :py:attr:`artifact_path` (:class:`pathlib.Path`) - The Path to the contract's artifact
+          directory
+        - :py:attr:`paths` (:class:`attrdict.AttrDict`) - Paths to eact artifact file
+        - :py:attr:`abi` (:code:`dict`) - A Python dict of the contract's ABI
+        - :py:attr:`bytecode` (:code:`str`) - The contract's compiled bytecode
+    """
     def __init__(self, name: str, artifact_path: PS) -> None:
         self.name = name
         self.artifact_path: PS = to_path(artifact_path)
@@ -74,7 +84,8 @@ def available_contract_names(project_dir: PS) -> Set[str]:
 
 
 def contract_artifacts(name: str, project_dir: PS = None) -> CompiledContract:
-    """ Return a CompiledContract object with the artifacts for a contract """
+    """ Return a :class:`solidbyte.compile.artifacts.CompiledContract` object with the artifacts for
+    a contract """
     project_dir = to_path_or_cwd(project_dir)
     builddir = project_dir.joinpath('build')
     artifact_path = builddir.joinpath(name)
@@ -82,8 +93,9 @@ def contract_artifacts(name: str, project_dir: PS = None) -> CompiledContract:
     return cc
 
 
-def artifacts(project_dir: PS) -> Set[Any]:
-    """ Get the artifacts for all compiled contracts """
+def artifacts(project_dir: PS) -> Set[CompiledContract]:
+    """ Get an :class:`solidbyte.compile.artifacts.CompiledContract` object for all compiled
+    contracts """
 
     project_dir = to_path_or_cwd(project_dir)
     contracts = available_contract_names(project_dir)

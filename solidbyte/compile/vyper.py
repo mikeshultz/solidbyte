@@ -19,6 +19,13 @@ BODYLESS_FUNCTION = FUNCTION + FUNC_MODIFYING + PASS_BODY
 
 
 def source_extract(source_text, start_ln, end_ln):
+    """ Extract a section of source code given start and end line numbers.
+
+    :param source_text: (:code:`str`) The full source code
+    :param start_ln: (:code:`int`) The start line number
+    :param end_ln: (:code:`int`) The end line number
+    :returns: (:code:`str`) The source code snippet
+    """
     source_list = source_text.split('\n')
     if end_ln < 0:
         end_ln = len(source_list)
@@ -26,7 +33,11 @@ def source_extract(source_text, start_ln, end_ln):
 
 
 def vyper_funcs_from_source(source_text):
-    """ Pull function defs from an AST """
+    """ Generate an AST and pull all function defs from it
+
+    :param source_text: (:code:`str`) The full source code
+    :returns: (:code:`list`) The source code definition of the functions
+    """
 
     source_ast: List = parse_to_ast(source_text)
 
@@ -46,12 +57,20 @@ def vyper_funcs_from_source(source_text):
 
 
 def is_bodyless_func(func_text):
-    """ Identify if a code block is a bodyless/interface function """
+    """ Identify if a code block is a bodyless/interface function
+
+    :param func_text: (:code:`str`) The source code for a function
+    :returns: (:code:`str`) If the function is "bodyless". (empty or only :code:`pass`)
+    """
     return re.match(BODYLESS_FUNCTION, func_text) is not None
 
 
-def is_vyper_interface(source_text: str):
-    """ Identify if the provided source text is a vyper interface """
+def is_vyper_interface(source_text):
+    """ Identify if the provided source text is a vyper interface
+
+    :param source_text: (:code:`str`) The full source code
+    :returns: (:code:`bool`) If the provided source code is a Vyper interface
+    """
 
     funcs = vyper_funcs_from_source(source_text)
 
@@ -62,6 +81,11 @@ def is_vyper_interface(source_text: str):
 
 
 def dirs_in_dir(searchpath):
+    """ Return a list of all child directories of a directory
+
+    :param searchpath: (:class:`pathlib.Path`) The Path of a directory to search
+    :returns: (:code:`list`) A list of paths of each child directory
+    """
     searchpath = to_path(searchpath)
     assert searchpath.is_dir(), "Non-directory given to dirs_in_dir()"
     found_dirs = []
@@ -72,7 +96,12 @@ def dirs_in_dir(searchpath):
 
 
 def vyper_import_to_file_paths(workdir, importpath):
-    """ Get the possible import paths for an interface import """
+    """ Resolve a Vyper import path to a file
+
+    :param workdir: (:class:`pathlib.Path`) The Path to a directory to search
+    :param importpath: (:code:`str`) The vyper import statement to resolve
+    :returns: (:class:`pathlib.path`) The Path to the file the import resolves to
+    """
 
     log.debug("Looking for vyper import {}".format(importpath))
 

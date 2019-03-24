@@ -2,3 +2,5 @@ twine~=1.12.1
 setuptools>=40.5.0
 wheel~=0.32.2
 flake8~=3.6.0
+sphinx>=1.8.5
+sphinx-rtd-theme>=0.4.3

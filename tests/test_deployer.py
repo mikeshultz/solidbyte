@@ -47,7 +47,7 @@ def test_deployer(mock_project):
 
         # Test initial state with the mock project
         assert len(d.artifacts) == 1
-        contract_key = list(d.source_contracts.keys())[0]
+        contract_key = list(d.artifacts.keys())[0]
         assert d.artifacts[contract_key].name == 'Test'
         assert d.artifacts[contract_key].abi is not None
         assert d.artifacts[contract_key].bytecode is not None

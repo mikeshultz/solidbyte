@@ -28,8 +28,8 @@ MultiDict = Union[AttrDict, dict]
 def get_latest_from_deployed(deployed_instances: MultiDict, deployed_hash: str) -> MultiDict:
     """ Quick filter function to pull the deployed instance from deployedInstances from a metafaile.
 
-    :param deployed_instances: The deployedInstances from a metafile contract
-    :param deployed_hash: A deployedHash from that same object
+    :param deployed_instances: (:code:`dict`) The deployedInstances from a metafile contract
+    :param deployed_hash: (:code:`str`) A deployedHash from that same object
     """
     if deployed_instances is None or deployed_hash is None:
         return None
@@ -44,21 +44,24 @@ class Deployer:
     The primary purpose of this object is to know if a deployment is necessary, and to handle the
     deployment of all contracts if necessary.
 
-    :Example:
+    Example:
 
-    >>> from solidbyte.deploy import Deployer
-    >>> d = Deployer('test', '0xdeadbeef00000000000000000000000000000000',
+    .. code-block:: python
+
+        from solidbyte.deploy import Deployer
+        d = Deployer('test', '0xdeadbeef00000000000000000000000000000000',
                      Path('/path/to/my/project'))
-    >>> assert d.check_needs_deploy() == True
-    >>> d.deploy()
+        assert d.check_needs_deploy() == True
+        d.deploy()
 
     """
+
     def __init__(self, network_name: str, account: str = None, project_dir: PS = None):
         """ Initialize the Deployer. Get it juiced up.  Make the machine shudder.
 
-        :param network_name: The name of of the network, as defined in networks.yml.
-        :param account: The address of the account to deploy with.
-        :param project_dir: The project directory, if not pwd.
+        :param network_name: (:code:`str`) The name of of the network, as defined in networks.yml.
+        :param account: (:code:`str`) The address of the account to deploy with.
+        :param project_dir: (:code:`Path`/:code:`str`) The project directory, if not pwd.
         """
         self._deploy_scripts: List = []
         self.network_name = network_name
@@ -85,10 +88,11 @@ class Deployer:
             raise FileNotFoundError("contracts directory does not exist")
 
     def get_artifacts(self, force: bool = False) -> AttrDict:
-        """ Load the ABI and Bytecode files from the build direcotry and pack them for building the
-        Contract objects.
+        """ Returns the ABI and Bytecode artifacts, generated from the build
+        direcotry.
 
-        :param force: Force load, don't just rely on cached dicts.
+        :param force: (:code:`bool`) Force load, don't just rely on cached dicts.
+        :returns: (:code:`AttrDict`) An AttrDict representing all available contracts
         """
 
         # Load only if necessary or forced
@@ -105,18 +109,18 @@ class Deployer:
             self._artifacts = {x.name: x for x in facts}
 
         return self._artifacts
-    source_contracts = property(get_artifacts)  # TODO: Depreciate
     artifacts = property(get_artifacts)
 
     @property
     def deployed_contracts(self) -> List[Dict[str, T]]:
-        """ The contracts from MetaFile """
+        """ Contracts from MetaFile """
         return self.metafile.get_all_contracts()
 
     def get_contracts(self, force: bool = False):
-        """ Instantiate Contract objects to provide to the deploy scripts.
+        """ Returns instantiated Contract objects to provide to the deploy
+        scripts.
 
-        :param force: Force load, don't just rely on cached data.
+        :param force: (:code:`bool`) Force load, don't just rely on cached data.
         """
         if force is False and len(self._contracts) > 0:
             return self._contracts
@@ -140,8 +144,7 @@ class Deployer:
     def refresh(self, force: bool = True) -> None:
         """ Return the available kwargs to give to user scripts
 
-        :param force: Don't rely on cache and reload everything.
-        :returns: dict of the kwargs to provide to deployer scripts
+        :param force: (:code:`bool`) Don't rely on cache and reload everything.
         """
 
         self.get_artifacts(force=force)
@@ -149,7 +152,7 @@ class Deployer:
         self.deployed_contracts
 
     def contracts_to_deploy(self) -> Set[str]:
-        """ return a Set of contract names that need deployment """
+        """ Return a Set of contract names that need deployment """
 
         self._build_dependency_tree()
 
@@ -184,11 +187,12 @@ class Deployer:
     def check_needs_deploy(self, name: str = None) -> bool:
         """ Check if any contracts need to be deployed
 
-        :param name: The name of a contract if checking a specific.
-        :returns: bool if deployment is required
+        :param name: (:code:`str`) The name of a contract if checking a specific.
+
+        :returns: (:code:`bool`) if deployment is required
         """
 
-        if name is not None and not self.source_contracts.get(name):
+        if name is not None and not self.artifacts.get(name):
             raise FileNotFoundError("Unknown contract: {}".format(name))
 
         # If we don't know about the contract from the metafile, it needs deploy
@@ -205,7 +209,7 @@ class Deployer:
     def deploy(self) -> bool:
         """ Deploy the contracts with magic lol
 
-        :returns: bool if deployment succeeded. Failed miserably if it didn't.
+        :returns: (:code:`bool`) if deployment succeeded. Fails miserably if it didn't.
         """
 
         if not self.account:
@@ -327,7 +331,10 @@ class Deployer:
         }
 
     def _build_dependency_tree(self, force: bool = True) -> ContractDependencyTree:
-        """ Build a dependency from compiled bin files """
+        """ Build a dependency from compiled bin files
+
+        :param force: (:code:`bool`) Don't rely on cache and reload everything.
+        """
 
         if not force and isinstance(self.deptree, ContractDependencyTree):
             return self.deptree

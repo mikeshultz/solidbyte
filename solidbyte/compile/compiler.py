@@ -52,7 +52,10 @@ class Compiler(object):
 
     @property
     def solc_version(self):
-        """ Get the version of the solidity copmiler """
+        """ Get the version of the solidity copmiler
+
+        :returns: A :code:`str` representation of the version
+        """
         compile_cmd = [
             SOLC_PATH,
             '--version',
@@ -68,15 +71,22 @@ class Compiler(object):
 
     @property
     def vyper_version(self):
-        """ Get the version of the vyper copmiler """
+        """ Get the version of the vyper copmiler
+
+        :returns: A :code:`str` representation of the version
+        """
         return vyper.__version__
 
     @property
     def version(self):
+        """ A :code:`list` of all compiler versions """
         return [self.solc_version, self.vyper_version]
 
     def compile(self, filename):
-        """ Compile a single contract with filename """
+        """ Compile a single source contract at :code:`filename`
+
+        :param filename: Source contract's filename
+        """
         log.info("Compiling contract {}".format(filename))
 
         # Get our ouput FS stuff ready
@@ -208,7 +218,7 @@ class Compiler(object):
             raise CompileError("Unsupported source file type")
 
     def compile_all(self):
-        """ Compile a single contract with filename """
+        """ Compile all source contracts """
 
         log.debug("Compiling all contracts with compiler at {}".format(SOLC_PATH))
         log.debug("Contracts directory: {}".format(self.dir))

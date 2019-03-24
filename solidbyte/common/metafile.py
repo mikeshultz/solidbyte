@@ -3,28 +3,31 @@ Store and retrieve metdata about a contract for this project
 
 Example JSON structure:
 
+
+.. code-block:: json
+
     {
-        "contracts": [
-            {
-                "name": "ExampleContract",
-                "networks": {
-                    "1": {
-                        "deployedHash": "0xdeadbeef...",
-                        "deployedInstances": [
-                            {
-                                "hash": "0xdeadbeef...",
-                                "date": "2018-10-21 00:00:00T-7",
-                                "address": "0xdeadbeef...",
-                            }
-                        ]
-                    }
+      "contracts": [
+        {
+          "name": "ExampleContract",
+          "networks": {
+            "1": {
+              "deployedHash": "0xdeadbeef...",
+              "deployedInstances": [
+                {
+                  "hash": "0xdeadbeef...",
+                  "date": "2018-10-21 00:00:00T-7",
+                  "address": "0xdeadbeef...",
                 }
+              ]
             }
-        ],
-        "seenAccounts": [
-            "0xdeadbeef..."
-        ],
-        "defaultAccount": "0xdeadbeef..."
+          }
+        }
+      ],
+      "seenAccounts": [
+        "0xdeadbeef..."
+      ],
+      "defaultAccount": "0xdeadbeef..."
     }
 """
 import json
@@ -48,7 +51,9 @@ PS = Union[Path, str]
 
 
 def autoload(f: Callable) -> Callable:
-    """ Automatically load the metafile before method execution """
+    """ MetaFile method decorator to automatically load the metafile before
+    method execution
+    """
     @wraps(f)
     def wrapper(*args, **kwargs):
         # A bit defensive, but make sure this is a decorator of a MetaFile method
@@ -58,8 +63,10 @@ def autoload(f: Callable) -> Callable:
     return wrapper
 
 
-def autosave(f):
-    """ Automatically save the metafile after method execution """
+def autosave(f: Callable) -> Callable:
+    """ MetaFile method decorator to automatically save the metafile after
+    method execution
+    """
     @wraps(f)
     def wrapper(*args, **kwargs):
         retval = f(*args, **kwargs)
