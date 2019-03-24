@@ -48,6 +48,13 @@ flake8 is used for linting to PEP8 conventions.  Best to configure it with your
 preferred IDE, but you can also run it with the command 
 :code:`python setup.py lint`.
 
+************
+Type Hinting
+************
+
+Type hinting is not required but encouraged.  It isn't checked during test
+builds but if you use it, verify it with mypy or another type checker.
+
 **********
 Docstrings
 **********
