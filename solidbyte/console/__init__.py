@@ -41,7 +41,7 @@ class SolidbyteConsole(code.InteractiveConsole):
 
             d = Deployer(network_name=network_name)
             contracts_meta = d.deployed_contracts
-            contracts_compiled = d.source_contracts
+            contracts_compiled = d.artifacts
             self.contracts = {}
             for meta in contracts_meta:
                 if meta['networks'].get(network_id):

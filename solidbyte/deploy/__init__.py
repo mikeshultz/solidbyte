@@ -201,7 +201,7 @@ class Deployer:
             :code:`bool` if deployment is required
         """
 
-        if name is not None and not self.source_contracts.get(name):
+        if name is not None and not self.artifacts.get(name):
             raise FileNotFoundError("Unknown contract: {}".format(name))
 
         # If we don't know about the contract from the metafile, it needs deploy

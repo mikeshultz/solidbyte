@@ -55,7 +55,7 @@ class SolidbyteTestPlugin(object):
         network_id = self._web3.net.chainId or self._web3.net.version
         d = Deployer(self.network, project_dir=self._project_dir)
         contracts_meta = d.deployed_contracts
-        contracts_compiled = d.source_contracts
+        contracts_compiled = d.artifacts
         test_contracts = {}
         for meta in contracts_meta:
             latest = None
