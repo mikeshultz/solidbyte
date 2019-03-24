@@ -21,10 +21,19 @@ class Template(object):
         self.template_dir = Path(sys.modules[self.__module__].__file__).parent
 
     def initialize(self):
+        """ This method performs all steps necessary to build a template.  It
+        must be implemented by the Template subclass
+        """
         raise NotImplementedError("initialize() must be implemented for template")
 
     def copy_template_file(self, dest_dir, subdir, filename):
-        """ Copy a file from src to dest """
+        """ Copy a file from the template module directory to dest
+
+        Args:
+            * dest_dir (:class:`pathlib.Path`) - The destination directory in the project structure
+            * subdir (:class:`pathlib.Path`) - The subdirectory under dest_dir
+            * filename (:code:`str`) - The name of the destination file
+        """
 
         dest_dir = to_path(dest_dir)
 
@@ -34,7 +43,7 @@ class Template(object):
         return copyfile(source, dest)
 
     def create_dirs(self):
-
+        """ Create the project directory structure """
         tests_dir = self.pwd.joinpath('tests')
         contracts_dir = self.pwd.joinpath('contracts')
         deploy_dir = self.pwd.joinpath('deploy')

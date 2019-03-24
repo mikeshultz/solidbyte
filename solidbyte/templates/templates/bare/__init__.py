@@ -10,7 +10,7 @@ class BareTemplate(Template):
         super(BareTemplate, self).__init__(*args, **kwargs)
 
     def initialize(self):
-        """ Create a bare project structure """
+        """ Initialize the template and create a bare project structure """
         self.create_dirs()
         self.create_deployment()
         self.create_networks()
@@ -32,4 +32,5 @@ class BareTemplate(Template):
 
 
 def get_template_instance(*args, **kwargs):
+    """ Return a bare template """
     return BareTemplate(*args, **kwargs)

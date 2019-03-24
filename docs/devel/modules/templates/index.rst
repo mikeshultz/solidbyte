@@ -1,7 +1,15 @@
-######################
-:code:`compile` Module
-######################
+########################
+:code:`templates` Module
+########################
 
-The :code:`compile` module
+The :code:`templates` module
 
-TBD
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   template
+   templates/index
+
+.. automodule:: solidbyte.templates
+    :members:
