@@ -5,6 +5,7 @@ from typing import TypeVar, List, Callable, Optional, Dict, Any
 from getpass import getpass
 from pathlib import Path
 from datetime import datetime
+from functools import wraps
 from attrdict import AttrDict
 from eth_account import Account
 from web3 import Web3
@@ -20,7 +21,8 @@ T = TypeVar('T')
 
 
 def autoload(f: Callable) -> Callable:
-    """ Automatically load the metafile before method execution """
+    """ Accounts decorator to utomatically load the accounts before method execution """
+    @wraps(f)
     def wrapper(*args, **kwargs):
         # A bit defensive, but make sure this is a decorator of a MetaFile method
         if len(args) > 0 and isinstance(args[0], Accounts):
@@ -30,6 +32,8 @@ def autoload(f: Callable) -> Callable:
 
 
 class Accounts(object):
+    """ Deal with local Ethereum secret store account operations """
+
     def __init__(self, network_name: str = None,
                  keystore_dir: str = None,
                  web3: Web3 = None) -> None:
