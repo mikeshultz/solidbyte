@@ -4,7 +4,7 @@ Store and retrieve metdata about a contract for this project
 Example JSON structure:
 
 
-.. code-block: json
+.. code-block:: json
 
     {
       "contracts": [
