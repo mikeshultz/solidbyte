@@ -10,7 +10,14 @@ log = getLogger(__name__)
 
 class Template(object):
     """ Template abstract """
+
     def __init__(self, *args, **kwargs):
+        """ Init the Template object.  Arguments can be added by subclasses.  The one used by
+        Template are documented below.
+
+        :param dir_mode: (:code:`int`) The directory mode permissions
+        :param pwd: (:class:`pathlib.Path`) The current working directory
+        """
 
         self.dir_mode = kwargs.get('dir_mode', 0o755)
         log.debug('Template dir_mode: {}'.format(self.dir_mode))
@@ -22,17 +29,18 @@ class Template(object):
 
     def initialize(self):
         """ This method performs all steps necessary to build a template.  It
-        must be implemented by the Template subclass
+        must be implemented by the Template subclass.
         """
         raise NotImplementedError("initialize() must be implemented for template")
 
     def copy_template_file(self, dest_dir, subdir, filename):
         """ Copy a file from the template module directory to dest
 
-        Args:
-            * dest_dir (:class:`pathlib.Path`) - The destination directory in the project structure
-            * subdir (:class:`pathlib.Path`) - The subdirectory under dest_dir
-            * filename (:code:`str`) - The name of the destination file
+        :param dest_dir: (:class:`pathlib.Path`) - The destination directory in the project
+            structure
+        :param subdir: (:class:`pathlib.Path`) - The subdirectory under dest_dir
+        :param filename: (:code:`str`) - The name of the destination file
+        :returns: (:code:`str`) Destination path
         """
 
         dest_dir = to_path(dest_dir)
@@ -44,6 +52,7 @@ class Template(object):
 
     def create_dirs(self):
         """ Create the project directory structure """
+
         tests_dir = self.pwd.joinpath('tests')
         contracts_dir = self.pwd.joinpath('contracts')
         deploy_dir = self.pwd.joinpath('deploy')

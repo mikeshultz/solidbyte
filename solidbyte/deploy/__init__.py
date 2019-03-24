@@ -28,9 +28,8 @@ MultiDict = Union[AttrDict, dict]
 def get_latest_from_deployed(deployed_instances: MultiDict, deployed_hash: str) -> MultiDict:
     """ Quick filter function to pull the deployed instance from deployedInstances from a metafaile.
 
-    Args:
-        * deployed_instances (:code:`dict`): The deployedInstances from a metafile contract
-        * deployed_hash (:code:`str`): A deployedHash from that same object
+    :param deployed_instances: (:code:`dict`) The deployedInstances from a metafile contract
+    :param deployed_hash: (:code:`str`) A deployedHash from that same object
     """
     if deployed_instances is None or deployed_hash is None:
         return None
@@ -60,10 +59,9 @@ class Deployer:
     def __init__(self, network_name: str, account: str = None, project_dir: PS = None):
         """ Initialize the Deployer. Get it juiced up.  Make the machine shudder.
 
-        Args:
-            * network_name (:code:`str`): The name of of the network, as defined in networks.yml.
-            * account (:code:`str`): The address of the account to deploy with.
-            * project_dir (:code:`Path`/:code:`str`): The project directory, if not pwd.
+        :param network_name: (:code:`str`) The name of of the network, as defined in networks.yml.
+        :param account: (:code:`str`) The address of the account to deploy with.
+        :param project_dir: (:code:`Path`/:code:`str`) The project directory, if not pwd.
         """
         self._deploy_scripts: List = []
         self.network_name = network_name
@@ -93,11 +91,8 @@ class Deployer:
         """ Returns the ABI and Bytecode artifacts, generated from the build
         direcotry.
 
-        Args:
-            * force (:code:`bool`): Force load, don't just rely on cached dicts.
-
-        Returns:
-            :code:`AttrDict`: An AttrDict representing all available contracts
+        :param force: (:code:`bool`) Force load, don't just rely on cached dicts.
+        :returns: (:code:`AttrDict`) An AttrDict representing all available contracts
         """
 
         # Load only if necessary or forced
@@ -125,8 +120,7 @@ class Deployer:
         """ Returns instantiated Contract objects to provide to the deploy
         scripts.
 
-        Args:
-            * force (:code:`bool`): Force load, don't just rely on cached data.
+        :param force: (:code:`bool`) Force load, don't just rely on cached data.
         """
         if force is False and len(self._contracts) > 0:
             return self._contracts
@@ -150,8 +144,7 @@ class Deployer:
     def refresh(self, force: bool = True) -> None:
         """ Return the available kwargs to give to user scripts
 
-        Args:
-            * force (:code:`bool`): Don't rely on cache and reload everything.
+        :param force: (:code:`bool`) Don't rely on cache and reload everything.
         """
 
         self.get_artifacts(force=force)
@@ -194,11 +187,9 @@ class Deployer:
     def check_needs_deploy(self, name: str = None) -> bool:
         """ Check if any contracts need to be deployed
 
-        Args:
-            * name (:code:`str`): The name of a contract if checking a specific.
+        :param name: (:code:`str`) The name of a contract if checking a specific.
 
-        Returns:
-            :code:`bool` if deployment is required
+        :returns: (:code:`bool`) if deployment is required
         """
 
         if name is not None and not self.artifacts.get(name):
@@ -218,8 +209,7 @@ class Deployer:
     def deploy(self) -> bool:
         """ Deploy the contracts with magic lol
 
-        Returns:
-            :code:`bool` if deployment succeeded. Failed miserably if it didn't.
+        :returns: (:code:`bool`) if deployment succeeded. Fails miserably if it didn't.
         """
 
         if not self.account:
@@ -341,7 +331,10 @@ class Deployer:
         }
 
     def _build_dependency_tree(self, force: bool = True) -> ContractDependencyTree:
-        """ Build a dependency from compiled bin files """
+        """ Build a dependency from compiled bin files
+
+        :param force: (:code:`bool`) Don't rely on cache and reload everything.
+        """
 
         if not force and isinstance(self.deptree, ContractDependencyTree):
             return self.deptree

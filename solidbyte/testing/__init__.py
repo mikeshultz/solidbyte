@@ -25,6 +25,16 @@ class SolidbyteTestPlugin(object):
 
     def __init__(self, network_name, web3=None, project_dir=None, keystore_dir=None,
                  gas_report_storage=None):
+        """ Init the pytest plugin
+
+        :param network_name: (:code:`str`) - The name of the network as defined in networks.yml.
+        :param web3: (:class:`web3.Web3`) - The Web3 instance to use
+        :param project_dir: (:class:`pathlib.Path`) - The project directory (default: pwd)
+        :param keystore_dir: (:class:`pathlib.Path`) - Path to the keystore. (default:
+            :code:`~/.ethereum/keystore`)
+        :param gas_report_storage: (:class:`solidbyte.testing.gas.GasReportStorage`) - An instance
+            of :code:`GasReportStorage` to use if making a gas report
+        """
 
         self.network = network_name
         self._web3 = None
@@ -90,19 +100,15 @@ def run_tests(network_name, args=[], web3=None, project_dir=None, account_addres
               keystore_dir=None, gas_report_storage=None):
     """ Run all tests on project
 
-    Args:
-        * network_name (:code:`str`) - The name of the network as defined in
-          networks.yml.
-        * args (:code:`list`) - Arguments to provide to pytest
-        * web3 (:class:`web3.Web3`) - The Web3 instance to use
-        * project_dir (:class:`pathlib.Path`) - The project directory (default:
-          cwd)
-        * account_address (:code:`str`) - Address of the deployer account
-        * keystore_dir (:class:`pathlib.Path`) - Path to the keystore. (default:
-          :code:`~/.ethereum/keystore`)
-        * gas_report_storage (:class:`solidbyte.testing.gas.GasReportStorage`)
-          - An instance if :code:`GasReportStorage` to use if making a gas
-          report
+    :param network_name: (:code:`str`) - The name of the network as defined in networks.yml.
+    :param args: (:code:`list`) - Arguments to provide to pytest
+    :param web3: (:class:`web3.Web3`) - The Web3 instance to use
+    :param project_dir: (:class:`pathlib.Path`) - The project directory (default: pwd)
+    :param account_address: (:code:`str`) - Address of the deployer account
+    :param keystore_dir: (:class:`pathlib.Path`) - Path to the keystore. (default:
+      :code:`~/.ethereum/keystore`)
+    :param gas_report_storage: (:class:`solidbyte.testing.gas.GasReportStorage`) - An instance of
+        :code:`GasReportStorage` to use if making a gas report
     """
 
     yml = NetworksYML(project_dir=project_dir)
