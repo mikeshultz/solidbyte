@@ -15,6 +15,13 @@ log = getLogger(__name__)
 
 
 class SolidbyteTestPlugin(object):
+    """ Pytest plugin that provides fixtures useful for Solidbyte test scripts
+
+    Fixtures:
+        * contracts
+        * web3
+        * local_accounts
+    """
 
     def __init__(self, network_name, web3=None, project_dir=None, keystore_dir=None,
                  gas_report_storage=None):
@@ -43,6 +50,8 @@ class SolidbyteTestPlugin(object):
 
     @pytest.fixture
     def contracts(self):
+        """ Returns an instantiated :class:`web3.contract.Contract` for each
+        deployed contract """
         network_id = self._web3.net.chainId or self._web3.net.version
         d = Deployer(self.network, project_dir=self._project_dir)
         contracts_meta = d.deployed_contracts
@@ -67,17 +76,34 @@ class SolidbyteTestPlugin(object):
 
     @pytest.fixture
     def web3(self):
+        """ Returns an instantiated Web3 object """
         return self._web3
 
     @pytest.fixture
     def local_accounts(self):
+        """ Returns the local known accounts from the Ethereum keystore """
         a = Accounts(network_name=self.network, keystore_dir=self._keystore_dir, web3=self._web3)
         return a.get_accounts()
 
 
 def run_tests(network_name, args=[], web3=None, project_dir=None, account_address=None,
               keystore_dir=None, gas_report_storage=None):
-    """ Run all tests on project """
+    """ Run all tests on project
+
+    Args:
+        * network_name (:code:`str`) - The name of the network as defined in
+          networks.yml.
+        * args (:code:`list`) - Arguments to provide to pytest
+        * web3 (:class:`web3.Web3`) - The Web3 instance to use
+        * project_dir (:class:`pathlib.Path`) - The project directory (default:
+          cwd)
+        * account_address (:code:`str`) - Address of the deployer account
+        * keystore_dir (:class:`pathlib.Path`) - Path to the keystore. (default:
+          :code:`~/.ethereum/keystore`)
+        * gas_report_storage (:class:`solidbyte.testing.gas.GasReportStorage`)
+          - An instance if :code:`GasReportStorage` to use if making a gas
+          report
+    """
 
     yml = NetworksYML(project_dir=project_dir)
 
