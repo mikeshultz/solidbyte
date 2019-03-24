@@ -3,28 +3,31 @@ Store and retrieve metdata about a contract for this project
 
 Example JSON structure:
 
+
+.. code-block: json
+
     {
-        "contracts": [
-            {
-                "name": "ExampleContract",
-                "networks": {
-                    "1": {
-                        "deployedHash": "0xdeadbeef...",
-                        "deployedInstances": [
-                            {
-                                "hash": "0xdeadbeef...",
-                                "date": "2018-10-21 00:00:00T-7",
-                                "address": "0xdeadbeef...",
-                            }
-                        ]
-                    }
+      "contracts": [
+        {
+          "name": "ExampleContract",
+          "networks": {
+            "1": {
+              "deployedHash": "0xdeadbeef...",
+              "deployedInstances": [
+                {
+                  "hash": "0xdeadbeef...",
+                  "date": "2018-10-21 00:00:00T-7",
+                  "address": "0xdeadbeef...",
                 }
+              ]
             }
-        ],
-        "seenAccounts": [
-            "0xdeadbeef..."
-        ],
-        "defaultAccount": "0xdeadbeef..."
+          }
+        }
+      ],
+      "seenAccounts": [
+        "0xdeadbeef..."
+      ],
+      "defaultAccount": "0xdeadbeef..."
     }
 """
 import json
