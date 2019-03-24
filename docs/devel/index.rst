@@ -15,9 +15,8 @@ early stages.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Internal classes, objects, and functions:
+   :caption: Internal modules, classes, and functions:
 
-   Deployer
-   Deployer objects <Contract>
+   modules/index
    MetaFile
    NetworksYML
