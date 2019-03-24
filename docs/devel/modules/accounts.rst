@@ -2,7 +2,7 @@
 :code:`accounts` Module
 #######################
 
-The `accounts` module of Solidbyte.
+The :code:`accounts` module of Solidbyte.
 
 .. automodule:: solidbyte.accounts
     :members:
