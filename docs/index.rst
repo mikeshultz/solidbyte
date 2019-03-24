@@ -46,7 +46,7 @@ Development
 
 .. toctree::
    :maxdepth: 2
-   :caption: Solidbyte development information
+   :caption: Solidbyte development
 
    devel/index
 
