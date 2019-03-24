@@ -37,6 +37,13 @@ class Accounts(object):
     def __init__(self, network_name: str = None,
                  keystore_dir: str = None,
                  web3: Web3 = None) -> None:
+        """ Init Accounts
+
+        :param network_name: (:code:`str`) - The name of the network as defined in networks.yml.
+        :param keystore_dir: (:class:`pathlib.Path`) - Path to the keystore. (default:
+            :code:`~/.ethereum/keystore`)
+        :param web3: (:class:`web3.Web3`) - The Web3 instance to use
+        """
 
         self.eth_account = Account()
         self._accounts: List = []
@@ -67,7 +74,11 @@ class Accounts(object):
                 self.keystore_dir.mkdir(mode=0o700, parents=True)
 
     def _read_json_file(self, filename: str) -> Optional[Dict[str, Any]]:
-        """ Read a JSON file and output a python dict """
+        """ Read a JSON file and output a python dict
+
+        :param filename: (:code:`str`) Filename to read in
+        :returns: (:code:`dict`) Python object representing JSON structure of file
+        """
         jason: Optional[Dict[str, Any]] = None
         with open(filename, 'r') as json_file:
             try:
@@ -82,7 +93,11 @@ class Accounts(object):
         return jason
 
     def _write_json_file(self, json_object: dict, filename: str = None) -> None:
-        """ Write a JSON file from a python dict """
+        """ Write a JSON file from a python dict
+
+        :param json_object: (:code:`dict`) Pythin JSON representation
+        :param filename: (:code:`str`) Path the file to write
+        """
 
         filePath: Optional[Path] = None
         if filename is not None and type(filename) == str:
@@ -103,7 +118,10 @@ class Accounts(object):
                 raise e
 
     def _get_keystore_files(self) -> list:
-        """ Return all filenames of keystore files """
+        """ Return all filenames of keystore files
+
+        :returns: (:code:`list`) of Paths in the keystore
+        """
         return list(self.keystore_dir.iterdir())
 
     def _load_accounts(self, force: bool = False) -> None:
@@ -134,6 +152,7 @@ class Accounts(object):
                 }))
 
     def refresh(self) -> None:
+        """ Load accounts, ignoring cache """
         self._load_accounts(True)
 
     @autoload
@@ -148,7 +167,11 @@ class Accounts(object):
 
     @autoload
     def get_account(self, address: str) -> AttrDict:
-        """ Return all the known account addresses """
+        """ Return all the known account addresses
+
+        :param address: (:code:`str`) Address of account to get
+        :returns: (:class:`attrdict.AttrDict`) of the account
+        """
 
         for a in self._accounts:
             if Web3.toChecksumAddress(a.address) == Web3.toChecksumAddress(address):
@@ -158,7 +181,10 @@ class Accounts(object):
 
     @autoload
     def account_known(self, address: str) -> bool:
-        """ Check if an account is known """
+        """ Check if an account is known
+
+        :param address: (:code:`str`) Address of an account to check for
+        """
 
         try:
             self._get_account_index(address)
@@ -172,17 +198,29 @@ class Accounts(object):
 
     @autoload
     def get_accounts(self) -> List[AttrDict]:
-        """ Return all the known account addresses """
+        """ Return all the known account addresses
+
+        :returns: (:code:`list`) of account addresses
+        """
         return self._accounts
     accounts = property(get_accounts)
 
     def set_account_attribute(self, address: str, key: str, val: T) -> None:
-        """ Set an attribute of an account """
+        """ Set an attribute of an account
+
+        :param address: (:code:`str`) address of account
+        :param key: (:code:`str`) name of the attribute to set
+        :param val: (:code:`T`) new value of the attribute
+        """
         idx = self._get_account_index(address)
         return setattr(self._accounts[idx], key, val)
 
     def create_account(self, password: str) -> str:
-        """ Create a new account and encrypt it with password """
+        """ Create a new account and encrypt it with password
+
+        :param password: (:code:`str`) Password to use to encrypt the new account
+        :returns: (:code:`str`) address of the new account
+        """
 
         new_account = self.eth_account.create(os.urandom(len(password) * 2))
         encrypted_account = Account.encrypt(new_account.privateKey, password)
@@ -193,7 +231,12 @@ class Accounts(object):
 
     @autoload
     def unlock(self, account_address: str, password: str = None) -> bytes:
-        """ Unlock an account keystore file and return the private key """
+        """ Unlock an account keystore file and return the private key
+
+        :param account_address: (:code:`str`) address of the account to unlock
+        :param password: (:code:`str`) password to use to decrypt the account
+        :returns: (:code:`bytes`) The account's private key if decryption is successful
+        """
 
         log.debug("Unlocking account {}".format(account_address))
 
@@ -226,7 +269,13 @@ class Accounts(object):
         return privkey
 
     def sign_tx(self, account_address: str, tx: dict, password: str = None) -> str:
-        """ Sign a transaction using the provided account """
+        """ Sign a transaction using the provided account
+
+        :param account_address: (:code:`str`) address of the account to unlock
+        :param tx: (:code:`dict`) transaction object to sign
+        :param password: (:code:`str`) password to use to decrypt the account
+        :returns: (:code:`str`) transaction hash if successful
+        """
 
         log.debug("Signing tx with account {}".format(account_address))
 
