@@ -2,5 +2,7 @@
 Deployer
 ########
 
-.. automodule:: solidbyte.deploy.Deployer
+.. automodule:: solidbyte.deploy
+
+.. autoclass:: solidbyte.deploy.Deployer
     :members:

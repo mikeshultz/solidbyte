@@ -68,14 +68,14 @@ def collapse_oel(lst):
 
 def pop_key_from_dict(d, key):
     """ Remove and return an element from a dict and the modded dict without throwing an exception
-        if a key does not exist.
+    if a key does not exist.
 
     Args:
-        d {dict}: the original dict
-        key {str}: they key to pop
+        * d (dict): the original dict
+        * key (str): they key to pop
 
     Returns:
-        {T}: The value of the key or None
+        T: The value of the key or None
     """
     if key not in d:
         return None
