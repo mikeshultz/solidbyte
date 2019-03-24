@@ -8,4 +8,6 @@ The :code:`common` module
    :maxdepth: 2
    :caption: Contents:
 
+   exceptions
+   store
    utils
