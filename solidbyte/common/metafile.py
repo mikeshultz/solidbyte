@@ -51,7 +51,9 @@ PS = Union[Path, str]
 
 
 def autoload(f: Callable) -> Callable:
-    """ Automatically load the metafile before method execution """
+    """ MetaFile method decorator to automatically load the metafile before
+    method execution
+    """
     @wraps(f)
     def wrapper(*args, **kwargs):
         # A bit defensive, but make sure this is a decorator of a MetaFile method
@@ -61,8 +63,10 @@ def autoload(f: Callable) -> Callable:
     return wrapper
 
 
-def autosave(f):
-    """ Automatically save the metafile after method execution """
+def autosave(f: Callable) -> Callable:
+    """ MetaFile method decorator to automatically save the metafile after
+    method execution
+    """
     @wraps(f)
     def wrapper(*args, **kwargs):
         retval = f(*args, **kwargs)

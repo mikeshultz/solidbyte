@@ -1,4 +1,30 @@
 """ Handle operations around networks.yml
+
+============
+Example File
+============
+
+.. code-block:: yaml
+
+    # networks.yml
+    ---
+    dev:
+      type: auto
+      autodeploy_allowed: true
+      use_default_account: true
+
+    infura-mainnet:
+      type: websocket
+      url: wss://mainnet.infura.io/ws
+
+    geth:
+      type: ipc
+      file: ~/.ethereum/geth.ipc
+
+    test:
+      type: eth_tester
+      autodeploy_allowed: true
+      use_default_account: true
 """
 import yaml
 from typing import Callable, Union, Any, Dict, List
@@ -19,9 +45,11 @@ ETH_TESTER_TYPES = ('eth_tester', 'eth-tester', 'ethereum-tester')
 
 
 def config_exists(f: Callable) -> Callable:
-    """ Decorator to check if a config exists
+    """ NetworksYML method decorator to check if a config exists
 
-    methods must have `name` as first argument after `self`.
+    methods must have :code:`name` as first argument after :code:`self`.
+
+    .. code-block:: python
 
         @config_exists
         def method(self, name):
@@ -43,29 +71,6 @@ def config_exists(f: Callable) -> Callable:
 
 class NetworksYML:
     """ Object representation of the networks.yml file
-
-    Example File
-    ------------
-    # networks.yml
-    ---
-    dev:
-      type: auto
-      autodeploy_allowed: true
-      use_default_account: true
-
-    infura-mainnet:
-      type: websocket
-      url: wss://mainnet.infura.io/ws
-
-    geth:
-      type: ipc
-      file: ~/.ethereum/geth.ipc
-
-    test:
-      type: eth_tester
-      autodeploy_allowed: true
-      use_default_account: true
-
     """
 
     def __init__(self, project_dir: PathString = None, no_load: bool = False) -> None:
