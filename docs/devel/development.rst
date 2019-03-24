@@ -52,7 +52,7 @@ preferred IDE, but you can also run it with the command
 Docstrings
 **********
 
-Use `Google's Python docstring format`_.  Make it descriptive, and show example
-usage(s) if appropriate.
+Modules, classes, objects, should all be documented according to the
+`Sphinx docstring syntax`_
 
-.. _`Google's Python docstring format`: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+.. _`Sphinx docstring syntax`: https://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html

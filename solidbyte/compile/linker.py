@@ -1,6 +1,6 @@
-""" Functions used for linking libraries in contracts
+""" Functions used for linking libraries for Solidity libraries
 
-Example placeholder: __$13811623e8434e588b8942cf9304d14b96$__
+Example Solidity placeholder: :code:`__$13811623e8434e588b8942cf9304d14b96$__`
 """
 import re
 from typing import Tuple, Dict, Set, Pattern
@@ -20,13 +20,19 @@ BYTECODE_PLACEHOLDER_REGEX = '__({})__'
 
 
 def make_placeholder_regex(placeholder: str) -> Pattern[str]:
-    """ Return a regex pattern for a placeholder """
+    """ Return a regex pattern for a placeholder
+
+    :param placeholder: (:code:`str`) Given a solidity placeholder, make a regex
+    """
     placeholder = re.escape(placeholder)
     return re.compile(BYTECODE_PLACEHOLDER_REGEX.format(placeholder))
 
 
 def placeholder_from_def(s: str) -> str:
-    """ return a placeholder form a solc file link definition """
+    """ return a placeholder form a solc file link definition
+
+    :param s: (:code:`str`) A "definition" from a solidity bytecode output file
+    """
     placeholder = re.search(LINK_PLACEHOLDER_REGEX, s)
     if not placeholder:
         raise LinkError("Unable to find placeholder")
@@ -34,7 +40,10 @@ def placeholder_from_def(s: str) -> str:
 
 
 def contract_from_def(s: str) -> str:
-    """ return a contract name form a solc file link definition """
+    """ return a contract name form a solc file link definition
+
+    :param s: (:code:`str`) A "definition" from a solidity bytecode output file
+    """
     contract_match = re.search(LINK_CONTRACT_REGEX, s)
     if not contract_match:
         raise LinkError("Unable to find contract")
@@ -43,6 +52,8 @@ def contract_from_def(s: str) -> str:
 
 def bytecode_link_defs(bytecode) -> Set[Tuple[str, str]]:
     """ Return set of tuples with names and placeholders for link definitions from a bytecode file
+
+    :param bytecode: (:code:`str`) Contents of a Solidity bytecode output file
     """
     link_defs = set()
     bytecode_list = bytecode.split('\n')
@@ -59,19 +70,33 @@ def bytecode_link_defs(bytecode) -> Set[Tuple[str, str]]:
 
 
 def replace_placeholders(bytecode: str, placeholder: str, addr: str) -> str:
-    """ Replace the placeholders with the contract address """
+    """ Replace the placeholders with the contract address
+
+    :param bytecode: (:code:`str`) Solidity bytecode output
+    :param placeholder: (:code:`str`) The placeholder to replace
+    :param addr: (:code:`str`) Address to replace the placeholder with
+    """
     pattern = make_placeholder_regex(placeholder)
     return re.sub(pattern, remove_0x(addr), bytecode)
 
 
 def clean_bytecode(bytecode: str) -> str:
-    """ Clean the bytecode string of any comments and whitespace """
+    """ Clean the bytecode string of any comments and whitespace
+
+    :param bytecode: (:code:`str`) Bytecode output from the Solidity compiler
+    """
     blist = [x for x in bytecode.split('\n') if x.strip() != '' and not x.startswith('//')]
     btxt = ''.join(blist)
     return btxt
 
 
 def link_library(bytecode: str, links: dict) -> str:
+    """ Providing bytecode output from the Solidity copmiler and a dict of links, perform the
+    placeholder replacement to create deployable bytecode.
+
+    :param bytecode: (:code:`str`) Bytecode output from the Solidity compiler
+    :param links: (:code:`dict`) A dict of links. ContractName:Address
+    """
     if len(links) < 1:
         return bytecode
 
@@ -93,13 +118,20 @@ def link_library(bytecode: str, links: dict) -> str:
 
 
 def address_placeholder(name):
-    """ Provide a false address for a link ref with name. Used in bytecode hashing. """
+    """ Provide a false, but repeatable address for a link ref with name. Used in bytecode hashing.
+
+    :param name: (:code:`str`) The name to use for the placeholder
+    :returns: (:code:`str`) A false address derrived from a placeholder
+    """
     return remove_0x(hash_string('__{}__'.format(name)))
 
 
 def hash_linked_bytecode(bytecode) -> str:
     """ Hash bytecode that has link references in a way that the addresses for delegate calls don't
     matter.  Useful for comparing bytecode hashes when you don't know deployed addresses.
+
+    :param bytecode: (:code:`str`) Bytecode output from the Solidity compiler
+    :returns: (:code:`str`) A link-agnostic hash of the bytecode
     """
 
     links: Dict[str, str] = {}

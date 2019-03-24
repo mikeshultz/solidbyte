@@ -4,4 +4,15 @@
 
 The :code:`compile` module
 
-TBD
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   artifacts
+   compiler
+   linker
+   solidity
+   vyper
+
+.. automodule:: solidbyte.compile
+    :members:
