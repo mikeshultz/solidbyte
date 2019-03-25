@@ -17,6 +17,23 @@ log = getLogger(__name__)
 
 MultiDict = Union[dict, AttrDict, AttributeDict]
 
+STD_GAS = int(1e6)
+STD_GAS_PRICE = int(3e9)  # 3gwei
+
+
+def std_tx(tx: MultiDict):
+    """ Create a test transaction with default gas and gasPrice
+
+    :param tx: (:code:`dict`) representation of an Ethereum transaction
+    :returns: (:code:`dict`) representation of an Ethereum transaction with defaults
+    """
+    std = {
+        'gas': STD_GAS,
+        'gasPrice': STD_GAS_PRICE,
+    }
+    std.update(tx)
+    return std
+
 
 def topic_signature(abi: MultiDict) -> HexBytes:
     if abi.get('type') != 'event':

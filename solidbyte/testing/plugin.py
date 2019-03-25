@@ -8,7 +8,7 @@ from ..common.web3 import web3c
 from ..common.exceptions import SolidbyteException
 from ..common.logging import getLogger
 from .gas import construct_gas_report_middleware
-from .fixtures import get_event, has_event, time_travel, block_travel
+from .fixtures import std_tx, get_event, has_event, time_travel, block_travel
 
 log = getLogger(__name__)
 
@@ -109,3 +109,7 @@ class SolidbyteTestPlugin(object):
     @pytest.fixture
     def block_travel(self):
         return block_travel
+
+    @pytest.fixture
+    def std_tx(self):
+        return std_tx

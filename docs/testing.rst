@@ -30,6 +30,14 @@ connected to whatever network you gave on the CLI.
 
 :code:`list` of addresses of the known local accounts.
 
+==============
+:code:`std_tx`
+==============
+
+Function to update a transaction dict with standard values.
+
+.. autofunction:: solidbyte.testing.fixtures.std_tx
+
 =================
 :code:`has_event`
 =================

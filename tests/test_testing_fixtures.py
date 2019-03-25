@@ -5,10 +5,19 @@ from solidbyte.testing.fixtures import (
     event_abi,
     has_event,
     get_event,
+    std_tx,
     time_travel,
     block_travel,
 )
-from .const import NETWORKS_YML_1, DUMB_CONTRACT_ABI, EVENT_ABI, EVENT_SIG_HASH, EVENT_RECEIPT
+from .const import (
+    ADDRESS_1,
+    ADDRESS_2,
+    NETWORKS_YML_1,
+    DUMB_CONTRACT_ABI,
+    EVENT_ABI,
+    EVENT_SIG_HASH,
+    EVENT_RECEIPT,
+)
 
 
 class ContractMock(object):
@@ -32,6 +41,41 @@ def test_get_event():
     evnt = get_event(ContractMock, 'AddressEvent', EVENT_RECEIPT)
     assert evnt.event == 'AddressEvent'
     assert evnt.args.val == '0x717dD920E935b5078fC67717713b2A62987A8044'
+
+
+def test_std_tx():
+    value = int(1e18)  # 1ether
+
+    # update a tx without gas or gasPrice
+    tx = std_tx({
+        'from': ADDRESS_1,
+        'to': ADDRESS_2,
+        'value': value,
+    })
+    assert 'gas' in tx
+    assert 'gasPrice' in tx
+    assert tx.get('from') == ADDRESS_1
+    assert tx.get('to') == ADDRESS_2
+    assert tx.get('value') == value
+
+    # update a tx with gas and gasPrice
+    gas = int(2100)
+    gas_price = int(2e9)  # 2gwei
+
+    tx = std_tx({
+        'to': ADDRESS_1,
+        'from': ADDRESS_2,
+        'value': value,
+        'gas': gas,
+        'gasPrice': gas_price,
+    })
+    assert 'gas' in tx
+    assert 'gasPrice' in tx
+    assert tx.get('to') == ADDRESS_1
+    assert tx.get('from') == ADDRESS_2
+    assert tx.get('value') == value
+    assert tx.get('gas') == gas
+    assert tx.get('gasPrice') == gas_price
 
 
 def test_time_travel(ganache, temp_dir):
