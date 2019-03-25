@@ -65,3 +65,13 @@ networks.  This defaults to :code:`false`.
 
 This allows the network to use the account set as default for deployment and testing. This defaults
 to :code:`false` for safety.
+
+******
+Infura
+******
+
+To use Solidbyte with `Infura <https://infura.io>`_, make sure you register for
+an API key and set the :code:`WEB3_INFURA_API_KEY` environmental variable. For
+more information, see the `Web3.py Infura Documentation`_
+
+.. _`Web3.py Infura Documentation`: https://web3py.readthedocs.io/en/stable/providers.html#infura-mainnet

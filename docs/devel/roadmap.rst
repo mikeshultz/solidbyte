@@ -25,12 +25,14 @@ version is released.
 ***
 
 - ☐ EthPM 2.0 Support
+- ☐ Vyper Linting
 
 ***
 1.2
 ***
 
 - ☐ Coverage integration
+- ☐ Solidity Linting
 
 ***
 1.3
