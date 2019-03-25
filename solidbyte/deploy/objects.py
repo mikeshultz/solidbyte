@@ -9,7 +9,7 @@ from ..accounts import Accounts
 from ..compile import link_library, clean_bytecode
 from ..compile.artifacts import contract_artifacts
 from ..compile.linker import hash_linked_bytecode
-from ..common import pop_key_from_dict
+from ..common import pop_key_from_dict, MAX_PRODUCTION_NETWORK_ID
 from ..common.web3 import (
     web3c,
     normalize_hexstring,
@@ -35,7 +35,6 @@ log = getLogger(__name__)
 T = Union[Any, None]
 MultiDict = Union[AttrDict, dict]
 
-MAX_OFFICIAL_NETWORK_ID = 100
 DISABLED_REMOTE_NOTICE = (
     "Deployment with remote accounts is currently disabled. If you're interested in having this "
     "enabled, please add your feedback to this issue: "
@@ -477,7 +476,7 @@ class Contract:
 
         else:
 
-            if int(self.network_id) < MAX_OFFICIAL_NETWORK_ID and not self.web3.is_eth_tester:
+            if int(self.network_id) < MAX_PRODUCTION_NETWORK_ID and not self.web3.is_eth_tester:
                 """ Disabling personal.unlock for official chains. It's not really a secure way to
                     deal with sending transactions. At least on go-ethereum, when you unlock an
                     account, that allows any party that can send a JSON-RPC request to the node to

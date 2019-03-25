@@ -1,5 +1,6 @@
 """ Utility functions to be provided as pytest fixtures for Solidbyte testing """
 import math
+import time
 from typing import Union, Optional
 from datetime import datetime
 from hexbytes import HexBytes
@@ -8,6 +9,11 @@ from web3 import Web3
 from web3.datastructures import AttributeDict
 from web3.contract import Contract as Web3Contract
 from web3.utils.events import get_event_data
+from ..common import MAX_PRODUCTION_NETWORK_ID
+from ..common.exceptions import SolidbyteException
+from ..common.logging import getLogger
+
+log = getLogger(__name__)
 
 MultiDict = Union[dict, AttrDict, AttributeDict]
 
@@ -107,15 +113,109 @@ def time_travel(web3: Web3, secs: int) -> int:
     return block_after.number
 
 
-def block_travel(web3: Web3, blocks: int) -> int:
+def block_travel(web3: Web3, blocks: int, block_time: int = 1) -> int:
     """ Travel forward X blocks
 
     :param web3: (:class:`web3.Web3`) object to use for connection
     :param secs: (:code:`int`) of the amount of blocks to travel forward in time
+    :param block_time: (:code:`int`) the expected block time of the chain, in seconds. (default: 1)
     :returns: (:code:`int`) the latest block number
     """
+
+    log.warning("block_travel is experimental and should only be used on test networks!")
+
     block_before = web3.eth.getBlock('latest')
-    web3.testing.mine(math.ceil(blocks))
-    block_after = web3.eth.getBlock('latest')
-    assert block_after.number - block_before.number == blocks, "Block travel failed"
+    block_travel = math.ceil(blocks)
+
+    """ Every damned implementation of this functionality is a little different.  There's some
+    assumptions being made here.
+
+        - If it's eth_tester, use :code:`web3.testing.mine`
+        - If not, start the miner if necessary
+        - Look and see if blocks are being mined within the given block_time (custom test
+          go-ethereum instances with miner scripts, for instance)
+        - If new blocks are not being mined in that window, send some empty transactions to trigger
+          the miner(ganache)
+    """
+
+    if hasattr(web3, 'is_eth_tester') and web3.is_eth_tester:
+
+        web3.testing.mine(block_travel)
+
+    else:
+
+        net_id = int(web3.version.network)
+        assert net_id > MAX_PRODUCTION_NETWORK_ID, (
+            "Can not block travel on network {}".format(net_id)
+        )
+
+        started_miner = False
+        if web3.miner.hashrate == 0:
+            web3.miner.start(1)
+            started_miner = True
+
+        new_block = None
+        sleep_time = 0.5
+        max_wait = math.ceil((block_time / sleep_time) + 1)
+        loop_count = 0
+        send_empty_transactions = False
+        while new_block is None or (new_block.number < block_before.number + block_travel):
+            new_block = web3.eth.getBlock('latest')
+            log.debug("Waiting for block #{}. Seen block #{}".format(
+                block_before.number + block_travel,
+                new_block.number,
+            ))
+            loop_count += 1
+            if loop_count > max_wait and (new_block and new_block.number == block_before.number):
+                send_empty_transactions = True
+                break
+            time.sleep(0.5)
+
+        # Some test backends, like ganache, won't mine until they have a tx
+        if send_empty_transactions:
+
+            from_account = web3.eth.accounts[0]
+            to_account = web3.eth.accounts[1]
+            while new_block is None or (new_block.number < block_before.number + block_travel):
+
+                tx_hash = web3.eth.sendTransaction({
+                    'from': from_account,
+                    'to': to_account,
+                    'value': 0,
+                    'data': '0x1',
+                    'gasPrice': int(3e9),
+                })
+
+                log.debug("Sent transaction {} to trigger miner. Waiting for miner...".format(
+                    tx_hash
+                ))
+
+                receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+
+                if receipt.status != 1:
+                    raise SolidbyteException("Unable to block travel on network_id {}".format(
+                        net_id
+                    ))
+
+                log.debug("Transaction {} has been mined.".format(tx_hash))
+
+                new_block = web3.eth.getBlock('latest')
+
+                log.debug("Waiting for block #{}. Seen block #{}".format(
+                    block_before.number + block_travel,
+                    new_block.number,
+                ))
+
+        if started_miner:
+            web3.miner.stop()
+
+        block_after = new_block
+
+    assert block_after.number - block_before.number == blocks, (
+        "Block travel failed. Expected block #{}, received #{}".format(
+            block_before.number + blocks,
+            block_after.number,
+        )
+    )
+
     return block_after.number

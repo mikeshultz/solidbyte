@@ -1,4 +1,5 @@
 import os
+import time
 import shutil
 import pytest
 from pathlib import Path
@@ -102,6 +103,7 @@ def ganache():
                 proc.returncode
             ))
         try:
+            time.sleep(3)  # ganache is kinda slow to start
             yield AttrDict({
                 'command': ' '.join(command),
                 'proc': proc,
