@@ -18,7 +18,7 @@ version is released.
 - ☑ More commonly used helper functions for contract unit tests
 - ☑ Reasonable unit test completion
 - ☐ Developer experience review
-- ☐ All around bug fixes
+- ☑ All around bug fixes
 
 ***
 1.1
