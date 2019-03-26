@@ -15,7 +15,7 @@ version is released.
 - ☑ Gas usage reports
 - ☑ Improved documentation hosted on Read The Docs
 - ☑ Vyper and Solidity co-mingling (Vyper can not use any libraries, however)
-- ☐ More commonly used helper functions for contract unit tests
+- ☑ More commonly used helper functions for contract unit tests
 - ☑ Reasonable unit test completion
 - ☐ Developer experience review
 - ☐ All around bug fixes
