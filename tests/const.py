@@ -1,12 +1,15 @@
 # flake8: noqa
 from pathlib import Path
 from datetime import datetime
+from hexbytes import HexBytes
 
 # Filesystem
 TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
 
 SOLIDBYTE_COMMAND = 'sb'
 SOLIDBYTE_MODULE = 'solidbyte'
+
+EXPECTED_VYPER_VERSION = '0.1.0b9'
 
 # Ethereum stuff
 NETWORK_ID = 999
@@ -18,6 +21,8 @@ ADDRESS_2 = '0x2c21CE1cEe5B9b1C8aA71aB09a47a5361a36beAE'
 ADDRESS_2_HASH = '0x4ff6eacd66bd565ddc5e1d660414a8f15d2bb42314b9fc2019dadbf29eefa07a'
 ADDRESS_2_NOT_CHECKSUM = '0x2c21ce1cEe5B9B1C8aA71aB09a47a5361a36beAE'
 NETWORK_ID = 999
+GANACHE_PORT = 8576  # Testing port, not to conflict with standard
+GANACHE_NETWORK_NAME = 'testganache'
 ABI_OBJ_1 = [{
   "inputs": [],
   "payable": False,
@@ -25,6 +30,18 @@ ABI_OBJ_1 = [{
   "type": "constructor"
 }]
 BYTECODE_HASH_1 = '0x6385b18cc3f884baad806ee4508837d3a27c734268f9555f76cd12ec3ff38339'
+OBVIOUS_RETURN_CODE = 254
+TX_INPUT = '0x4ff6eacd66bd565ddc5e1d660414a8f15d2bb42314b9fc2019dadbf29eefa07a'
+TX_FUNC_SIG = '4ff6eacd'
+
+FUNC_SIG = 'myFunction(uint256 myParam,int128 myOtherParam)'
+FUNC_SIG_HASH = '0x15a3c1f7c6e6eae7296debf117d144d83fb458baeace5c4fb8647bfa683234b8'
+
+DUMB_CONTRACT_ABI = [{'constant': False, 'inputs': [{'name': 'value', 'type': 'uint256'}], 'name': 'emitUint256', 'outputs': [], 'payable': False, 'stateMutability': 'nonpayable', 'type': 'function'}, {'constant': False, 'inputs': [{'name': 'value', 'type': 'address'}], 'name': 'emitAddress', 'outputs': [], 'payable': False, 'stateMutability': 'nonpayable', 'type': 'function'}, {'anonymous': False, 'inputs': [{'indexed': False, 'name': 'val', 'type': 'address'}], 'name': 'AddressEvent', 'type': 'event'}, {'anonymous': False, 'inputs': [{'indexed': False, 'name': 'val', 'type': 'uint256'}], 'name': 'Uint256Event', 'type': 'event'}]
+EVENT_SIG = 'AddressEvent(address)'
+EVENT_SIG_HASH = HexBytes('0xa0786e1009edc9cbf8898c0299c4518c0d18ec943fa88b2af645b4dd024d7a49')
+EVENT_ABI = {'anonymous': False, 'inputs': [{'indexed': False, 'name': 'val', 'type': 'address'}], 'name': 'AddressEvent', 'type': 'event'}
+EVENT_RECEIPT = {'transactionHash': HexBytes('0xd2e7370fb4a519449c89506c5baefe30a000e723d728e0f5e14d2c752950875e'), 'transactionIndex': 0, 'blockHash': HexBytes('0x3c2257289c1f883affa4fdd9b52231d00226666e1d432e15cc0b554cfa0ef329'), 'blockNumber': 5, 'from': '0x717dd920e935b5078fc67717713b2a62987a8044', 'to': '0x25820e39ceb1a46fbd332bebc0ec53c3fb5033c7', 'gasUsed': 23942, 'cumulativeGasUsed': 23942, 'contractAddress': None, 'logs': [{'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0xd2e7370fb4a519449c89506c5baefe30a000e723d728e0f5e14d2c752950875e'), 'blockHash': HexBytes('0x3c2257289c1f883affa4fdd9b52231d00226666e1d432e15cc0b554cfa0ef329'), 'blockNumber': 5, 'address': '0x25820e39CEB1A46FBd332BebC0eC53c3fB5033c7', 'data': '0x000000000000000000000000717dd920e935b5078fc67717713b2a62987a8044', 'topics': [HexBytes('0xa0786e1009edc9cbf8898c0299c4518c0d18ec943fa88b2af645b4dd024d7a49')], 'type': 'mined'}], 'status': 1, 'logsBloom': HexBytes('0x00000000000000004000000000000000000000000004000080000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'), 'v': '0x1c', 'r': '0x6d093c5d47fe6377cececc34fc0e915c56b6b792a1abc4b50153e122c3c9e870', 's': '0x653e07276d3af113b57e12097afef4006b7f96da80e713b65ab92885977be1a7'}
 
 CONTRACT_NAME_1 = "MyContract"
 LIBRARY_NAME_1 = "MyLibrary"
@@ -42,15 +59,22 @@ CONTRACT_SOURCE_FILE_1 = """pragma solidity ^0.5.2;
 contract Test {
 
     address public owner;
+    uint public testVar;
 
     constructor() public
     {
         owner = msg.sender;
+        testVar = 0;
     }
 
     function getOwner() public view returns (address)
     {
         return owner;
+    }
+
+    function setTestVar(uint newValue) public
+    {
+        testVar = newValue;
     }
 
 }
@@ -95,20 +119,54 @@ def main(contracts, deployer_account, web3, network):
     assert test.functions.getOwner().call() is not None
     return True
 """
+CONTRACT_VYPER_SOURCE_FILE_2 = """
+import ITestInterface as ITestInterface
+
+implements: ITestInterface
+
+counter: uint256
+
+@public
+def add_one():
+    self.counter += 1
+
+@public
+def get_one() -> uint256:
+    return self.counter
+"""
+CONTRACT_VYPER_INTERFACE_FILE_2 = """
+@public
+def add_one(): modifying
+
+@public
+def get_one() -> uint256: constant
+"""
 NETWORKS_YML_1 = """# networks.yml
 ---
 test:
   type: eth_tester
   autodeploy_allowed: true
+  use_default_account: true
+
 dev:
   type: auto
   autodeploy_allowed: true
-"""
+  use_default_account: true
+
+{}:
+  type: http
+  url: http://localhost:{}/
+
+nodeploy:
+  type: eth_tester
+
+""".format(GANACHE_NETWORK_NAME, GANACHE_PORT)
 NETWORKS_YML_2 = """# networks.yml
 ---
 test:
   type: eth_tester
   autodeploy_allowed: true
+  use_default_account: true
 
 dev:
   type: auto
@@ -126,21 +184,56 @@ infura-mainnet-http:
   type: http
   url: https://mainnet.infura.io/asdfkey
 """
+NETWORKS_YML_NOCONFIG = """# networks.yml
+---
+"""
+NETWORKS_YML_INVALID_TYPE = """# networks.yml
+---
+test:
+    type: notatype
+    file: /tmp/nothing.yml
+"""
 PYTEST_TEST_1 = """
-def test_fixtures(web3, contracts):
+def test_fixtures(web3, contracts, local_accounts, std_tx):
     assert web3 is not None
     assert contracts is not None
     assert contracts.get('Test') is not None
+    assert local_accounts is not None
+    # Test that web3 works
+    tx_hash = web3.eth.sendTransaction({
+        'from': web3.eth.accounts[0],
+        'to': web3.eth.accounts[1],
+        'value': int(1e18),
+        'gasPrice': int(3e9),
+        'gas': 21000
+    })
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt.status == 1
+    # Test a contract call
+    test = contracts.get('Test')
+    tx_hash = test.functions.setTestVar(3).transact(std_tx({
+        'from': web3.eth.accounts[0],
+        'gas': int(1e5),
+    }))
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt.status == 1
 """
 
 # Console test commands
 CONSOLE_TEST_ASSERT_LOCALS = [
+    "import sys\n",
     "assert 'web3' in locals(), 'web3 missing'\n",
     "assert 'accounts' in locals(), 'accounts missing'\n",
     "assert 'network' in locals(), 'network missing'\n",
     "assert 'network_id' in locals(), 'network_id missing'\n",
     "assert 'nothing' not in locals(), 'nothing found'\n",
-    "exit(1337)\n",
+    "sys.exit({})\n".format(OBVIOUS_RETURN_CODE),
+]
+
+CONSOLE_TEST_ASSERT_CONTRACTS = [
+    "import sys\n",
+    "assert 'Test' in locals(), 'Test contract missing'\n",
+    "sys.exit({})\n".format(OBVIOUS_RETURN_CODE),
 ]
 
 ####
@@ -458,4 +551,68 @@ def main(contracts, deployer_account, web3, network):
     assert test.functions.add(6, 3).call() == 9
     assert test.functions.sub(6, 3).call() == 3
     return True
+"""
+
+CONTRACT_SOLIDITY_INTERFACE_NAME = "ITest"
+CONTRACT_SOLIDITY_IMPLEMENTER_NAME = "Implementer"
+CONTRACT_SOLIDITY_IMPLEMENTER = """pragma solidity ^0.5.2;
+
+import './{}.sol';
+
+contract {} is {} {{
+    uint256 public count;
+
+    function addOne(uint256 val) external
+    {{
+        count += val;
+    }}
+
+    function getCount() external view returns (uint256)
+    {{
+        return count;
+    }}
+}}
+""".format(
+    CONTRACT_SOLIDITY_INTERFACE_NAME,
+    CONTRACT_SOLIDITY_IMPLEMENTER_NAME,
+    CONTRACT_SOLIDITY_INTERFACE_NAME
+)
+
+CONTRACT_SOLIDITY_INTERFACE = """pragma solidity ^0.5.2;
+
+interface {} {{
+    function addOne(uint256 val) external;
+    function getCount() external view returns (uint256);
+}}
+""".format(CONTRACT_SOLIDITY_INTERFACE_NAME)
+
+USER_SCRIPT_1 = """
+
+def main(contracts):
+    print(contracts)
+    test = contracts.get('Test')
+    return test is not None and test.address is not None
+
+"""
+
+USER_SCRIPT_FAIL = """
+
+def main(contracts):
+    return False
+
+"""
+
+USER_SCRIPT_INVALID = """
+
+# This is invalid
+def main_func(contracts):
+    return False
+
+"""
+
+HASHABLE_FILE = """Hello, world!
+"""
+HASHABLE_FILE_HASH = "09fac8dbfd27bd9b4d23a00eb648aa751789536d"
+
+INVALID_JSON = """{ 'huuuRRRR'; durrr
 """

@@ -28,17 +28,20 @@ def get_default_banner(network_id, contracts=[], variables={}):
 
 class SolidbyteConsole(code.InteractiveConsole):
     def __init__(self, _locals=None, filename="<console>", network_name=None,
-                 histfile=Path("~/.solidbyte-history").expanduser().resolve()):
+                 histfile=Path("~/.solidbyte-history").expanduser().resolve(), web3=None):
 
         log.debug("Connecting to network {}...".format(network_name))
-        self.web3 = web3c.get_web3(network_name)
+        if web3 is not None:
+            self.web3 = web3
+        else:
+            self.web3 = web3c.get_web3(network_name)
 
         if not _locals:
             network_id = self.web3.net.chainId or self.web3.net.version
 
             d = Deployer(network_name=network_name)
             contracts_meta = d.deployed_contracts
-            contracts_compiled = d.source_contracts
+            contracts_compiled = d.artifacts
             self.contracts = {}
             for meta in contracts_meta:
                 if meta['networks'].get(network_id):

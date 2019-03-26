@@ -1,16 +1,20 @@
 import os
+import time
+import shutil
 import pytest
 from pathlib import Path
+from subprocess import Popen
 from datetime import datetime
 from attrdict import AttrDict
 from contextlib import contextmanager
 from solidbyte.common.logging import setDebugLogging
-from .const import TMP_DIR
+from .const import TMP_DIR, GANACHE_PORT, GANACHE_NETWORK_NAME
 from .utils import (
     create_mock_project,
     create_mock_project_with_libraries,
     delete_path_recursively,
     setup_venv_with_solidbyte,
+    dict_to_cli_option_list,
 )
 
 
@@ -39,6 +43,7 @@ def mock_project():
                         'contracts': project_dir.joinpath('contracts'),
                         'deploy': project_dir.joinpath('deploy'),
                         'build': project_dir.joinpath('build'),
+                        'scripts': project_dir.joinpath('scripts'),
                         'networksyml': project_dir.joinpath('networks.yml'),
                     })
             })
@@ -78,3 +83,40 @@ def virtualenv():
             })
         delete_path_recursively(venv_dir)
     return yield_venv
+
+
+@pytest.fixture
+def ganache():
+    """ Provide a ganache instance to test against. A little slower than eth_tester, but useful
+    for when persistence is necessary.
+    """
+    @contextmanager
+    def yield_ganache(options={'a': 10, 'p': GANACHE_PORT}):  # uses a non-standard port
+
+        ganache_command = shutil.which('ganache-cli')
+        opt_list = dict_to_cli_option_list(options)
+        command = [ganache_command, *opt_list]
+
+        proc = Popen(command)
+        if proc.poll() is not None:
+            raise Exception("Unable to launch ganache-cli.  Return code: {}".format(
+                proc.returncode
+            ))
+        try:
+            time.sleep(3)  # ganache is kinda slow to start
+            yield AttrDict({
+                'command': ' '.join(command),
+                'proc': proc,
+                'network_name': GANACHE_NETWORK_NAME,
+            })
+        except AssertionError as err:
+            proc.terminate()
+            raise err
+        except Exception as err:
+            proc.kill()
+            raise err
+        if proc.returncode is None:
+            proc.terminate()
+        if proc.returncode != 0:
+            print('ganache-cli exited improperly')
+    return yield_ganache

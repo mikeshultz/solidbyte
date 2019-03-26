@@ -3,12 +3,14 @@ python:
   - 3.6
   - 3.6-dev
   - 3.7-dev
+cache: pip
 env:
   - TESTING=1 SCRIPT='pytest -v --cov solidbyte --cov-report term-missing'
 install:
   - pip install -r requirements.dev.txt
   - pip install -r requirements.test.txt
   - pip install -e .
+  - python setup.py install_ganache
 jobs:  
   include:
     - stage: "lint"
@@ -39,5 +41,5 @@ deploy:
     on:
       tags: true
       python: 3.6
-      condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$
+      condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+[b]{0,1}[0-9]*$
 script: $SCRIPT

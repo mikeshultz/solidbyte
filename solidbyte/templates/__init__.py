@@ -1,3 +1,18 @@
+"""
+Templates
+=========
+
+Every template should at a minimum implement this function that returns an
+instance of :class:`solidbyte.templates.Template`.
+
+.. code-block:: python
+
+    def get_template_instance(*args, **kwargs):
+        pass
+
+For more details, see the :class:`solidbyte.templates.templates.bare.Bare`
+template.
+"""
 import sys
 from importlib import import_module
 from pathlib import Path
@@ -5,25 +20,13 @@ from ..common.logging import getLogger
 
 log = getLogger(__name__)
 
-"""
-Templates
-=========
-
-Every template should at a minimum implement this function that returns an
-instance of solidbyte.templates.Template or a derivative of:
-
-    get_template_instance(*args, **kwargs)
-
-For more details, see the Bare template.
-TODO: Better docs
-"""
-
 TEMPLATE_DIR = Path(__file__).parent.joinpath('templates')
 TEMPLATES = {}
 
 
 def lazy_load_templates(force_load=False):
-    """ Import all templates and stuff them into TEMPLATES """
+    """ Import all templates and stuff them into the :code:`TEMPLATES` global """
+    global TEMPLATES
     if len(TEMPLATES.keys()) > 0 and not force_load:
         return TEMPLATES
 
@@ -45,15 +48,16 @@ def lazy_load_templates(force_load=False):
     return TEMPLATES
 
 
-# TODO: Depreciate
+# TODO: Delete after review
 def get_templates():
-    """ Return all available templates """
+    """ Return all available templates **DEPRECIATED** """
     log.debug("Loading templates from {}".format(TEMPLATE_DIR))
     return lazy_load_templates()
 
 
 def init_template(name, dir_mode=0o755, pwd=None):
     """ Initialize and return a Template instance with name """
+    global TEMPLATES
 
     lazy_load_templates()
 

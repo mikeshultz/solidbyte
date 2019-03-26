@@ -5,7 +5,7 @@ WARNING
 run_tests(), or any pytest invocation can only be done once.
 
 See: https://docs.pytest.org/en/latest/usage.html
-TODO: Maybe run a second pytest invocation via the CLI?
+TODO: Maybe run a second pytest invocation via the CLI? [Tests are being run from test_cli.py]
 """
 import pytest
 from solidbyte.common.web3 import web3c

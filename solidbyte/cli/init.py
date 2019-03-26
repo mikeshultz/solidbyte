@@ -23,10 +23,15 @@ def main(parser_args):
     user_mode = None
     try:
         if parser_args.dir_mode:
+            log.debug("dir_mode set to {}/{}".format(
+                parser_args.dir_mode,
+                int(parser_args.dir_mode, 8)
+            ))
             user_mode = int(parser_args.dir_mode, 8)
     except ValueError: pass  # noqa: E701
 
     mode = user_mode or 0o755
+    log.debug("mode set to {}".format(mode))
 
     if parser_args.list_templates:
         templates = get_templates()
@@ -35,7 +40,7 @@ def main(parser_args):
         for tmpl in templates:
             print(" - {}".format(tmpl))
     else:
-        tmpl = init_template(parser_args.template or 'bare', mode)
+        tmpl = init_template(parser_args.template or 'bare', dir_mode=mode)
         try:
             tmpl.initialize()
         except FileExistsError as e:

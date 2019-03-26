@@ -8,3 +8,5 @@ class ConfigurationError(SolidbyteException): pass
 class AccountError(SolidbyteException): pass
 class ValidationError(SolidbyteException): pass
 class WrongPassword(ValidationError): pass
+class ScriptError(SolidbyteException): pass
+class InvalidScriptError(ValidationError): pass

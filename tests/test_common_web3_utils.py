@@ -1,5 +1,6 @@
 """ Test web3 utils """
 from hexbytes import HexBytes
+from solidbyte.common.exceptions import DeploymentValidationError
 from solidbyte.common.web3 import (
     web3c,
     normalize_hexstring,
@@ -10,6 +11,7 @@ from solidbyte.common.web3 import (
     hash_hexstring,
     hash_string,
     create_deploy_tx,
+    func_sig_from_input,
 )
 
 from .const import (
@@ -22,6 +24,8 @@ from .const import (
     ADDRESS_2_NOT_CHECKSUM,
     LIBRARY_ABI_OBJ_4,
     LIBRARY_BYTECODE_4,
+    TX_INPUT,
+    TX_FUNC_SIG,
 )
 
 HEX_WO_0X = 'abcdef0123456789'
@@ -60,22 +64,83 @@ def test_hash_string():
     assert TEST_HASH == hash_string(NETWORK_NAME)
 
 
-# TODO: Expand on this:
-def test_create_deploy_tx():
+def test_create_deploy_tx(mock_project):
     """ Test deploy transaction creation function """
-    web3 = web3c.get_web3(NETWORK_NAME)
-    tx = create_deploy_tx(web3, ABI_OBJ_1, CONTRACT_BIN_1, {
-            'from': web3.eth.accounts[0],
-            'gasPrice': int(1e9),
-        })
-    assert tx.get('data') is not None
+
+    with mock_project() as mock:
+
+        web3c._load_configuration(mock.paths.networksyml)
+        web3 = web3c.get_web3(NETWORK_NAME)
+
+        tx = create_deploy_tx(web3, ABI_OBJ_1, CONTRACT_BIN_1, {
+                'from': web3.eth.accounts[0],
+                'gasPrice': int(1e9),
+            })
+        assert tx.get('data') is not None
 
 
-def test_create_deploy_tx_without_constructor():
+def test_create_deploy_tx_invalid(mock_project):
+
+    with mock_project() as mock:
+
+        web3c._load_configuration(mock.paths.networksyml)
+        web3 = web3c.get_web3(NETWORK_NAME)
+
+        # Missing web3
+        try:
+            create_deploy_tx(None, ABI_OBJ_1, CONTRACT_BIN_1, {
+                'from': web3.eth.accounts[0],
+                'gasPrice': int(1e9),
+            })
+            assert False, "create_deploy_tx() should fail with missing input"
+        except DeploymentValidationError:
+            pass
+
+        # Missing ABI
+        try:
+            create_deploy_tx(web3, None, CONTRACT_BIN_1, {
+                'from': web3.eth.accounts[0],
+                'gasPrice': int(1e9),
+            })
+            assert False, "create_deploy_tx() should fail with missing input"
+        except DeploymentValidationError:
+            pass
+
+        # Missing bytecode
+        try:
+            create_deploy_tx(web3, ABI_OBJ_1, None, {
+                'from': web3.eth.accounts[0],
+                'gasPrice': int(1e9),
+            })
+            assert False, "create_deploy_tx() should fail with missing input"
+        except DeploymentValidationError:
+            pass
+
+        # Invalid bytecode
+        try:
+            create_deploy_tx(web3, ABI_OBJ_1, '0x', {
+                'from': web3.eth.accounts[0],
+                'gasPrice': int(1e9),
+            })
+            assert False, "create_deploy_tx() should fail with missing input"
+        except DeploymentValidationError:
+            pass
+
+
+def test_create_deploy_tx_without_constructor(mock_project):
     """ Test deploy transaction creation function """
-    web3 = web3c.get_web3(NETWORK_NAME)
-    tx = create_deploy_tx(web3, LIBRARY_ABI_OBJ_4, LIBRARY_BYTECODE_4, {
-            'from': web3.eth.accounts[0],
-            'gasPrice': int(1e9),
-        })
-    assert tx.get('data') is not None
+
+    with mock_project() as mock:
+
+        web3c._load_configuration(mock.paths.networksyml)
+        web3 = web3c.get_web3(NETWORK_NAME)
+
+        tx = create_deploy_tx(web3, LIBRARY_ABI_OBJ_4, LIBRARY_BYTECODE_4, {
+                'from': web3.eth.accounts[0],
+                'gasPrice': int(1e9),
+            })
+        assert tx.get('data') is not None
+
+
+def test_func_sig_from_input():
+    assert func_sig_from_input(TX_INPUT) == TX_FUNC_SIG

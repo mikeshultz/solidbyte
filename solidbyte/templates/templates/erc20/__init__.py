@@ -10,7 +10,7 @@ class ERC20Template(Template):
         super(ERC20Template, self).__init__(*args, **kwargs)
 
     def initialize(self):
-        """ Create a bare project structure """
+        """ Create a project structure for an ERC20 token """
         self.create_dirs()
         self.create_tests()
         self.create_contracts()
@@ -23,16 +23,17 @@ class ERC20Template(Template):
         self.copy_template_file(self.pwd, 'tests', 'test_erc20.py')
 
     def create_contracts(self):
-        """ Create the test files """
+        """ Create the contract source files """
 
         log.info("Creating contract templates...")
 
+        self.copy_template_file(self.pwd, 'contracts', 'MyERC20.sol')
         self.copy_template_file(self.pwd, 'contracts', 'ERC20.sol')
         self.copy_template_file(self.pwd, 'contracts', 'IERC20.sol')
         self.copy_template_file(self.pwd, 'contracts', 'SafeMath.sol')
 
     def create_deployment(self):
-        """ Create the deploy file """
+        """ Create the deploy module and script """
 
         log.info("Creating contract deploy scripts...")
 
@@ -48,4 +49,5 @@ class ERC20Template(Template):
 
 
 def get_template_instance(*args, **kwargs):
+    """ Return an ERC20 template """
     return ERC20Template(*args, **kwargs)

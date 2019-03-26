@@ -1,6 +1,6 @@
-import json
-import pytest
-from attrdict import AttrDict
+# import json
+from pathlib import Path
+# from attrdict import AttrDict
 from solidbyte.common.web3 import web3c
 from solidbyte.common.metafile import MetaFile
 from solidbyte.deploy import Deployer
@@ -14,7 +14,6 @@ from .const import (
 from .utils import write_temp_file
 
 
-@pytest.mark.skip("TEMP")
 def test_deployer(mock_project):
     """ Test deploying a project """
 
@@ -47,11 +46,11 @@ def test_deployer(mock_project):
         )
 
         # Test initial state with the mock project
-        assert len(d.source_contracts) == 1
-        contract_key = list(d.source_contracts.keys())[0]
-        assert d.source_contracts[contract_key].get('name') == 'Test'
-        assert d.source_contracts[contract_key].get('abi') is not None
-        assert d.source_contracts[contract_key].get('bytecode') is not None
+        assert len(d.artifacts) == 1
+        contract_key = list(d.artifacts.keys())[0]
+        assert d.artifacts[contract_key].name == 'Test'
+        assert d.artifacts[contract_key].abi is not None
+        assert d.artifacts[contract_key].bytecode is not None
         assert len(d.deployed_contracts) == 0
 
         # Check that deployment needs to happen
@@ -69,6 +68,12 @@ def test_deployer(mock_project):
         # assert not d.check_needs_deploy('Test')
         # TODO: Disabled asserts due to a probable bug or bad test env.  Look into it.
 
+        try:
+            d.check_needs_deploy('Nothing')
+            assert False, "check_needs_deploy() should throw when a contract does not exist"
+        except FileNotFoundError as err:
+            assert 'Unknown contract' in str(err)
+
 
 def test_deptree(mock_project):
     """ Test the ContractDependencyTree """
@@ -83,8 +88,23 @@ def test_deptree(mock_project):
     assert el == lib
     assert depth == 1
 
-    lib2 = deptree.add_dependent('Library2', parent)
+    lib2 = deptree.add_dependent('Library2', str(parent))
     assert isinstance(lib2, ContractLeaf)
+    assert lib2.get_parent() == parent
+
+    parents_children = parent.get_dependents()
+    assert lib2 in parents_children
+
+    assert deptree.has_dependents('Parent')
+    assert not deptree.has_dependents('Library2')
+    assert deptree.has_dependencies('Library2')
+    assert not deptree.has_dependencies('Parent')
+
+    try:
+        deptree.move('NotFound', ContractLeaf('Fallen', deptree))
+        assert False, 'move() should throw if it does not exist in the tree'
+    except Exception as err:
+        assert 'not found' in str(err)
 
 
 def test_deployer_deptree(mock_project):
@@ -115,7 +135,6 @@ def test_deployer_deptree(mock_project):
         assert deptree.root.has_dependents()
 
 
-@pytest.mark.skip("'using' deps are unknowable from a Contract perspective")
 def test_contract_with_library(mock_project):
     """ Test the Contract object """
 
@@ -133,48 +152,50 @@ def test_contract_with_library(mock_project):
 
         # Get all the file contents from the compiler output
         unnecessary_bytecode = None
-        unnecessary_abi = None
+        # unnecessary_abi = None
         safemath_bytecode = None
-        safemath_abi = None
-        testmath_abi = None
+        # safemath_abi = None
+        # testmath_abi = None
         testmath_bytecode = None
 
         with mock.paths.build.joinpath('Unnecessary', 'Unnecessary.bin').open() as binfile:
             unnecessary_bytecode = binfile.read()
 
-        with mock.paths.build.joinpath('Unnecessary', 'Unnecessary.abi').open() as abifile:
-            unnecessary_abi = json.loads(abifile.read())
+        # with mock.paths.build.joinpath('Unnecessary', 'Unnecessary.abi').open() as abifile:
+        #     unnecessary_abi = json.loads(abifile.read())
 
         with mock.paths.build.joinpath('SafeMath', 'SafeMath.bin').open() as binfile:
             safemath_bytecode = binfile.read()
 
-        with mock.paths.build.joinpath('SafeMath', 'SafeMath.abi').open() as abifile:
-            safemath_abi = json.loads(abifile.read())
+        # with mock.paths.build.joinpath('SafeMath', 'SafeMath.abi').open() as abifile:
+        #     safemath_abi = json.loads(abifile.read())
 
         with mock.paths.build.joinpath('TestMath', 'TestMath.bin').open() as binfile:
             testmath_bytecode = binfile.read()
 
-        with mock.paths.build.joinpath('TestMath', 'TestMath.abi').open() as abifile:
-            testmath_abi = json.loads(abifile.read())
+        # with mock.paths.build.joinpath('TestMath', 'TestMath.abi').open() as abifile:
+        #     testmath_abi = json.loads(abifile.read())
 
         # Build the expected source objects
-        unnecessary_source_contract = AttrDict({
-            'name': 'Unnecessary',
-            'abi': unnecessary_abi,
-            'bytecode': unnecessary_bytecode,
-        })
+        # unnecessary_source_contract = AttrDict({
+        #     'name': 'Unnecessary',
+        #     'abi': unnecessary_abi,
+        #     'bytecode': unnecessary_bytecode,
+        # })
+        # net_id = web3.net.chainId
+        # meta.add('Unnecessary', net_id, -address, -abi, -bytecode-hash)
 
-        safemath_source_contract = AttrDict({
-            'name': 'SafeMath',
-            'abi': safemath_abi,
-            'bytecode': safemath_bytecode,
-        })
+        # safemath_source_contract = AttrDict({
+        #     'name': 'SafeMath',
+        #     'abi': safemath_abi,
+        #     'bytecode': safemath_bytecode,
+        # })
 
-        testmath_source_contract = AttrDict({
-            'name': 'TestMath',
-            'abi': testmath_abi,
-            'bytecode': testmath_bytecode,
-        })
+        # testmath_source_contract = AttrDict({
+        #     'name': 'TestMath',
+        #     'abi': testmath_abi,
+        #     'bytecode': testmath_bytecode,
+        # })
 
         # Create the Contract instances to mess around with
         unnecessary_contract = Contract(
@@ -182,16 +203,21 @@ def test_contract_with_library(mock_project):
             network_name=NETWORK_NAME,
             from_account=web3.eth.accounts[0],
             metafile=meta,
-            source_contract=unnecessary_source_contract,
             web3=web3,
         )
+
+        # Make sure contract with no deployments has no expected attrs
+        assert repr(unnecessary_contract) == 'Unnecessary'
+        assert unnecessary_contract.is_deployed() is False
+        assert unnecessary_contract.address is None
+        assert unnecessary_contract.abi is None
+        assert unnecessary_contract.bytecode_hash is None
 
         safemath_contract = Contract(
             name='SafeMath',
             network_name=NETWORK_NAME,
             from_account=web3.eth.accounts[0],
             metafile=meta,
-            source_contract=safemath_source_contract,
             web3=web3,
         )
 
@@ -200,19 +226,24 @@ def test_contract_with_library(mock_project):
             network_name=NETWORK_NAME,
             from_account=web3.eth.accounts[0],
             metafile=meta,
-            source_contract=testmath_source_contract,
             web3=web3,
         )
 
         # Verify things look as expected
-        assert unnecessary_contract.check_needs_deployment(unnecessary_source_contract.bytecode)
-        assert safemath_contract.check_needs_deployment(safemath_source_contract.bytecode)
-        assert testmath_contract.check_needs_deployment(testmath_source_contract.bytecode)
+        assert unnecessary_contract.check_needs_deployment(unnecessary_bytecode)
+        assert safemath_contract.check_needs_deployment(safemath_bytecode)
+        assert testmath_contract.check_needs_deployment(testmath_bytecode)
 
         # Deploy our contracts
+        unnecessary = unnecessary_contract.deployed()
         safeMath = safemath_contract.deployed(gas=int(5e6))
+        safeMath_again = safemath_contract.deployed(gas=int(5e6))
+        assert safeMath.bytecode == safeMath_again.bytecode
+        assert safeMath.address == safeMath_again.address
+        assert safeMath.address is not None
         testMath = testmath_contract.deployed(gas=int(5e6), links={
-                'SafeMath': safeMath.address
+                'SafeMath': safeMath.address,
+                'Unnecessary': unnecessary.address,
             })
 
         # Test that everything is working
@@ -235,7 +266,9 @@ def test_contract_with_library(mock_project):
 
         # Make sure the Contract instances know they need to be deployed
         assert unnecessary_contract.check_needs_deployment(new_bytecode)
-        assert testmath_contract.check_needs_deployment(testmath_source_contract.bytecode)
+        # TODO: This is currently not supported, only Deployer can get an overview to check against
+        # dependencies.
+        # assert testmath_contract.check_needs_deployment(testmath_bytecode)
 
 
 def test_deployer_contract_with_libraries(mock_project):
@@ -292,3 +325,27 @@ def test_deployer_contract_with_libraries(mock_project):
         to_deploy = d.contracts_to_deploy()
         assert 'Unnecessary' in to_deploy
         assert 'TestMath' in to_deploy
+
+
+def test_deployer_no_contracts(mock_project, temp_dir):
+    with mock_project() as mock:
+        with temp_dir() as workdir:
+
+            assert Path.cwd() == workdir
+
+            # Since we're not using the pwd, we need to use this undocumented API (I know...)
+            web3c._load_configuration(mock.paths.networksyml)
+            web3 = web3c.get_web3(NETWORK_NAME)
+
+            deployer_account = web3.eth.accounts[0]
+
+            # Init the Deployer
+            try:
+                Deployer(
+                    network_name=NETWORK_NAME,
+                    account=deployer_account,
+                    project_dir=workdir,
+                )
+                assert False, "Should fail init if missing contracts directory"
+            except FileNotFoundError as err:
+                assert 'contracts directory' in str(err)

@@ -1,7 +1,8 @@
 import sys
+import shutil
 import solidbyte
 from os import path
-from setuptools import setup, find_packages
+from setuptools import Command, setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 from subprocess import check_call, CalledProcessError
@@ -46,6 +47,31 @@ class TestCommand(develop):
         except CalledProcessError as err:
             if 'non-zero' in str(err):
                 print("testing failed", file=sys.stderr)
+                sys.exit(1)
+
+
+class GanacheInstallCommand(Command):
+    """ Install ganache-cli """
+    description = 'Install ganache-cli globally'
+    user_options = [
+        ('version=', 'v', 'version of ganache to install'),
+    ]
+
+    def initialize_options(self):
+        self.version = '6.4.1'
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        if shutil.which('ganache-cli'):
+            print('Ganache already installed')
+            return
+        try:
+            check_call([shutil.which('npm'), 'install', '-g', 'ganache-cli'])
+        except CalledProcessError as err:
+            if 'non-zero' in str(err):
+                print("extract failed", file=sys.stderr)
                 sys.exit(1)
 
 
@@ -104,5 +130,6 @@ setup(
         'install': InstallCommand,
         'lint': LintCommand,
         'test': TestCommand,
+        'install_ganache': GanacheInstallCommand,
     }
 )

@@ -4,6 +4,7 @@ from solidbyte.compile import Compiler
 from .const import (
     CONTRACT_SOURCE_FILE_1,
     CONTRACT_VYPER_SOURCE_FILE_1,
+    EXPECTED_VYPER_VERSION,
 )
 from .utils import (
     write_temp_file,
@@ -73,7 +74,7 @@ def test_compile_vyper(temp_dir):
         compiler = Compiler(test_dir)
 
         # If this changes, this test should be reevaluated
-        assert compiler.vyper_version == '0.1.0b6', (
+        assert compiler.vyper_version == EXPECTED_VYPER_VERSION, (
             "Unexpected compiler version: {}".format(compiler.vyper_version)
         )
 

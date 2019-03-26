@@ -12,12 +12,16 @@ JS_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 class Py36Datetime(datetime):
     """ Monkeypatch datetime for python<3.7 """
     def fromisoformat(s):
-        """ Load an datetime.isoformat() date string as a datetime object """
+        """ Load an :code:`datetime.isoformat()` date string as a :code:`datetime` object """
         return datetime.strptime(s, JS_DATE_FORMAT)
 
 
 def builddir(loc=None):
-    """ Get (and create if necessary) the temporary build dir """
+    """ Get (and create if necessary) the temporary build dir
+
+    :param loc: (:class:`pathlib.Path`) to workdir (default: pwd)
+    :returns: (:class:`pathlib.Path`) to build dir
+    """
     if loc is None:
         loc = Path.cwd()
     full_path = Path(loc, BUILDDIR_NAME)
@@ -31,7 +35,11 @@ def builddir(loc=None):
 
 
 def get_filename_and_ext(filename):
-    """ Return the filename and extension as a tuple """
+    """ Return the filename and extension as a tuple
+
+    :param filename: (:class:`pathlib.Path`) of file
+    :returns: (:code:`tuple`) of (name, extension)
+    """
     if isinstance(filename, Path):
         filename = filename.name
     cmps = filename.split('.')
@@ -42,7 +50,11 @@ def get_filename_and_ext(filename):
 
 
 def supported_extension(filename):
-    """ Check if the provided filename has a supported extension """
+    """ Check if the provided filename has a supported source code extension
+
+    :param filename: (:class:`pathlib.Path`) of file
+    :returns: (:code:`bool`) if it's supported
+    """
     _, ext = get_filename_and_ext(filename)
     if ext in SUPPORTED_EXTENSIONS:
         return True
@@ -50,7 +62,11 @@ def supported_extension(filename):
 
 
 def source_filename_to_name(filename):
-    """ Change a source filename to a plain name """
+    """ Change a source filename to a plain name
+
+    :param filename: (:class:`pathlib.Path`) of file
+    :returns: (:code:`str`) name of file without extension
+    """
     if not supported_extension(filename):
         raise ValueError("Invalid source filename")
     name, _ = get_filename_and_ext(filename)
@@ -58,7 +74,11 @@ def source_filename_to_name(filename):
 
 
 def collapse_oel(lst):
-    """ Collapse a one-element list to a single var """
+    """ Collapse a one-element list to a single var
+
+    :param filename: (:code:`list`) with one element to collapse
+    :returns: (:code:`Any`) the single element
+    """
     if type(lst) != list:
         raise ValueError("Not a list")
     if len(lst) != 1:
@@ -68,14 +88,12 @@ def collapse_oel(lst):
 
 def pop_key_from_dict(d, key):
     """ Remove and return an element from a dict and the modded dict without throwing an exception
-        if a key does not exist.
+    if a key does not exist.
 
-    Args:
-        d {dict}: the original dict
-        key {str}: they key to pop
+    :param d: (:code:`dict`) the original dict
+    :param key: (:code:`str`) they key to pop
 
-    Returns:
-        {T}: The value of the key or None
+    :returns: (:code:`T`) The value of the key or None
     """
     if key not in d:
         return None
@@ -85,7 +103,12 @@ def pop_key_from_dict(d, key):
 
 
 def all_defs_in(items: Iterable, di: dict) -> bool:
-    """ Check if all defs(tuple of name/placeholder) are in di """
+    """ Check if all defs(tuple of name/placeholder) are in di
+
+    :param items: (:code:`Iterable`) to check against di
+    :param di: (:code:`dict`) the dict to check against
+    :returns: (:code:`bool`) if all defs are in the dict
+    """
     for i in items:
         if i[0] not in di:
             return False
@@ -93,7 +116,12 @@ def all_defs_in(items: Iterable, di: dict) -> bool:
 
 
 def defs_not_in(items: Iterable, di: dict) -> set:
-    """ Find items tha taren't keys in a dict """
+    """ Find defs (tuple of name/placeholder) that aren't keys in a dict
+
+    :param items: (:code:`Iterable`) to check against di
+    :param di: (:code:`dict`) the dict to check against
+    :returns: (:code:`set`) any defs not in di
+    """
     missing_items = set()
     for i in items:
         if i[0] not in di:
@@ -102,12 +130,16 @@ def defs_not_in(items: Iterable, di: dict) -> set:
 
 
 def find_vyper():
-    """ Get the path to vyper """
+    """ Get the path to vyper. **DEPRECIATED** """
     return which('vyper')
 
 
 def hash_file(_file: Path) -> str:
-    """ Get an sha1 hash for a file """
+    """ Get an sha1 hash of a file
+
+    :param _file: (:class:`pathlib.Path`) the file to hash
+    :returns: (:code:`str`) hex sha1 hash of the given file
+    """
 
     if not _file or not isinstance(_file, Path) or not _file.is_file():
         raise ValueError("Invalid _file given to hash_file()")
@@ -125,19 +157,34 @@ def hash_file(_file: Path) -> str:
 
 
 def to_path(v) -> Path:
+    """ Given a Path or str, return a Path
+
+    :param v: (:code:`str` or :class:`pathlib.Path`)
+    :returns: (:class:`pathlib.Path`)
+    """
     if isinstance(v, Path):
         return v
     return Path(v).expanduser().resolve()
 
 
 def to_path_or_cwd(v) -> Path:
+    """ Given a Path, str, or None, return a Path of the given path or the current working directory
+
+    :param v: (:code:`str` or :class:`pathlib.Path`)
+    :returns: (:class:`pathlib.Path`)
+    """
     if not v:
         return Path.cwd()
     return to_path(v)
 
 
 def keys_with(thedict, term):
-    """ Return any dict keys with key in """
+    """ Return any keys from :code:`thedict` that have :code:`term` in their value
+
+    :param thedict: (:code:`dict`) The dict to search
+    :param term: (:code:`Any`) The value to look for
+    :returns: (:code:`list`) List of keys that match
+    """
     keys = []
     for k, v in thedict.items():
         if term in v:
@@ -146,7 +193,11 @@ def keys_with(thedict, term):
 
 
 def unescape_newlines(s):
-    """ Unescape newlines in a text string """
+    """ Unescape newlines in a text string
+
+    :param s: (:code:`str`) String to search and replace against
+    :returns: (:code:`str`) String with unescaped newlines
+    """
     if type(s) == bytes:
         s = s.decode('utf-8')
     return s.replace('\\n', '\n')
