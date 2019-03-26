@@ -1,4 +1,4 @@
-__version__ = '1.0.0b1'
+__version__ = '1.0.0'
 __author__ = 'Mike Shultz'
 __copyright__ = "Copyright 2018, Mike Shultz"
 __license__ = 'GPLv3'
