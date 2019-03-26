@@ -27,6 +27,7 @@ Example File
       use_default_account: true
 """
 import yaml
+from yaml import CLoader
 from typing import Callable, Union, Any, Dict, List
 from pathlib import Path
 from functools import wraps
@@ -108,7 +109,7 @@ class NetworksYML:
         log.debug("Loading networks configuration from {}...".format(self.config_file))
 
         with open(self.config_file, 'r') as cfile:
-            self.config = yaml.load(cfile)
+            self.config = yaml.load(cfile, Loader=CLoader)
             if not self.config:
                 raise ConfigurationError("Unable to load networks.yml!")
             self.networks = list(self.config.keys())
