@@ -4,3 +4,4 @@ wheel~=0.32.2
 flake8~=3.6.0
 sphinx>=1.8.5
 sphinx-rtd-theme>=0.4.3
+tbump>=5.0.4
