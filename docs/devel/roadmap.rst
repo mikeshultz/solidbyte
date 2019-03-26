@@ -17,15 +17,15 @@ version is released.
 - ☑ Vyper and Solidity co-mingling (Vyper can not use any libraries, however)
 - ☑ More commonly used helper functions for contract unit tests
 - ☑ Reasonable unit test completion
-- ☐ Developer experience review
 - ☑ All around bug fixes
 
 ***
 1.1
 ***
 
-- ☐ EthPM 2.0 Support
 - ☐ Vyper Linting
+- ☐ EthPM 2.0 Support (if web3 v5 releases)
+- ☐ Developer experience review
 
 ***
 1.2
