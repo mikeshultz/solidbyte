@@ -6,7 +6,7 @@ Install
 System Requirements
 *******************
 
-Some system level depenencies are required first for Solidbyte to work.
+Some system level depenencies are required first for Solidbyte to work.  Python >= 3.6 is required.
 
 =====
 Linux
@@ -50,10 +50,21 @@ OSX
 
 *TBD. Please submit a pull request if you figure it out.*
 
+
 ********************
 Installing Solidbyte
 ********************
 
+Install it with system python:
+
 .. code-block:: bash
 
+    pip install --user solidbyte
+
+Or, with a virtual environment:
+
+.. code-block:: bash
+
+    python -m venv ~/virtualenvs/solidbyte
+    source ~/virtualenvs/solidbyte/bin/activate
     pip install solidbyte
