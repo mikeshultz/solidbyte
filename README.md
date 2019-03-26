@@ -26,7 +26,7 @@ See the [roadmap](https://solidbyte.readthedocs.io/en/latest/devel/roadmap.html)
 
 Here's a brief demo (as of 2019-03-25) creating a new ERC20 token named MyToken:
 
-<img src="https://github.com/mikeshultz/solidbyte/raw/develop/docs/images/sb-demo-20190325-full-min.gif?raw=true" width="648px">
+<img src="https://github.com/mikeshultz/solidbyte/raw/master/docs/images/sb-demo-20190326-full-min.gif?raw=true" width="648px">
 
 ## Contents
 
