@@ -194,7 +194,7 @@ test:
     file: /tmp/nothing.yml
 """
 PYTEST_TEST_1 = """
-def test_fixtures(web3, contracts, local_accounts):
+def test_fixtures(web3, contracts, local_accounts, std_tx):
     assert web3 is not None
     assert contracts is not None
     assert contracts.get('Test') is not None
@@ -211,11 +211,10 @@ def test_fixtures(web3, contracts, local_accounts):
     assert receipt.status == 1
     # Test a contract call
     test = contracts.get('Test')
-    tx_hash = test.functions.setTestVar(3).transact({
+    tx_hash = test.functions.setTestVar(3).transact(std_tx({
         'from': web3.eth.accounts[0],
-        'gasPrice': int(3e9),
         'gas': int(1e5),
-    })
+    }))
     receipt = web3.eth.waitForTransactionReceipt(tx_hash)
     assert receipt.status == 1
 """
