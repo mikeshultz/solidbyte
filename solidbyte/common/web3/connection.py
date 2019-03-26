@@ -156,7 +156,7 @@ class Web3ConfiguredConnection(object):
 
             if not success:
                 log.error("Connection to {} provider failed".format(conn_conf.get('type')))
-                raise SolidbyteException("Unable to connect to node")
+                raise SolidbyteException("Unable to connect to node for network {}".format(name))
 
         else:
             log.warning("No network provided.  Attempting automatic connection.")

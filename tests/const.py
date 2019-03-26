@@ -1,6 +1,7 @@
 # flake8: noqa
 from pathlib import Path
 from datetime import datetime
+from hexbytes import HexBytes
 
 # Filesystem
 TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
@@ -32,6 +33,15 @@ BYTECODE_HASH_1 = '0x6385b18cc3f884baad806ee4508837d3a27c734268f9555f76cd12ec3ff
 OBVIOUS_RETURN_CODE = 254
 TX_INPUT = '0x4ff6eacd66bd565ddc5e1d660414a8f15d2bb42314b9fc2019dadbf29eefa07a'
 TX_FUNC_SIG = '4ff6eacd'
+
+FUNC_SIG = 'myFunction(uint256 myParam,int128 myOtherParam)'
+FUNC_SIG_HASH = '0x15a3c1f7c6e6eae7296debf117d144d83fb458baeace5c4fb8647bfa683234b8'
+
+DUMB_CONTRACT_ABI = [{'constant': False, 'inputs': [{'name': 'value', 'type': 'uint256'}], 'name': 'emitUint256', 'outputs': [], 'payable': False, 'stateMutability': 'nonpayable', 'type': 'function'}, {'constant': False, 'inputs': [{'name': 'value', 'type': 'address'}], 'name': 'emitAddress', 'outputs': [], 'payable': False, 'stateMutability': 'nonpayable', 'type': 'function'}, {'anonymous': False, 'inputs': [{'indexed': False, 'name': 'val', 'type': 'address'}], 'name': 'AddressEvent', 'type': 'event'}, {'anonymous': False, 'inputs': [{'indexed': False, 'name': 'val', 'type': 'uint256'}], 'name': 'Uint256Event', 'type': 'event'}]
+EVENT_SIG = 'AddressEvent(address)'
+EVENT_SIG_HASH = HexBytes('0xa0786e1009edc9cbf8898c0299c4518c0d18ec943fa88b2af645b4dd024d7a49')
+EVENT_ABI = {'anonymous': False, 'inputs': [{'indexed': False, 'name': 'val', 'type': 'address'}], 'name': 'AddressEvent', 'type': 'event'}
+EVENT_RECEIPT = {'transactionHash': HexBytes('0xd2e7370fb4a519449c89506c5baefe30a000e723d728e0f5e14d2c752950875e'), 'transactionIndex': 0, 'blockHash': HexBytes('0x3c2257289c1f883affa4fdd9b52231d00226666e1d432e15cc0b554cfa0ef329'), 'blockNumber': 5, 'from': '0x717dd920e935b5078fc67717713b2a62987a8044', 'to': '0x25820e39ceb1a46fbd332bebc0ec53c3fb5033c7', 'gasUsed': 23942, 'cumulativeGasUsed': 23942, 'contractAddress': None, 'logs': [{'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0xd2e7370fb4a519449c89506c5baefe30a000e723d728e0f5e14d2c752950875e'), 'blockHash': HexBytes('0x3c2257289c1f883affa4fdd9b52231d00226666e1d432e15cc0b554cfa0ef329'), 'blockNumber': 5, 'address': '0x25820e39CEB1A46FBd332BebC0eC53c3fB5033c7', 'data': '0x000000000000000000000000717dd920e935b5078fc67717713b2a62987a8044', 'topics': [HexBytes('0xa0786e1009edc9cbf8898c0299c4518c0d18ec943fa88b2af645b4dd024d7a49')], 'type': 'mined'}], 'status': 1, 'logsBloom': HexBytes('0x00000000000000004000000000000000000000000004000080000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'), 'v': '0x1c', 'r': '0x6d093c5d47fe6377cececc34fc0e915c56b6b792a1abc4b50153e122c3c9e870', 's': '0x653e07276d3af113b57e12097afef4006b7f96da80e713b65ab92885977be1a7'}
 
 CONTRACT_NAME_1 = "MyContract"
 LIBRARY_NAME_1 = "MyLibrary"
@@ -184,7 +194,7 @@ test:
     file: /tmp/nothing.yml
 """
 PYTEST_TEST_1 = """
-def test_fixtures(web3, contracts, local_accounts):
+def test_fixtures(web3, contracts, local_accounts, std_tx):
     assert web3 is not None
     assert contracts is not None
     assert contracts.get('Test') is not None
@@ -201,11 +211,10 @@ def test_fixtures(web3, contracts, local_accounts):
     assert receipt.status == 1
     # Test a contract call
     test = contracts.get('Test')
-    tx_hash = test.functions.setTestVar(3).transact({
+    tx_hash = test.functions.setTestVar(3).transact(std_tx({
         'from': web3.eth.accounts[0],
-        'gasPrice': int(3e9),
         'gas': int(1e5),
-    })
+    }))
     receipt = web3.eth.waitForTransactionReceipt(tx_hash)
     assert receipt.status == 1
 """
