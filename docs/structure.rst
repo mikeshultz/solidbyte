@@ -11,6 +11,7 @@ created by the :code:`erc20` template:
     project_directory/
         |- build/  # Files created by the compilers, including contract ABIs and their compiled bytecode.
         |- contracts/  # Solidity and/or Vyper contract source files
+            |- lib/ # No contracts will be compiled in this directory
             |- ERC20.sol
             |- IERC20.sol
             |- SafeMath.sol
@@ -41,6 +42,9 @@ contracts/
 This directory contains all of your contract source files.  They can be Vyper
 or Solidity or a mix of both if you prefer.  The directory structure under this
 can be whatever you want.
+
+*NOTE*: Any contracts under `contracts/lib/` will not be directly compiled on
+their own by Solidbyte.
 
 *******
 deploy/
