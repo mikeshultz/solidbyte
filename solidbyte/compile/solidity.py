@@ -22,7 +22,10 @@ def is_solidity_interface_only(filepath: Union[str, Path]) -> bool:
     :returns: (:code:`bool`) If it's recognize as a Solidity interface
     """
     filepath = to_path(filepath)
-    source_dict = parse_file(filepath)
+    try:
+        source_dict = parse_file(filepath)
+    except TypeError:
+        return False
     has_contract = False
     has_interface = False
 
