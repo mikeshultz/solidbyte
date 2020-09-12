@@ -30,13 +30,13 @@ For example, a beta release:
 
 .. code-block:: bash
 
-    tbump v0.3.1b1
+    tbump 0.3.1b1
 
 And a prod release:
 
 .. code-block:: bash
 
-    tbump v0.3.1
+    tbump 0.3.1
 
 These will be automagically deployed to PyPi by TravisCI.
 
