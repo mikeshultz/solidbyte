@@ -146,8 +146,8 @@ class Compiler(object):
             p_abi.wait()
 
             # Check the output
-            p_bin_out = p_bin.stdout.read()
-            p_abi_out = p_abi.stdout.read()
+            # p_bin_out = p_bin.stdout.read()
+            # p_abi_out = p_abi.stdout.read()
             # solc version differences?
             # if (
             #     b'Compiler run successful' not in p_bin_out

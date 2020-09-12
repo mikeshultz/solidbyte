@@ -312,30 +312,30 @@ def test_cli_stateless_deploy(sb, mock_project):
 
     with mock_project() as mock:
 
-            TMP_KEY_DIR = mock.paths.project.joinpath('test-keys')
+        TMP_KEY_DIR = mock.paths.project.joinpath('test-keys')
 
-            # test `sb accounts create --default
-            execute_command_assert_no_error_success([
-                *sb,
-                '-k',
-                str(TMP_KEY_DIR),
-                'accounts',
-                'create',
-                '--default',
-                '-p',
-                PASSWORD_1,
-            ])
+        # test `sb accounts create --default
+        execute_command_assert_no_error_success([
+            *sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'accounts',
+            'create',
+            '--default',
+            '-p',
+            PASSWORD_1,
+        ])
 
-            # test `sb deploy [network]`
-            execute_command_assert_no_error_success([
-                *sb,
-                '-k',
-                str(TMP_KEY_DIR),
-                'deploy',
-                NETWORK_NAME,
-                '-p',
-                PASSWORD_1,
-            ])
+        # test `sb deploy [network]`
+        execute_command_assert_no_error_success([
+            *sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'deploy',
+            NETWORK_NAME,
+            '-p',
+            PASSWORD_1,
+        ])
 
 
 @pytest.mark.parametrize("sb", [
@@ -346,30 +346,30 @@ def test_cli_stateless_test(sb, mock_project):
 
     with mock_project() as mock:
 
-            TMP_KEY_DIR = mock.paths.project.joinpath('test-keys')
+        TMP_KEY_DIR = mock.paths.project.joinpath('test-keys')
 
-            # test `sb accounts create --default
-            execute_command_assert_no_error_success([
-                *sb,
-                '-k',
-                str(TMP_KEY_DIR),
-                'accounts',
-                'create',
-                '--default',
-                '-p',
-                PASSWORD_1,
-            ])
+        # test `sb accounts create --default
+        execute_command_assert_no_error_success([
+            *sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'accounts',
+            'create',
+            '--default',
+            '-p',
+            PASSWORD_1,
+        ])
 
-            # test `sb deploy [network]`
-            execute_command_assert_no_error_success([
-                *sb,
-                '-k',
-                str(TMP_KEY_DIR),
-                'test',
-                NETWORK_NAME,
-                '-p',
-                PASSWORD_1,
-            ])
+        # test `sb deploy [network]`
+        execute_command_assert_no_error_success([
+            *sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'test',
+            NETWORK_NAME,
+            '-p',
+            PASSWORD_1,
+        ])
 
 
 @pytest.mark.parametrize("sb", [
@@ -380,40 +380,40 @@ def test_cli_stateless_erc20(sb, temp_dir):
 
     with temp_dir() as workdir:
 
-            TMP_KEY_DIR = workdir.joinpath('test-keys')
+        TMP_KEY_DIR = workdir.joinpath('test-keys')
 
-            # test `sb accounts create --default
-            execute_command_assert_no_error_success([
-                *sb,
-                '-k',
-                str(TMP_KEY_DIR),
-                'accounts',
-                'create',
-                '--default',
-                '-p',
-                PASSWORD_1,
-            ])
+        # test `sb accounts create --default
+        execute_command_assert_no_error_success([
+            *sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'accounts',
+            'create',
+            '--default',
+            '-p',
+            PASSWORD_1,
+        ])
 
-            # test `sb init -t [template]`
-            execute_command_assert_no_error_success([
-                *sb,
-                '-k',
-                str(TMP_KEY_DIR),
-                'init',
-                '-t',
-                'erc20'
-            ])
+        # test `sb init -t [template]`
+        execute_command_assert_no_error_success([
+            *sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'init',
+            '-t',
+            'erc20'
+        ])
 
-            # test `sb test [network]`
-            execute_command_assert_no_error_success([
-                *sb,
-                '-k',
-                str(TMP_KEY_DIR),
-                'test',
-                NETWORK_NAME,
-                '-p',
-                PASSWORD_1,
-            ])
+        # test `sb test [network]`
+        execute_command_assert_no_error_success([
+            *sb,
+            '-k',
+            str(TMP_KEY_DIR),
+            'test',
+            NETWORK_NAME,
+            '-p',
+            PASSWORD_1,
+        ])
 
 
 @pytest.mark.parametrize("sb", [

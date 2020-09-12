@@ -289,7 +289,7 @@ class Contract:
         return self.deployments[-1].abi
 
     @property
-    def bytecode_hash(self)-> Optional[str]:
+    def bytecode_hash(self) -> Optional[str]:
         """ The latest deployed bytecode hash """
         if len(self.deployments) < 1:
             return None
