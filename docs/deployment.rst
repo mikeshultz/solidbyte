@@ -11,7 +11,7 @@ of contract deployments and will know when the source changed and a new version
 needs to go up.
 
 However, most deployments are not as simple as just compiling the bytecode and
-sending the TX.  That have constructor arguments, or little transactions that
+sending the TX.  They have constructor arguments, or little transactions that
 need to be made after deployment is done.  For this, you need to create a 
 deployment script.
 
