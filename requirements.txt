@@ -19,6 +19,8 @@ pysha3<2.0.0,>=1.0.0
 vyper==0.1.0b9
 # If not specified, causes issues for some reason
 py-ecc==1.4.7
+# some peer dependency tries to install an incompatible eth-utils
+eth-utils==1.8.1
 eth_typing==1.3.0
 # Solidity
 solidity-parser>=0.0.3
