@@ -9,7 +9,7 @@ from functools import wraps
 from attrdict import AttrDict
 from eth_account import Account
 from web3 import Web3
-from web3.exceptions import UnhandledRequest
+from web3.exceptions import CannotHandleRequest
 from ..common import to_path
 from ..common import store
 from ..common.exceptions import SolidbyteException, ValidationError, WrongPassword
@@ -142,7 +142,7 @@ class Accounts(object):
                             self.web3.eth.getBalance(self.web3.toChecksumAddress(addr)),
                             'ether'
                         )
-                    except UnhandledRequest:
+                    except CannotHandleRequest:
                         pass
                 self._accounts.append(AttrDict({
                     'address': addr,
@@ -223,7 +223,7 @@ class Accounts(object):
         """
 
         new_account = self.eth_account.create(os.urandom(len(password) * 2))
-        encrypted_account = Account.encrypt(new_account.privateKey, password)
+        encrypted_account = Account.encrypt(new_account.key, password)
 
         self._write_json_file(encrypted_account)
 
@@ -300,4 +300,4 @@ class Accounts(object):
             tx['nonce'] = nonce
 
         privkey = self.unlock(account_address, password)
-        return self.web3.eth.account.signTransaction(tx, privkey)
+        return self.web3.eth.account.sign_transaction(tx, privkey)
