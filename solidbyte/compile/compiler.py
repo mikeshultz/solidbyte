@@ -5,7 +5,7 @@ import vyper
 from subprocess import Popen, PIPE, STDOUT
 from pathlib import Path
 from typing import Set
-from vyper.signatures.interface import extract_file_interface_imports
+from vyper.cli.utils import extract_file_interface_imports
 from .vyper import is_vyper_interface, vyper_import_to_file_paths
 from .solidity import is_solidity_interface_only
 from ..common.utils import (
