@@ -18,7 +18,7 @@ from .middleware import SolidbyteSignerMiddleware
 
 log = getLogger(__name__)
 
-TEST_BLOCK_GAS_LIMIT = int(6.5e6)
+TEST_BLOCK_GAS_LIMIT = int(12e6)
 ETH_TESTER_TYPES = ('eth_tester', 'eth-tester', 'ethereum-tester')
 
 
@@ -90,6 +90,8 @@ class Web3ConfiguredConnection(object):
                 'eth_gasPrice': 1,
                 'eth_syncing': False,
                 'eth_mining': False,
+                # Maybe not standard, but used
+                'eth_chainId': str(int(datetime.now().timestamp())),
                 # Net
                 'net_version': str(int(datetime.now().timestamp())),
                 'net_listening': False,
@@ -100,12 +102,19 @@ class Web3ConfiguredConnection(object):
             middlewares = list(provider.middlewares)
 
             i = 0
+            replaced = False
+            # TODO: fixture_middleware may no tlonger be default but let's check anyway.  This is
+            # probably a depreciated block, however.
             for m in middlewares:
-                log.debug(m.__name__)
                 if m.__name__ == 'fixture_middleware':
+                    log.debug('Replacing fixture_middleware with our own.')
                     middlewares[i] = fixture_middleware  # Replace with our own
+                    replaced = True
                     break
                 i += 1
+
+            if not replaced:
+                middlewares.append(fixture_middleware)
 
             # Set the new middlewars for the provider
             provider.middlewares = middlewares
@@ -169,6 +178,6 @@ class Web3ConfiguredConnection(object):
         self.web3.eth.setGasPriceStrategy(medium_gas_price_strategy)
 
         # Add our middleware for signing
-        self.web3.middleware_stack.add(SolidbyteSignerMiddleware, name='SolidbyteSigner')
+        self.web3.middleware_onion.add(SolidbyteSignerMiddleware, name='SolidbyteSigner')
 
         return self.web3

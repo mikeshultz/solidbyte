@@ -8,7 +8,7 @@ from attrdict import AttrDict
 from web3 import Web3
 from web3.datastructures import AttributeDict
 from web3.contract import Contract as Web3Contract
-from web3.utils.events import get_event_data
+from web3.logs import STRICT
 from ..common import MAX_PRODUCTION_NETWORK_ID
 from ..common.exceptions import SolidbyteException
 from ..common.logging import getLogger
@@ -42,7 +42,7 @@ def topic_signature(abi: MultiDict) -> HexBytes:
     if abi.get('inputs'):
         args = ','.join([a.get('type') for a in abi['inputs']])
     sig = '{}({})'.format(abi.get('name'), args)
-    return Web3.sha3(text=sig)
+    return Web3.keccak(text=sig)
 
 
 def event_abi(contract_abi: MultiDict, name: str) -> Optional[AttributeDict]:
@@ -65,11 +65,16 @@ def get_event(web3contract: Web3Contract, event_name: str,
     if rcpt.get('logs') and len(rcpt['logs']) < 1:
         return None
 
-    abi = event_abi(web3contract.abi, event_name)
+    if not hasattr(web3contract.events, event_name):
+        return None
 
-    for log in rcpt['logs']:
-        evnt_data = get_event_data(abi, log)
-        return evnt_data
+    logs = web3contract.events[event_name]().processReceipt(rcpt, STRICT)
+
+    if len(logs) == 1:
+        return logs[0]
+    elif len(logs) > 1:
+        raise NotImplementedError("Duplicate events in receipt logs")
+
     return None
 
 
@@ -110,8 +115,8 @@ def time_travel(web3: Web3, secs: int) -> int:
     except ValueError as err:
         if 'not supported' in str(err):
             # Ganache/testrpc
-            assert len(web3.providers) > 0, "No web3 providers found"
-            web3.providers[0].make_request('evm_increaseTime', [secs])
+            assert web3.provider is not None, "No web3 provider found"
+            web3.provider.make_request('evm_increaseTime', [secs])
 
             # for evm_mine, ganache takes a timestmap for some reason, and it isn't reflected in the
             # logs, either, so there's that.
@@ -161,14 +166,14 @@ def block_travel(web3: Web3, blocks: int, block_time: int = 1) -> int:
 
     else:
 
-        net_id = int(web3.version.network)
+        net_id = int(web3.net.version)
         assert net_id > MAX_PRODUCTION_NETWORK_ID, (
             "Can not block travel on network {}".format(net_id)
         )
 
         started_miner = False
-        if web3.miner.hashrate == 0:
-            web3.miner.start(1)
+        if web3.eth.hashrate == 0:
+            web3.geth.miner.start(1)
             started_miner = True
 
         new_block = None
@@ -224,7 +229,7 @@ def block_travel(web3: Web3, blocks: int, block_time: int = 1) -> int:
                 ))
 
         if started_miner:
-            web3.miner.stop()
+            web3.geth.miner.stop()
 
         block_after = new_block
 

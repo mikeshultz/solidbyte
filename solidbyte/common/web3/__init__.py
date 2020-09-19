@@ -40,12 +40,12 @@ def normalize_address(addr):
 
 def hash_hexstring(hexbytes):
     assert hexbytes is not None, "hexbytes provided to hash_hexstring is None"
-    return normalize_hexstring(Web3.sha3(hexstr=normalize_hexstring(hexbytes)))
+    return normalize_hexstring(Web3.keccak(hexstr=normalize_hexstring(hexbytes)))
 
 
 def hash_string(strong):
     assert strong is not None, "strong provided to hash_string is None"
-    return normalize_hexstring(Web3.sha3(text=strong))
+    return normalize_hexstring(Web3.keccak(text=strong))
 
 
 def clean_bytecode(bytecode):

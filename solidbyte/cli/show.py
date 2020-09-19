@@ -23,7 +23,7 @@ def main(parser_args):
     deployer = Deployer(network_name=network_name)
     # TODO: Show all networks?
     web3 = web3c.get_web3(network_name)
-    network_id = web3.net.chainId or web3.net.version
+    network_id = str(web3.eth.chainId or web3.net.version)
     source_contracts = deployer.get_artifacts()
     metafile = MetaFile()
 
