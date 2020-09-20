@@ -265,7 +265,7 @@ class Contract:
             self.web3 = web3
         else:
             self.web3 = web3c.get_web3(network_name)
-        self.network_id = self.web3.net.chainId or self.web3.net.version
+        self.network_id = self.web3.eth.chainId or self.web3.net.version
         self.accounts = Accounts(web3=self.web3)
         self.metafile = metafile
 
@@ -395,24 +395,26 @@ class Contract:
 
     def _load_metafile_contract(self) -> None:
         """ Process the contract dict for this contract from the metafile. """
-
         metafile_contract = self.metafile.get_contract(self.name)
 
         if not metafile_contract:
             log.debug('No metafile.json entry for contract {}.'.format(self.name))
             return
 
-        if metafile_contract['networks'].get(self.network_id):
+        # Metafile uses string network_id
+        net_id = str(self.network_id)
 
-            self.deployedHash = metafile_contract['networks'][self.network_id].get('deployedHash')
-            deployed_instances = metafile_contract['networks'][self.network_id].get(
+        if metafile_contract['networks'].get(net_id):
+
+            self.deployedHash = metafile_contract['networks'][net_id].get('deployedHash')
+            deployed_instances = metafile_contract['networks'][net_id].get(
                 'deployedInstances'
             )
 
             if deployed_instances and len(deployed_instances) > 0:
 
                 self._process_instances(
-                        metafile_contract['networks'][self.network_id]['deployedInstances']
+                        metafile_contract['networks'][net_id]['deployedInstances']
                     )
 
     def _load_artifacts(self) -> None:
@@ -604,6 +606,7 @@ class Contract:
             )
 
         log.info("Successfully deployed {}. Transaction has been mined.".format(self.name))
+        log.debug("Adding deployment with bytecode_hash of {}".format(bytecode_hash))
 
         self.deployments.append(Deployment(
                 bytecode_hash=bytecode_hash,

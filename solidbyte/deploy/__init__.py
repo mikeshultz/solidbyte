@@ -73,7 +73,7 @@ class Deployer:
         self._contracts = AttrDict()
         self._artifacts = AttrDict()
         self.web3 = web3c.get_web3(network_name)
-        self.network_id = self.web3.net.chainId or self.web3.net.version
+        self.network_id = self.web3.eth.chainId or self.web3.net.version
 
         # yml = NetworksYML(project_dir=self.project_dir)
         # if yml.is_eth_tester(network_name):
@@ -153,7 +153,6 @@ class Deployer:
 
     def contracts_to_deploy(self) -> Set[str]:
         """ Return a Set of contract names that need deployment """
-
         self._build_dependency_tree()
 
         needs_deploy: Set = set()
@@ -170,7 +169,6 @@ class Deployer:
                             "interface.".format(name))
             else:
                 if contract.check_needs_deployment(newest_bytecode):
-
                     needs_deploy.add(name)
 
                     assert self.deptree, "Invalid dependency tree. This is probably a bug."
@@ -191,7 +189,6 @@ class Deployer:
 
         :returns: (:code:`bool`) if deployment is required
         """
-
         if name is not None and not self.artifacts.get(name):
             raise FileNotFoundError("Unknown contract: {}".format(name))
 
@@ -220,7 +217,7 @@ class Deployer:
         if self.account and self.web3.eth.getBalance(self.account) == 0:
             log.warning("Account has zero balance ({})".format(self.account))
 
-        if self.network_id != (self.web3.net.chainId or self.web3.net.version):
+        if self.network_id != (self.web3.eth.chainId or self.web3.net.version):
             raise DeploymentError("Connected node is does not match the provided chain ID")
 
         self._execute_deploy_scripts()

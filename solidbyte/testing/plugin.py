@@ -48,7 +48,7 @@ class SolidbyteTestPlugin(object):
         self._keystore_dir = to_path(keystore_dir)
 
         if gas_report_storage is not None:
-            self._web3.middleware_stack.add(
+            self._web3.middleware_onion.add(
                 construct_gas_report_middleware(gas_report_storage),
                 'gas_report_middleware',
             )
@@ -61,11 +61,12 @@ class SolidbyteTestPlugin(object):
     def contracts(self):
         """ Returns an instantiated :class:`web3.contract.Contract` for each
         deployed contract """
-        network_id = self._web3.net.chainId or self._web3.net.version
+        network_id = str(self._web3.eth.chainId or self._web3.net.version)
         d = Deployer(self.network, project_dir=self._project_dir)
         contracts_meta = d.deployed_contracts
         contracts_compiled = d.artifacts
         test_contracts = {}
+
         for meta in contracts_meta:
             latest = None
             if meta['networks'].get(network_id):
@@ -79,6 +80,7 @@ class SolidbyteTestPlugin(object):
                     abi=abi,
                     address=latest['address']
                 )
+
         if len(test_contracts) == 0:
             raise SolidbyteException("No deployed contracts to test")
         return AttrDict(test_contracts)

@@ -1,26 +1,20 @@
 tabulate>=0.8.2
 pytest>=3.9.3
 attrdict>=2.0.0
-# web3 and eth-account versions dictated by py-ethpm
-eth-account>=0.2.3,<0.3.0
-web3<4.9,>=4.7
+eth-account>=0.5.3,<0.6
+web3>=5.12.1,<6.0
 pyyaml>=4.2b1
-# EthPM stuff.  Had to be removed because because the version that supports
-# web3<5 auto-imports web3 infura, which now errors with web3.
-ethpm==0.1.4a8
-pytest-ethereum==0.1.3a5
-#pytest-ethereum==0.1.3a6
-eth-abi==1.2.2
-# Until web3[tester] can be removed from py-ethpm, we need these
-py-geth<3.0.0,>=2.0.1
-eth-tester[py-evm]==0.1.0-beta.33
-pysha3<2.0.0,>=1.0.0
+eth-abi>=2.1.1,<3.0
+py-evm==0.3.0a19
+eth-tester[py-evm]==0.5.0-beta.2
 # Vyper
-vyper==0.1.0b9
+vyper==0.2.4
 # If not specified, causes issues for some reason
 py-ecc==1.4.7
-# some peer dependency tries to install an incompatible eth-utils
-eth-utils==1.8.1
-eth_typing==1.3.0
+eth-utils<2.0.0,>=1.9.5
 # Solidity
-solidity-parser>=0.0.3
+solidity-parser==0.0.7
+# solidity-parser needs this, apparently but does not specify a version itself
+antlr4-python3-runtime==4.7.2
+# Fails on travis for some reason
+pysha3<2.0.0,>=1.0.0

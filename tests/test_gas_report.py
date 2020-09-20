@@ -158,7 +158,7 @@ def test_web3_middleware(mock_project):
 
         storage = GasReportStorage()
 
-        web3.middleware_stack.add(
+        web3.middleware_onion.add(
             construct_gas_report_middleware(storage),
             'gas_report_middleware',
         )
