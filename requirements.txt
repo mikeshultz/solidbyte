@@ -12,9 +12,9 @@ vyper==0.2.4
 # If not specified, causes issues for some reason
 py-ecc==1.4.7
 eth-utils<2.0.0,>=1.9.5
-# Solidity
-solidity-parser==0.0.7
 # solidity-parser needs this, apparently but does not specify a version itself
 antlr4-python3-runtime==4.7.2
+# Solidity
+solidity-parser==0.0.7
 # Fails on travis for some reason
 pysha3<2.0.0,>=1.0.0
