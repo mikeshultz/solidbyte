@@ -1,5 +1,7 @@
 # build_nonce: 1
 language: python
+# Build selected due to: https://github.com/ipfs-shipyard/py-ipfs-http-client/issues/235
+build: bionic
 python: 
   - 3.6
   - 3.7
