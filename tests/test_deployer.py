@@ -1,6 +1,4 @@
-# import json
 from pathlib import Path
-# from attrdict import AttrDict
 from solidbyte.common.web3 import web3c
 from solidbyte.common.metafile import MetaFile
 from solidbyte.deploy import Deployer
@@ -8,7 +6,6 @@ from solidbyte.deploy.objects import Contract, ContractDependencyTree, ContractL
 from solidbyte.compile.compiler import Compiler
 from .const import (
     NETWORK_NAME,
-    # LIBRARY_SOURCE_FILE_3,
     LIBRARY_SOURCE_FILE_4,
 )
 from .utils import write_temp_file
@@ -130,7 +127,6 @@ def test_deployer_deptree(mock_project):
         )
 
         deptree = d._build_dependency_tree(force=True)
-        print(deptree)
         assert isinstance(deptree, ContractDependencyTree)
         assert deptree.root.has_dependents()
 

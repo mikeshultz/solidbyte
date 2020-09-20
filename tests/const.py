@@ -9,7 +9,7 @@ TMP_DIR = Path('/tmp/solidbyte-test-{}'.format(datetime.now().timestamp()))
 SOLIDBYTE_COMMAND = 'sb'
 SOLIDBYTE_MODULE = 'solidbyte'
 
-EXPECTED_VYPER_VERSION = '0.1.0b9'
+EXPECTED_VYPER_VERSION = '0.2.4'
 
 # Ethereum stuff
 NETWORK_ID = 999
@@ -82,11 +82,12 @@ contract Test {
 
 CONTRACT_VYPER_SOURCE_FILE_1 = """owner: public(address)
 
-@public
+@external
 def __init__():
     self.owner = msg.sender
 
-@public
+@view
+@external
 def getOwner() -> address:
     return self.owner
 """
@@ -126,20 +127,24 @@ implements: ITestInterface
 
 counter: uint256
 
-@public
+@external
 def add_one():
     self.counter += 1
 
-@public
+@view
+@external
 def get_one() -> uint256:
     return self.counter
 """
 CONTRACT_VYPER_INTERFACE_FILE_2 = """
-@public
-def add_one(): modifying
+@external
+def add_one():
+    pass
 
-@public
-def get_one() -> uint256: constant
+@view
+@external
+def get_one() -> uint256:
+    pass
 """
 NETWORKS_YML_1 = """# networks.yml
 ---

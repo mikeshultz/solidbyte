@@ -18,7 +18,6 @@ MODULES = [
     'show',
     'console',
     'accounts',
-    # 'install',
     'metafile',
     'sigs',
     'script',

@@ -1,4 +1,5 @@
 """ Tests functions that are used as pytest fixtures for Solidbyte testing """
+from web3 import Web3
 from solidbyte.common.web3 import web3c
 from solidbyte.testing.fixtures import (
     topic_signature,
@@ -34,11 +35,15 @@ def test_event_abi():
 
 
 def test_has_event():
-    assert has_event(ContractMock, 'AddressEvent', EVENT_RECEIPT)
+    web3 = Web3()
+    contract = web3.eth.contract(abi=DUMB_CONTRACT_ABI)
+    assert has_event(contract, 'AddressEvent', EVENT_RECEIPT)
 
 
 def test_get_event():
-    evnt = get_event(ContractMock, 'AddressEvent', EVENT_RECEIPT)
+    web3 = Web3()
+    contract = web3.eth.contract(abi=DUMB_CONTRACT_ABI)
+    evnt = get_event(contract, 'AddressEvent', EVENT_RECEIPT)
     assert evnt.event == 'AddressEvent'
     assert evnt.args.val == '0x717dD920E935b5078fC67717713b2A62987A8044'
 

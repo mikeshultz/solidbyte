@@ -1,7 +1,8 @@
 """ Vyper utilities """
 import re
 from typing import List
-from vyper.parser.parser import parse_to_ast
+from vyper.ast.utils import parse_to_ast
+from vyper.ast.nodes import FunctionDef
 from ..common.utils import to_path
 from ..common.logging import getLogger
 
@@ -14,7 +15,7 @@ VYPER_TYPES = r'(uint{}|int{}|bytes{}|string|address)*'.format(TYPE_BITS, TYPE_B
 ARG_SPEC = r'(([\w]+)\:\s*' + VYPER_TYPES + r'(, )*)*'
 FUNCTION = r'^(def [\w\_]+\(' + ARG_SPEC + r'\)){1}(\:|[\s]+\-\>[\s]+' + VYPER_TYPES + r'\:){1}'
 PASS_BODY = r'([\n\r\s]*(pass)*)*'
-FUNC_MODIFYING = r'(\s*(modifying|constant){1}){1}'
+FUNC_MODIFYING = r'(\s*(payable|nonpayable|view|pure){1}){1}'
 BODYLESS_FUNCTION = FUNCTION + FUNC_MODIFYING + PASS_BODY
 
 
@@ -45,14 +46,15 @@ def vyper_funcs_from_source(source_text):
 
     for i in range(0, len(source_ast)):
         node = source_ast[i]
-        start = node.lineno
-        end = -1
 
-        if i < len(source_ast) - 1:
-            end = source_ast[i+1].lineno - 1
+        if type(node) == FunctionDef:
+            start = node.lineno
+            end = -1
 
-        funcs.append(source_extract(source_text, start, end))
+            if i < len(source_ast) - 1:
+                end = source_ast[i+1].lineno - 1
 
+            funcs.append(source_extract(source_text, start, end))
     return funcs
 
 

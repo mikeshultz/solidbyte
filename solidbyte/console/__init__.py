@@ -37,7 +37,7 @@ class SolidbyteConsole(code.InteractiveConsole):
             self.web3 = web3c.get_web3(network_name)
 
         if not _locals:
-            network_id = self.web3.net.chainId or self.web3.net.version
+            network_id = self.web3.eth.chainId or self.web3.net.version
 
             d = Deployer(network_name=network_name)
             contracts_meta = d.deployed_contracts
