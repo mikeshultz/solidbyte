@@ -17,7 +17,7 @@ jobs:
     - stage: "lint"
       matrix:
         include:
-          - python: 3.6
+          - python: 3.8
       env: 
         - TESTING=0 SCRIPT="python setup.py lint"
 
@@ -32,7 +32,7 @@ deploy:
     skip_existing: true
     on:
       tags: true
-      python: 3.6
+      python: 3.8
       condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+[ab]{0,1}[0-9]*$
   - provider: pypi
     user: mikeshultz
@@ -41,6 +41,6 @@ deploy:
     skip_existing: true
     on:
       tags: true
-      python: 3.6
+      python: 3.8
       condition: $TRAVIS_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+[b]{0,1}[0-9]*$
 script: $SCRIPT
