@@ -1,6 +1,5 @@
 language: python
 python: 
-  - 3.6
   # 3.7.9 selected due to: https://github.com/ipfs-shipyard/py-ipfs-http-client/issues/235
   - 3.7.9
   - 3.8
