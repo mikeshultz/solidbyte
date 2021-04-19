@@ -8,7 +8,7 @@ eth-abi>=2.1.1,<3.0
 py-evm==0.3.0a19
 eth-tester[py-evm]==0.5.0-beta.2
 # Vyper
-vyper==0.2.4
+vyper==0.2.11
 # If not specified, causes issues for some reason
 py-ecc==1.4.7
 eth-utils<2.0.0,>=1.9.5
