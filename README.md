@@ -1,6 +1,8 @@
 # solidbyte
 [![Build Status](https://travis-ci.org/mikeshultz/solidbyte.svg?branch=master)](https://travis-ci.org/mikeshultz/solidbyte) [![Coverage Status](https://coveralls.io/repos/github/mikeshultz/solidbyte/badge.svg?branch=master)](https://coveralls.io/github/mikeshultz/solidbyte?branch=master) [![Documentation Status](https://readthedocs.org/projects/solidbyte/badge/?version=latest)](https://solidbyte.readthedocs.io/en/latest/?badge=latest)
 
+**NOTE**: This project was experimental and is no longer updated.  You might be interested in checking out [Brownie](https://github.com/eth-brownie/brownie) or [Ape](https://github.com/ApeWorX/ape).
+
 Development tools for creating Ethereum smart contracts.
 
 Curious what a Solidbyte project looks like?  Check out the [solidbyte-test-project](https://github.com/mikeshultz/solidbyte-test-project) repository.
